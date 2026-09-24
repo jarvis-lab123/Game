@@ -32,3 +32,13 @@ Oder lokal starten: `npx serve .`
 | `index.html` | Grundgerüst |
 | `style.css` | Menüs, Karten, Dialoge |
 | `game.js` | Die ganze Spiellogik, das Rendering (Canvas) und der Synth-Sound (WebAudio) |
+
+## Als App installieren
+
+Das Spiel ist eine installierbare Web-App (PWA) und läuft nach der Installation auch offline.
+
+1. Auf GitHub unter **Settings → Pages → Source** die Option **GitHub Actions** wählen. Danach veröffentlicht der Workflow `.github/workflows/pages.yml` das Spiel bei jedem Push.
+2. Die Pages-Adresse (`https://<user>.github.io/Game/`) auf dem Handy öffnen.
+   - **iPhone (Safari):** Teilen → „Zum Home-Bildschirm“
+   - **Android (Chrome):** Menü ⋮ → „App installieren“
+3. Lumen startet dann im Vollbild mit eigenem Icon, wie eine normale App.
