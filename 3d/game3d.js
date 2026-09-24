@@ -89,17 +89,17 @@ const PALS = ZONES.map(mkPal), PAL_DAWN = mkPal(DAWN);
 const canvas = $('#c');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance', stencil: false });
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.05;
+renderer.toneMappingExposure = 0.82;
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.3, 4000);
 camera.position.set(0, 14, 12);
 
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
-const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.8, 0.45, 0.82);
+const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.55, 0.4, 0.9);
 composer.addPass(bloom);
 const FinalShader = {
-  uniforms: { tDiffuse: { value: null }, uTime: { value: 0 }, uAberr: { value: 0.0015 }, uGlitch: { value: 0 }, uRadial: { value: 0 }, uVig: { value: 1 }, uGrain: { value: 0.045 }, uFlash: { value: new Color(0, 0, 0) } },
+  uniforms: { tDiffuse: { value: null }, uTime: { value: 0 }, uAberr: { value: 0.0015 }, uGlitch: { value: 0 }, uRadial: { value: 0 }, uVig: { value: 1 }, uGrain: { value: 0.035 }, uFlash: { value: new Color(0, 0, 0) } },
   vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
   fragmentShader: `
     uniform sampler2D tDiffuse; uniform float uTime, uAberr, uGlitch, uRadial, uVig, uGrain; uniform vec3 uFlash; varying vec2 vUv;
@@ -266,7 +266,7 @@ function glowMat(pattern, opts = {}) {
         float fr = pow(1.0 - abs(dot(N, V)), 2.5);
         vec3 rim = uRim * uTint;
         vec3 col = uBase * (0.8 + 0.4 * N.y);
-        col += rim * fr * uRimK;
+        col += rim * fr * uRimK * 0.75;
         #if PATTERN == 1
           float side = 1.0 - abs(N.y);
           vec2 wp = vec2(vW.x + vW.z, vW.y) * vec2(0.55, 0.42);
@@ -290,7 +290,7 @@ function glowMat(pattern, opts = {}) {
           col += rim * smoothstep(0.94, 1.0, fract(vW.y * 0.08 - uTime * 0.35)) * 0.7 * (1.0 - abs(N.y));
         #endif
         vec3 L = uPlayer - vW; float dl = length(L);
-        col += uPlayerCol * max(dot(N, L / dl), 0.0) * (4.0 / (1.0 + dl * dl * 0.05));
+        col += uPlayerCol * max(dot(N, L / dl), 0.0) * (2.5 / (1.0 + dl * dl * 0.05));
         col = applyFog(col, length(vW - cameraPosition));
         gl_FragColor = vec4(col, 1.0);
       }`,
@@ -351,7 +351,7 @@ const sky = new THREE.Mesh(new THREE.SphereGeometry(3000, 48, 24), new THREE.Sha
       vec3 d = normalize(vDir); float h = d.y;
       vec3 col = mix(uFog, uSkyTop, smoothstep(-0.02, 0.5, h));
       float s = max(dot(d, uSunDir), 0.0);
-      col += uGlow * (pow(s, 6.0) * 0.55 + pow(s, 60.0) * 0.9) * uSunI;
+      col += uGlow * (pow(s, 6.0) * 0.35 + pow(s, 60.0) * 0.7) * uSunI;
       float disc = smoothstep(0.9986, 0.9991, s);
       vec3 lit = col + uSun * disc * 6.0 * uSunI;
       float corona = smoothstep(0.9965, 0.9989, s) * (1.0 - disc);
@@ -403,12 +403,12 @@ const terrain = new THREE.Mesh(terrainGeo, new THREE.ShaderMaterial({
       float line = 1.0 - min(min(g.x, g.y), 1.0);
       float fade = exp(-d * 0.0035);
       vec3 col = uBase * (0.6 + 0.02 * clamp(vH, 0.0, 60.0));
-      col += uGrid * line * (0.25 + 1.1 * fade) * (1.0 - smoothstep(0.3, 1.0, max(gw.x, gw.y)));
+      col += uGrid * line * (0.15 + 0.7 * fade) * (1.0 - smoothstep(0.3, 1.0, max(gw.x, gw.y)));
       col += uRim * smoothstep(20.0, 75.0, vH) * 0.28;
       float pulse = smoothstep(0.965, 1.0, fract(vW.z * 0.004 + uTime * 0.3)) * (1.0 - smoothstep(30.0, 60.0, abs(vW.x)));
-      col += uGrid * pulse * 0.7 * fade;
+      col += uGrid * pulse * 0.45 * fade;
       float pd = length(vW - uPlayer);
-      col += uPlayerCol * (0.5 / (1.0 + pd * pd * 0.02));
+      col += uPlayerCol * (0.25 / (1.0 + pd * pd * 0.02));
       if (vWet > 0.5) {
         vec3 wc = uBase * 0.35 + uGlow * 0.08;
         float sp = noise(vW.xz * vec2(0.08, 0.3) + vec2(0.0, uTime * 1.2)) * noise(vW.xz * 0.05 - uTime * 0.15);
@@ -507,7 +507,7 @@ class Burst {
     this.mesh = new THREE.Points(g, new THREE.ShaderMaterial({
       uniforms: PU, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, vertexColors: true,
       vertexShader: `uniform float uScale; attribute vec2 aSA; varying vec3 vC; varying float vA;
-        void main(){ vC = color; vA = aSA.y; vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_PointSize = aSA.x * uScale / -mv.z; gl_Position = projectionMatrix * mv; }`,
+        void main(){ vC = color; vA = aSA.y; vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_PointSize = aSA.x * 0.55 * uScale / -mv.z; gl_Position = projectionMatrix * mv; }`,
       fragmentShader: `varying vec3 vC; varying float vA; void main(){ float d = length(gl_PointCoord - 0.5); gl_FragColor = vec4(vC, smoothstep(0.5, 0.0, d) * vA); }`,
     }));
     this.mesh.frustumCulled = false; scene.add(this.mesh);
@@ -544,7 +544,7 @@ class Burst {
 }
 const burst = new Burst(2500);
 const HDR = (r, g, b) => new Color().setRGB(r, g, b);
-const C_GOLD = HDR(4, 2.6, 0.9), C_WHITE = HDR(3, 3, 3), C_RED = HDR(4, 0.5, 0.3), C_CYAN = HDR(1, 3, 4), C_VIOLET = HDR(2.4, 0.8, 4);
+const C_GOLD = HDR(2, 1.3, 0.45), C_WHITE = HDR(1.6, 1.6, 1.6), C_RED = HDR(2.4, 0.3, 0.2), C_CYAN = HDR(0.5, 1.6, 2.1), C_VIOLET = HDR(1.4, 0.5, 2.4);
 
 // ---------------------------------------------------------------------
 //  Trails
@@ -589,17 +589,17 @@ const P = {
   speed: 60, lives: 3, glut: 0.3, boosting: false, boostAmt: 0, inv: 0, slow: 1, alive: true, right: new V3(1, 0, 0),
 };
 const player = new THREE.Group();
-const core = new THREE.Mesh(G.ico, new THREE.MeshBasicMaterial({ color: HDR(3, 2.3, 1.3) }));
+const core = new THREE.Mesh(G.ico, new THREE.MeshBasicMaterial({ color: HDR(2.2, 1.6, 0.9) }));
 core.scale.setScalar(0.5);
 const shell = new THREE.Mesh(new THREE.IcosahedronGeometry(1, 0), new THREE.MeshBasicMaterial({ color: HDR(1.8, 1.0, 0.3), wireframe: true, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending, depthWrite: false }));
 const wingShape = new THREE.Shape(); wingShape.moveTo(0.25, 0.25); wingShape.lineTo(2.3, -0.9); wingShape.lineTo(1.3, -0.25); wingShape.lineTo(0.25, -0.75); wingShape.closePath();
 const wingGeo = new THREE.ShapeGeometry(wingShape); wingGeo.rotateX(-Math.PI / 2);
 const wingMat = addMat([1.6, 1.0, 0.4], 0.6, { side: THREE.DoubleSide });
 const wingR = new THREE.Mesh(wingGeo, wingMat), wingL = new THREE.Mesh(wingGeo, wingMat); wingL.scale.x = -1;
-const halo = glowSprite([1.1, 0.8, 0.4], 2.4), halo2 = glowSprite([0.5, 0.3, 0.12], 6.5, 0.15);
+const halo = glowSprite([0.8, 0.55, 0.25], 2.0), halo2 = glowSprite([0.4, 0.22, 0.08], 5.5, 0.1);
 player.add(core, shell, wingR, wingL, halo, halo2);
 scene.add(player);
-const trailC = new Trail(30, 0.45, [1.1, 0.6, 0.2], 0.7, 0.2);
+const trailC = new Trail(30, 0.4, [0.8, 0.42, 0.14], 0.6, 0.2);
 const trailL = new Trail(40, 0.06, [2, 1.5, 0.8], 1, 0.2), trailR = new Trail(40, 0.06, [2, 1.5, 0.8], 1, 0.2);
 
 // ---------------------------------------------------------------------
@@ -888,7 +888,7 @@ function spawnRing(x, y, z, gold) {
   const key = gold ? 'gring' : 'ring';
   const g = take(key, () => {
     const grp = new THREE.Group();
-    const t = new THREE.Mesh(G.ring, addMat(gold ? [4, 3.4, 2] : [3, 1.8, 0.5], 1));
+    const t = new THREE.Mesh(G.ring, addMat(gold ? [3, 2.5, 1.4] : [2.2, 1.3, 0.35], 1));
     const disc = new THREE.Mesh(G.plane, new THREE.MeshBasicMaterial({ map: TEX_GLOW, color: gold ? HDR(0.9, 0.7, 0.4) : HDR(0.5, 0.3, 0.1), transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false }));
     disc.scale.setScalar(gold ? 9 : 7);
     grp.add(t, disc); if (gold) { const s = glowSprite([1.6, 1.2, 0.6], 14, 0.6); grp.add(s); }
@@ -1514,10 +1514,10 @@ function update(dt, rdt) {
       const d = Math.hypot(P.pos.x - r.x, P.pos.y - r.y);
       if (d < 3.4 && P.alive) {
         r.anim = 0;
-        burst.emit(P.pos, r.gold ? 60 : 26, r.gold ? C_WHITE : C_GOLD, r.gold ? 26 : 18, 0.6, 0.7);
+        burst.emit(P.pos, r.gold ? 40 : 18, r.gold ? C_WHITE : C_GOLD, r.gold ? 26 : 18, 0.5, 0.6);
         if (run && playing) {
           run.rings++; setCombo(run.combo + 1); addScore(100); P.glut = Math.min(1, P.glut + 0.12);
-          A.ring(run.combo); flash(HDR(0.12, 0.08, 0.02), 1); fovKick += 2.5;
+          A.ring(run.combo); flash(HDR(0.06, 0.04, 0.01), 1); fovKick += 2.5;
           if (r.gold) fireLance();
         } else if (mode === 'ending') A.ring(randi(0, 7));
       } else if (run && playing && !r.gold) {
@@ -1591,7 +1591,7 @@ function updateVisuals(dt, rdt) {
   shell.rotation.x += dt * 1.6; shell.rotation.y += dt * 2.3;
   const pulse = 1 + Math.sin(gTime * 9) * 0.06 + P.boostAmt * 0.25;
   core.scale.setScalar(0.5 * pulse); shell.scale.setScalar(1 + P.boostAmt * 0.3);
-  halo.scale.setScalar(2.4 * pulse + P.boostAmt * 2); halo2.material.opacity = 0.14 + P.boostAmt * 0.2;
+  halo.scale.setScalar(2.0 * pulse + P.boostAmt * 1.5); halo2.material.opacity = 0.1 + P.boostAmt * 0.15;
   wingMat.opacity = 0.55 + P.boostAmt * 0.35;
   wingR.rotation.z = Math.sin(gTime * 3) * 0.08; wingL.rotation.z = -wingR.rotation.z;
   if (P.inv > 0 && P.alive) player.visible = Math.floor(P.inv * 14) % 2 === 0; else if (P.alive) player.visible = true;
@@ -1653,7 +1653,7 @@ function updateVisuals(dt, rdt) {
   FX.uTime.value = gTime; FX.uGlitch.value = glitch; FX.uFlash.value.copy(flashCol);
   FX.uAberr.value = 0.0012 + P.boostAmt * 0.004 + glitch * 0.012;
   FX.uRadial.value = P.boostAmt * 1.0 + clamp((P.speed - 70) / 80, 0, 0.5);
-  bloom.strength = 0.8 + P.boostAmt * 0.3;
+  bloom.strength = 0.55 + P.boostAmt * 0.25;
 
   A.update(mode === 'play' || mode === 'ending' ? P.speed : P.speed * 0.4, P.boostAmt);
   burst.update(dt);
@@ -1695,7 +1695,7 @@ function updateEnding(dt, rdt) {
     bossGroup.scale.setScalar(Math.max(0.02, bossGroup.scale.x - rdt * 2.2));
     if (bossGroup.scale.x <= 0.05) {
       e.stage = 2; e.t2 = 0;
-      flash(HDR(2.4, 2.1, 1.6), 1); shake(2); A.explode(); A.swell();
+      flash(HDR(1.4, 1.2, 0.9), 1); shake(2); A.explode(); A.swell();
       const bp = bossGroup.position.clone();
       burst.emit(bp, 500, C_GOLD, 140, 6, 3, { drag: 0.8 }); burst.emit(bp, 300, C_WHITE, 90, 4, 2.4, { drag: 0.9 });
       bossGroup.visible = false; boss.on = false;
