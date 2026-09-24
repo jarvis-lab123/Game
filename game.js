@@ -1411,6 +1411,7 @@ function mainMenu() {
     <div class="topbar"><span class="currency">${save.funken}</span><button class="btn alt small" data-a="mute">${save.muted ? '🔇' : '🔊'}</button></div>
     <h1 class="logo">LUMEN</h1><div class="tagline">Der letzte Funke</div>
     <div class="col" style="margin-top:22px">
+      <button class="btn" data-a="go3d">✦ NEU: Sonnenflug 3D</button>
       <button class="btn" data-a="map">${save.done === 0 && !save.seenIntro ? 'Abenteuer beginnen' : 'Abenteuer'}</button>
       <button class="btn alt" data-a="shop">Seelenschmiede${affordable() ? '<span class="badge">!</span>' : ''}</button>
       <button class="btn alt" data-a="endless" ${endlessOpen ? '' : 'disabled'}>${endlessOpen ? '🌑 Ewige Nacht' : '🔒 Ewige Nacht (Kapitel I)'}</button>
@@ -1589,6 +1590,7 @@ let lastRun = { mode: 'chapter', ch: 0 };
 const actions = {
   map: () => { if (save.done === 0 && !save.seenIntro) startChapter(0); else chapterMap(); },
   menu: () => mainMenu(),
+  go3d: () => { location.href = '3d/'; },
   shop: () => shopScreen('menu'),
   shop2: () => shopScreen('back2'),
   back2: () => chapterMap(),

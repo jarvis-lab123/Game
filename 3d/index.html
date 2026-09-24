@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#05030a">
+<title>Lumen – Sonnenflug</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style3d.css">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icons/icon-192.png">
+<link rel="apple-touch-icon" href="../icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script type="importmap">{ "imports": { "three": "./lib/three.module.min.js" } }</script>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div id="hud" class="hidden">
+  <div id="hudTop">
+    <div id="scoreBox"><div id="score">0</div><div id="mult">×1</div></div>
+    <div id="progress"><div id="progFill"></div><div id="progMarks"></div></div>
+    <div id="lives"></div>
+  </div>
+  <div id="bossBar" class="hidden"><div class="bn">UMBRA</div><div class="bb"><div id="bossFill"></div></div></div>
+  <div id="glut"><div id="glutFill"></div><span id="glutLabel">GLUT</span></div>
+  <div id="popups"></div>
+  <div id="title"></div>
+  <div id="caption"></div>
+  <div id="hint"></div>
+  <button id="boostBtn" aria-label="Boost">BOOST</button>
+  <button id="pauseBtn" aria-label="Pause">❚❚</button>
+</div>
+
+<div id="ui"></div>
+<div id="fade"></div>
+<div id="loading"><div class="ld-logo">LUMEN</div><div class="ld-sub">Die Welt entsteht …</div></div>
+<noscript><p style="color:#fff;text-align:center;margin-top:40vh">Für Sonnenflug wird JavaScript benötigt.</p></noscript>
+
+<script type="module" src="game3d.js"></script>
+<script>
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('../sw.js', { scope: '../' }).catch(() => {});
+</script>
+</body>
+</html>
