@@ -42,3 +42,9 @@ Das Spiel ist eine installierbare Web-App (PWA) und läuft nach der Installation
    - **iPhone (Safari):** Teilen → „Zum Home-Bildschirm“
    - **Android (Chrome):** Menü ⋮ → „App installieren“
 3. Lumen startet dann im Vollbild mit eigenem Icon, wie eine normale App.
+
+## Windows-App
+
+`desktop/windows/` enthält eine kleine native Windows-App (Go + Microsoft WebView2, etwa 7 MB, ohne Browserfenster).
+Bauen mit `desktop/windows/build.sh`. Das Ergebnis ist `desktop/windows/Lumen.exe`.
+Der Spielstand liegt unter `%LOCALAPPDATA%\Lumen`.
