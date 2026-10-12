@@ -48,3 +48,24 @@ Das Spiel ist eine installierbare Web-App (PWA) und läuft nach der Installation
 `desktop/windows/` enthält eine kleine native Windows-App (Go + Microsoft WebView2, etwa 7 MB, ohne Browserfenster).
 Bauen mit `desktop/windows/build.sh`. Das Ergebnis ist `desktop/windows/Lumen.exe`.
 Der Spielstand liegt unter `%LOCALAPPDATA%\Lumen`.
+
+---
+
+# ⛳ Alpine Grand Slam (Handy-App)
+
+Das 3D-Golfspiel *Alpine Grand Slam* liegt im Ordner `alpine/` und ist fürs Handy im **Querformat** optimiert:
+kompaktes Spiel-HUD, Schwung per Finger ziehen, Vollbild mit Querformat-Sperre und ein „Handy drehen“-Hinweis im Hochformat.
+Three.js und die Schriften liegen mit im Ordner, deshalb läuft die App nach dem ersten Start auch offline.
+
+**Installieren** (nachdem GitHub Pages wie oben eingerichtet ist):
+
+1. Auf dem Handy `https://jarvis-lab123.github.io/Game/alpine/` öffnen.
+2. **iPhone (Safari):** Teilen → „Zum Home-Bildschirm“. **Android (Chrome):** Menü ⋮ → „App installieren“.
+3. Die App „Grand Slam“ startet im Vollbild und im Querformat.
+
+| Datei | Inhalt |
+|---|---|
+| `alpine/index.html` | Das ganze Spiel (Story, 3D-Plätze, Physik) inkl. Handy-Layout (`v24 Handy · Querformat`) |
+| `alpine/manifest.webmanifest`, `alpine/sw.js` | App-Installation (Querformat, Vollbild) und Offline-Cache |
+| `alpine/vendor/three/` | Three.js 0.169 (nur die benutzten Module, MIT-Lizenz) |
+| `alpine/fonts/` | Saira Condensed, Libre Franklin, Caveat (SIL Open Font License) |
