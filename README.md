@@ -57,6 +57,11 @@ Das 3D-Golfspiel *Alpine Grand Slam* liegt im Ordner `alpine/` und ist fürs Han
 kompaktes Spiel-HUD, Schwung per Finger ziehen, Vollbild mit Querformat-Sperre und ein „Handy drehen“-Hinweis im Hochformat.
 Three.js und die Schriften liegen mit im Ordner, deshalb läuft die App nach dem ersten Start auch offline.
 
+**Neu in Version 25 – Ryder Cup (Grand Slam 4):** eine neue Story in rund 30 Minuten, komplett im Matchplay.
+Kapitel 1–2 sind die *Matchplay-Edition* (Matchplay-WM in Crans-Montana und Andermatt, K.-o. bis zum Finale gegen Tyler Voss),
+Kapitel 3–4 die *Ryder-Cup-Edition* in Rom: Vierball mit Mila oder Kai, dann das Sonntags-Einzel, das den Cup entscheidet.
+Loch für Loch zählt (2 UP, Dormie, 3&2, Extraloch), Entscheidungen verändern Partner, Startposition und Dialoge.
+
 **Installieren** (nachdem GitHub Pages wie oben eingerichtet ist):
 
 1. Auf dem Handy `https://jarvis-lab123.github.io/Game/alpine/` öffnen.

@@ -366,7 +366,7 @@ table.sc tr.hcp td{color:#6a6a5a;font-size:12px}
 @media (max-width:760px){.np-body{grid-template-columns:1fr}.hero{grid-template-columns:1fr}.paper.mini{display:none}.hubtop .kpis{grid-template-columns:repeat(2,1fr)}}
 /* ---------- v23 Grand Slam 3 ---------- */
 .rels{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 16px;max-width:520px;margin:0 0 16px}.rels .rl{display:grid;grid-template-columns:110px 1fr 32px;align-items:center;gap:8px;font:700 11px var(--disp);letter-spacing:.1em;text-transform:uppercase;color:#dfe8e1}.rels .rb{height:8px;border-radius:4px;background:rgba(255,255,255,.14);overflow:hidden}.rels .rb i{display:block;height:100%;border-radius:4px}.rels .rv{font:800 13px var(--disp);text-align:right}
-.camps{grid-template-columns:repeat(3,1fr)!important}
+.camps{grid-template-columns:repeat(4,1fr)!important}
 /* ---------- v22 Grand Slam 2 ---------- */
 #choice .cw2{width:min(760px,100%);padding:22px 24px;border-radius:16px;pointer-events:auto}
 #choice .ch-h{display:flex;gap:14px;align-items:center}#choice .pt{width:58px;height:58px;border-radius:12px;display:grid;place-items:center;font:800 22px var(--disp);color:#fff}
@@ -564,7 +564,7 @@ html,body{overscroll-behavior:none;-webkit-touch-callout:none;-webkit-tap-highli
 <div id="app">
  <canvas id="gl"></canvas>
  <div id="pressure" class="hud"></div>
- <div id="verTag" class="hud">Version 24</div>
+ <div id="verTag" class="hud">Version 25</div>
  <button id="bSnd" type="button" aria-label="Ton an"></button>
  <div id="replayTag" class="hud">▶ Replay · Klick zum Beenden</div>
 
@@ -619,11 +619,11 @@ html,body{overscroll-behavior:none;-webkit-touch-callout:none;-webkit-tap-highli
 
  <div id="title" class="screen scrim" hidden>
   <div class="tl">
-   <div class="brand"><span class="cross" aria-hidden="true"></span><span>Golf Story · Version 24 · Grand Slam 3</span></div>
+   <div class="brand"><span class="cross" aria-hidden="true"></span><span>Golf Story · Version 25 · Ryder Cup</span></div>
    <h1>Alpine<em>Grand Slam</em></h1>
    <p class="sub">Vom Jugendturnier in Kandern bis zum Claret Jug in St Andrews. Fünfzehn Turniere auf echten Plätzen, ein Rivale, der nicht verschwindet – und eine Geschichte, die sich mit jedem Ergebnis verändert.</p>
    <div class="feat"><span>15 Turniere</span><span>Verzweigte Story</span><span>Interviews &amp; Schlagzeilen</span><span>TrackMan-Ballflug</span></div>
-<div class="camps" id="camps"><button type="button" data-c="3"><b>Grand Slam 3 <span class="new">Neu</span></b><small>Gipfelsturm · Zermatt</small></button><button type="button" data-c="2"><b>Grand Slam 2</b><small>Die Akademie · Saastal</small></button><button type="button" data-c="1"><b>Teil 1</b><small>Der Weg nach St Andrews</small></button></div>
+<div class="camps" id="camps"><button type="button" data-c="4"><b>Ryder Cup <span class="new">Neu</span></b><small>Matchplay · Rom · 30 Min.</small></button><button type="button" data-c="3"><b>Grand Slam 3</b><small>Gipfelsturm · Zermatt</small></button><button type="button" data-c="2"><b>Grand Slam 2</b><small>Die Akademie · Saastal</small></button><button type="button" data-c="1"><b>Teil 1</b><small>Der Weg nach St Andrews</small></button></div>
    <div class="menu">
     <button class="mbtn cont" id="bCont" type="button" hidden><b>Karriere fortsetzen</b><small id="contMeta"></small><span class="arr">→</span></button>
     <div id="newBox" class="newbox">
@@ -1263,6 +1263,76 @@ function epilogue3(s){const f=s.flags||{},r=s.rel||{family:50,caddie:50,fans:50,
  if(f.flewHome)L.push(['tv','Die Bergrettung Zermatt hat einen neuen Helikopter. Auf dem Rumpf steht ein Name.']);
  if(r.fans>=70)L.push(['tv','Kein Golfer hatte je mehr Fans in den Alpen.']);
  L.push(['legend','Drei Generationen, drei Geschichten. Und alle haben in den Bergen angefangen.']);return L}
+// ---------- Grand Slam 4 · Matchplay & Ryder Cup (v25) ----------
+Object.assign(SPEAK,{nora:{n:'Nora Lindqvist · Captain Team Europa',c:'#1f4fb5',i:'NL'},tyler:{n:'Tyler Voss',c:'#b22234',i:'TV'},gio:{n:'Gio Moretti · Caddie',c:'#2f7a3a',i:'GM'},walker:{n:'Hank Walker · Captain Team USA',c:'#7a1f2b',i:'HW'}});
+const CH4={1:['Die Einladung','Matchplay-WM · Crans-Montana'],2:['K.-o.','Halbfinale & Finale · Andermatt'],3:['Team Europa','Ryder Cup · Vierball · Rom'],4:['Sonntag','Die Einzel · Rom']};
+const PP4={1:'Walliser Bote',2:'Sport-Blitz',3:'Corriere del Golf',4:'The Fairway Herald'};
+const RC_PAIR=s=>(s&&s.flags&&s.flags.partner==='kai')?{name:'Kai Andersen',cc:'NOR',skill:.05}:{name:'Mila Sutter',cc:'SUI',skill:.03};
+const RC_PN=s=>RC_PAIR(s).name.split(' ')[0];
+const EV4=[
+ {key:'m16',short:'Achtelfinale',ch:1,lv:7,purse:120000,rank:48,map:[0,1],next:{ok:'m8',fail:'m16'},course:'crans',name:'Matchplay-WM · Achtelfinale',tour:'Alpine Matchplay Championship',stage:'Matchplay',age:26,goal:{win:true,match:true},field:'tour',time:'morning',crowd:true,stand:true,
+  match:{opp:'Kai Andersen',cc:'NOR',skill:-.05,from:6,holes:3},
+  txt:'Sechzehn Spieler, ein Pokal, kein Zählspiel. Wer ein Loch gewinnt, holt einen Punkt – wer zu weit hinten liegt, fliegt raus. Und auf der Tribüne sitzt die Captain von Team Europa.',
+  intro:[['gio','Gio Moretti, dein neuer Caddie. Drei Regeln im Matchplay: Schau auf deinen Gegner, nicht auf das Leaderboard. Ein schlechtes Loch kostet nur ein Loch. Und nie, nie den Putt schenken, den du selbst nicht lochen würdest.'],['kai','Kai Andersen. Achtelfinale gegen dich? Das Los hat Humor. Ich habe nichts gegen dich – ausser, dass ich gewinnen will.'],['nora','Nora Lindqvist. Ich bin Captain von Team Europa. In acht Wochen ist Ryder Cup in Rom, und mir fehlt noch ein Spieler. Ich schaue zu, {name}. Nur zu.']],
+  win:[['kai','Du hast keinen einzigen Putt verschenkt. Respekt. Gewinn das Ding jetzt auch.'],['gio','Viertelfinale. Wir sind noch nicht mal warm.']],
+  lose:[['gio','Ausgeschieden – im Traum. Wir spielen das Match nochmals, bis es sitzt. Nora schaut immer noch zu.']]},
+ {key:'m8',short:'Viertelfinale',ch:1,lv:7,purse:250000,rank:40,map:[1.7,1],next:{ok:'__choice',fail:'m8'},course:'crans',name:'Matchplay-WM · Viertelfinale',tour:'Alpine Matchplay Championship',stage:'Matchplay',age:26,goal:{win:true,match:true},field:'tour',time:'golden',crowd:true,stand:true,
+  match:{opp:'Joost Verbeek',cc:'NED',skill:-.03,from:13,holes:3},
+  txt:'Abendlicht über dem Rhonetal. Joost Verbeek spielt wie ein Uhrwerk: Fairway, Grün, zwei Putts. Matchplay-Spieler fürchten ihn – weil er nie einen Fehler macht.',
+  intro:[['gio','Verbeek macht keine Birdies. Er wartet, bis du einen Bogey machst. Also mach keinen.'],['tv','Und im Hintergrund schon die grosse Frage dieser Woche: Tyler Voss, die Nummer eins der Welt, hat gestern gesagt, Europas Ryder-Cup-Team sei «ein Haufen netter Leute». Er spielt im anderen Teil des Tableaus.']],
+  win:[['tv','{name} steht im Halbfinale! Und Tyler Voss hat schon wieder etwas zu sagen …']],
+  lose:[['gio','Verbeek hat gewartet – und du hast den Fehler gemacht. Noch einmal. Diesmal ohne Geschenke.']],
+  decide:{who:'tyler',q:'Pressekonferenz nach dem Viertelfinale. Ein Reporter liest dir vor, was Tyler Voss gerade über dich gesagt hat: «{name}? Netter Schwung. Netter Mensch. Im Ryder Cup werden die netten zuerst gefressen.»',opts:[
+   {t:'Kontern: «Ich freue mich aufs Fressen.»',d:'Die Fans lieben es, die Presse auch. Voss wird es nicht vergessen (Fans ++, Power +).',set:{bold:true},fans:6000,perk:{power:.015},next:'m4',say:[['tyler','Ha! Endlich jemand mit Biss. Wir sehen uns im Finale. Falls du so weit kommst.'],['gio','Schöne Schlagzeile. Jetzt müssen wir sie nur noch beweisen.']]},
+   {t:'Ruhig bleiben: «Ich spiele Golf, kein Pingpong.»',d:'Kein Drama. Nora Lindqvist mag Spieler, die cool bleiben (Nerven +, Putten +).',set:{calm:true},perk:{nerve:.03,putt:.01},next:'m4',say:[['nora','Gute Antwort. Im Ryder Cup brauche ich Leute, die nicht auf jeden Köder beissen.'],['tyler','Langweilig. Aber gut – langweilig kann man auch schlagen.']]}]}},
+ {key:'m4',short:'Halbfinale',ch:2,lv:8,purse:450000,rank:32,map:[3.4,1],next:{ok:'m2',fail:'m4'},course:'andermatt',name:'Matchplay-WM · Halbfinale',tour:'Alpine Matchplay Championship',stage:'Matchplay',age:26,goal:{win:true,match:true},field:'tour',time:'morning',crowd:true,stand:true,
+  match:{opp:'Mila Sutter',cc:'SUI',skill:-.02,from:3,holes:3},
+  txt:'Andermatt, Gotthard-Granit rund um die Fairways. Im Halbfinale wartet die Person, mit der du seit der Juniorenzeit jedes Hotelzimmer, jeden Rückflug und jede Niederlage geteilt hast.',
+  intro:s=>[['mila','Weisst du, was das Schlimmste ist? Ich will dich wirklich schlagen. Und danach will ich mit dir Fondue essen.'],['gio','Freundschaft ist schön. Aber Mila locht alles unter drei Metern. Bring den Ball näher als sie.'],s&&s.flags&&s.flags.bold?['tyler','Ich schaue mir das Halbfinale an. Zwei Schweizer, ein Ticket gegen mich. Wie süss.']:['nora','Beide von euch sind auf meiner Liste. Spielt einfach gut. Bitte beide.']],
+  win:[['mila','Fondue geht auf dich. Und dann schlägst du Voss, verstanden? Für uns beide.']],
+  lose:[['mila','Sorry. Nicht sorry. … Na gut, ein bisschen sorry. Nochmals?']]},
+ {key:'m2',short:'Finale',ch:2,lv:8,purse:1500000,rank:22,map:[5.1,1],next:{ok:'__choice',fail:'__choice'},course:'andermatt',name:'Matchplay-WM · Finale',tour:'Alpine Matchplay Championship',stage:'Finale',age:26,goal:{win:true,match:true},field:'major',time:'golden',crowd:true,stand:true,
+  match:{opp:'Tyler Voss',cc:'USA',skill:.01,from:14,holes:4,final:true},onWin:{mpChamp:true},cere:['Matchplay-Weltmeister','Champion'],
+  txt:'Das Finale. Tyler Voss, Nummer eins der Welt, hat jedes Match dieser Woche vor dem 17. Loch beendet. Vier Löcher entscheiden – und ganz Europa schaut zu, wie du dich gegen ihn schlägst.',
+  intro:s=>[['tyler',s&&s.flags&&s.flags.bold?'Du freust dich aufs Fressen, hab ich gehört. Na dann: Guten Appetit.':'Der ruhige Schweizer. Ich mag ruhige Gegner. Die hört man nicht, wenn sie verlieren.'],['gio','Voss spielt schnell und aggressiv. Lass ihn warten. Atme. Dann schlag.'],['nora','Was auch passiert: Nach diesem Match rufe ich dich an.']],
+  win:[['tv','{name} ist Matchplay-Weltmeister! Tyler Voss geht ohne Handschlag vom Grün.'],['nora','Ich habe gesagt, ich rufe an. Ich stehe direkt hinter dir.']],
+  lose:[['tyler','Netter Schwung. Hab ich doch gesagt.'],['nora','Verloren – aber du hast ihm wehgetan. Genau das brauche ich in Rom. Hast du kurz Zeit?']],
+  decide:s=>({who:'nora',q:(s.flags&&s.flags.mpChamp?'Gratuliere, Weltmeister. ':'')+'Du bist im Team – meine Wildcard für den Ryder Cup in Rom. Am Freitag spielst du Vierball: zwei gegen zwei, der bessere Score pro Seite zählt. Mit wem willst du spielen?',opts:[
+   {t:'Mit Mila Sutter',d:'Deine beste Freundin auf der Tour. Ihr kennt jeden Schlag des anderen (Nerven +).',set:{partner:'mila'},perk:{nerve:.02},next:'rc1',say:[['mila','Endlich auf derselben Seite! Ich putte, du drivest. Abgemacht?'],['nora','Gute Wahl. Freundschaft trägt weit, wenn es eng wird.']]},
+   {t:'Mit Kai Andersen',d:'Der stärkere Spieler – aber ihr habt euch gerade erst im Achtelfinale bekämpft (Power +).',set:{partner:'kai'},perk:{power:.015},next:'rc1',say:[['kai','Wir zwei? Feuer und Eis. Die Amerikaner werden nicht wissen, was sie trifft.'],['nora','Mutig. Ich mag mutig.']]}]})},
+ {key:'rc1',short:'Freitag',ch:3,lv:8,purse:0,rank:20,map:[7,1],next:{ok:'rc2',fail:'rc2'},course:'marcosimone',name:'Ryder Cup · Freitag · Vierball',tour:'Ryder Cup · Europa gegen USA',stage:'Ryder Cup',age:26,goal:{win:true,match:true,point:true},field:'major',time:'morning',crowd:true,stand:true,
+  match:{opp:'Brody Callahan',cc:'USA',opp2:'Wes Bradley',skill:-.01,o2skill:0,team:true,mate:RC_PAIR,from:15,holes:3,session:{n:8,name:'Freitag · Vierball'},halveOk:true},
+  txt:'Rom. Sechs Uhr früh, und die Tribüne am ersten Abschlag ist schon voll: blau links, rot rechts, Gesänge auf zwölf Sprachen. Vierball – du und dein Partner gegen zwei Amerikaner, der bessere Score jeder Seite zählt.',
+  intro:s=>[['nora','Willkommen in Rom. Ich habe noch nie einen Rookie im ersten Match aufgestellt. Heute schon. Enttäusch mich nicht – und hab Spass.'],[s.flags&&s.flags.partner==='kai'?'kai':'mila',s.flags&&s.flags.partner==='kai'?'Ich habe nicht geschlafen. Du auch nicht? Gut. Dann sind wir beide wach.':'Hörst du das? Das sind fünfzigtausend Leute. Und sie singen deinen Namen falsch. Herrlich.'],['walker','Hank Walker, Captain USA. Callahan und Bradley haben im Training alles gelocht. Viel Glück, Europa.']],
+  win:s=>[['tv','Punkt für Europa! {name} und '+RC_PN(s)+' gewinnen das erste Match des Ryder Cup.'],['nora','So eröffnet man einen Ryder Cup.']],
+  halve:s=>[['tv','Halber Punkt für jede Seite! {name} und '+RC_PN(s)+' retten das Match auf dem letzten Grün.']],
+  lose:s=>[['nora','Ein verlorenes Match ist kein verlorener Cup. Morgen ist ein neuer Tag – und du spielst wieder.']]},
+ {key:'rc2',short:'Samstag',ch:3,lv:8,purse:0,rank:20,map:[8.8,1],next:{ok:'__choice',fail:'__choice'},course:'marcosimone',name:'Ryder Cup · Samstag · Vierball',tour:'Ryder Cup · Europa gegen USA',stage:'Ryder Cup',age:26,goal:{win:true,match:true,point:true},field:'major',time:'golden',crowd:true,stand:true,
+  match:{opp:'Blake Sutter',cc:'USA',opp2:'Marcus Webb',skill:0,o2skill:.01,team:true,mate:RC_PAIR,from:4,holes:3,session:{n:8,name:'Samstag · Vierball'},halveOk:true},
+  txt:'Samstagnachmittag, goldenes Licht über den Hügeln vor Rom. Das Momentum kippt mit jedem Putt. Wer heute Abend vorne liegt, schläft besser – und wer hinten liegt, braucht ein Wunder am Sonntag.',
+  intro:s=>[['nora','Stand nach Freitag: '+rcLine(s)+'. Ich lasse euch wieder zusammen spielen.'],['gio','Blake Sutter und Marcus Webb: der eine schlägt 330 Meter, der andere locht von überall. Wir müssen sie nicht übertreffen – nur einmal öfter besser sein.'],['tyler','Ich habe heute frei. Ich schaue zu. Morgen gehörst du mir, {name}. Einzel. Du gegen mich.']],
+  win:s=>[['tv','Europa holt den Punkt! Stand vor dem Sonntag: '+rcLine(s)+'.']],
+  halve:s=>[['tv','Geteilt! Ein halber Punkt für Europa. Stand vor dem Sonntag: '+rcLine(s)+'.']],
+  lose:s=>[['tv','Punkt für die USA. Stand vor dem Sonntag: '+rcLine(s)+'.'],['nora','Kopf hoch. Morgen sind zwölf Einzel. Alles ist offen.']],
+  decide:s=>({who:'nora',q:'Samstagabend, Teamraum. Morgen gibt es zwölf Einzel, und Hank Walker hat Tyler Voss gegen dich gesetzt. Wo willst du spielen?',opts:[
+   {t:'Im ersten Einzel – den Ton angeben',d:'Du startest um 11 Uhr und kannst das ganze Team mitreissen. Voss ist ausgeruht und hungrig.',set:{order:'first'},next:'rc3',say:[['nora','Dann gibst du den Takt vor. Elf Leute schauen auf deine ersten Löcher.'],['tyler','Erstes Match? Perfekt. Dann bin ich schon beim Mittagessen, wenn du fertig bist.']]},
+   {t:'Im letzten Einzel – als Anker',d:'Wenn es eng wird, hängt alles an dir. Mehr Druck – aber Voss muss den ganzen Tag warten (Nerven +).',set:{order:'anchor'},perk:{nerve:.02},next:'rc3',say:[['nora','Der Anker. Wenn es auf den letzten Putt ankommt, will ich dich auf dem Grün sehen.'],['gio','Letztes Match. Ich packe extra Bananen ein.']]}]})},
+ {key:'rc3',short:'Sonntag',ch:4,lv:9,purse:0,rank:12,map:[10.6,1],next:{ok:'__done',fail:'__done'},course:'marcosimone',name:'Ryder Cup · Sonntag · Einzel',tour:'Ryder Cup · Europa gegen USA',stage:'Finale',age:26,goal:{win:true,match:true,point:true},field:'major',time:'golden',crowd:true,stand:true,
+  match:{opp:'Tyler Voss',cc:'USA',skill:.02,from:14,holes:4,final:true,cup:true,session:{n:12,name:'Sonntag · Einzel'},halveOk:true},cere:['Ryder Cup','Europa'],
+  txt:'Sonntag in Rom. Zwölf Einzel, zwölf Punkte. Und am Ende des Tages gibt es nur ein Match, über das alle reden werden: {name} gegen Tyler Voss.',
+  intro:s=>{const a=s.flags&&s.flags.order==='anchor';return[['nora','Stand vor den Einzeln: '+rcLine(s)+'. '+(a?'Du spielst als Letzter. Wenn alle anderen fertig sind, steht es 13½ zu 13½. Es hängt an dir.':'Du spielst als Erster. Was du heute zeigst, sehen alle elf, die nach dir abschlagen.')],['tyler','Kein Interview, kein Spruch. Nur du und ich. Los.'],['gio','Vier Löcher. Atme. Ein Loch nach dem anderen.']]},
+  win:s=>[['tv','Der Ryder Cup bleibt in Europa! {name} schlägt Tyler Voss – Endstand '+rcLine(s)+'!'],['tyler','… Gut gespielt. Wirklich. Ich nehme alles zurück, was ich über nette Leute gesagt habe.'],['nora','Komm her. Alle wollen dich auf den Schultern tragen.']],
+  halve:s=>[['tv','Geteilt in Rom: '+rcLine(s)+'. Europa behält den Ryder Cup als Titelverteidiger!'],['tyler','Unentschieden. Ich hasse Unentschieden. Aber gegen dich … okay.'],['nora','Geteilt – und behalten. Das zählt. Du hast Voss nicht gewinnen lassen.']],
+  lose:s=>s.rc&&s.rc.eu===s.rc.us?[['tv','Unentschieden in Rom: '+rcLine(s)+'. Europa behält den Ryder Cup als Titelverteidiger!'],['nora','Geteilt – und behalten. Das zählt. Du hast Voss nicht gewinnen lassen.']]:[['tv','Die USA gewinnen den Ryder Cup: '+rcLine(s)+'. Tyler Voss holt den entscheidenden Punkt.'],['nora','Das war nicht dein Fehler. Zwölf Spieler gewinnen, zwölf verlieren. In zwei Jahren holen wir ihn zurück.']]}
+];
+EV4.forEach(e=>{e.boost=e.boost??.02;e.rivalName=e.match.opp;e.rivalSpk=e.match.opp==='Tyler Voss'?'tyler':e.match.opp==='Mila Sutter'?'mila':e.match.opp==='Kai Andersen'?'kai':'tv'});
+function rcHalf(v){const w=Math.floor(v);return(w||v%1===0?String(w):'')+(v%1?'½':'')}
+function rcLine(s){const r=(s&&s.rc)||{eu:0,us:0};return'Europa '+rcHalf(r.eu)+' – '+rcHalf(r.us)+' USA'}
+function epilogue4(s){const f=s.flags||{},r=s.rc||{eu:0,us:0};const L=[['tv','Das war die Geschichte von {name}: von einem Achtelfinale in Crans-Montana bis zum Sonntag von Rom.']];
+ L.push(f.mpChamp?['gio','Matchplay-Weltmeister. Und ich war dein Caddie. Das erzähle ich meinen Enkeln. Zweimal pro Tag.']:['gio','Kein Matchplay-Titel diesmal. Aber weisst du was? Voss erinnert sich trotzdem an dich.']);
+ L.push(r.eu>r.us?['nora','Ich habe viele Rookies gesehen. Keiner hat einen Ryder Cup so entschieden wie du.']:r.eu===r.us?['nora','Behalten ist das neue Gewinnen. Und in zwei Jahren bist du kein Rookie mehr.']:['nora','In zwei Jahren spielen wir in New York. Und du bist mein erster Name auf der Liste.']);
+ L.push(f.partner==='kai'?['kai','Feuer und Eis. Wir sollten das öfter machen.']:['mila','Fondue. Jetzt. Du zahlst – Ryder-Cup-Regel.']);
+ return L}
 let EVENTS=EV1;
 const MAJORS=[['masters','Masters','Green Jacket'],['pga','PGA','Wanamaker'],['usopen','U.S. Open','Trophy'],['open','The Open','Claret Jug']];
 
@@ -1292,8 +1362,9 @@ const PP3={1:'Zermatter Anzeiger',2:'Summit Times',3:'Bergpost Wallis',4:'Sport-
 const PP2={1:'Saastaler Anzeiger',2:'Swiss Junior Golf',3:'Golf Welt Europa',4:'Sport-Blitz',5:'The Fairway Herald'};
 const CAMPS={1:{title:'Grand Slam',sub:'Teil 1: Vom Jugendturnier in Kandern bis zum Claret Jug in St Andrews – mit dem Putter deines Grossvaters.',home:'Kandern',first:'kandern'},2:{title:'Grand Slam 2',sub:'Die Akademie: Mit 12 aus dem Saastal nach Crans-Montana. Neue Freunde, neue Rivalen, ein Hotel, das gerettet werden muss – und Entscheidungen, die deinen Weg verändern.',home:'Saastal',first:'aq'}};
 CAMPS[3]={title:'Grand Slam 3',sub:'Gipfelsturm: Zermatt, Summit League oder Tour, eine Lawine, die alles verändert – und ein Finale auf 3089 Metern. Deine Entscheidungen formen Familie, Caddie, Fans und deinen Ruf.',home:'Zermatt',first:'matt'};
+CAMPS[4]={title:'Ryder Cup',sub:'Grand Slam 4: Erst die Matchplay-WM in den Alpen, dann der Ryder Cup in Rom. Loch für Loch, Duell um Duell – und am Sonntag spielst du für ganz Europa. In rund 30 Minuten durchgespielt.',home:'Crans-Montana',first:'m16'};
 function legendName(){const p1=loadJSON(SKEY);const n1=p1&&p1.name;return(n1&&save&&n1!==save.name)?n1:'Leon Walter'}
-function setCampaign(n){CAMP=[1,2,3].includes(n)?n:3;EVENTS=CAMP===3?EV3:CAMP===2?EV2:EV1;CHAPTERS=CAMP===3?CH3:CAMP===2?CH2:CH1;PAPERS=CAMP===3?PP3:CAMP===2?PP2:PP1;SKEY_CUR=CAMP===3?'ags3-save-v1':CAMP===2?'ags2-save-v1':SKEY;save=loadJSON(SKEY_CUR);if(save&&save.v!==1)save=null;
+function setCampaign(n){CAMP=[1,2,3,4].includes(n)?n:4;EVENTS=CAMP===4?EV4:CAMP===3?EV3:CAMP===2?EV2:EV1;CHAPTERS=CAMP===4?CH4:CAMP===3?CH3:CAMP===2?CH2:CH1;PAPERS=CAMP===4?PP4:CAMP===3?PP3:CAMP===2?PP2:PP1;SKEY_CUR=CAMP===4?'ags4-save-v1':CAMP===3?'ags3-save-v1':CAMP===2?'ags2-save-v1':SKEY;save=loadJSON(SKEY_CUR);if(save&&save.v!==1)save=null;
  if(save&&CAMP===1&&save.cur==null){const OLD=['kandern','ragaz','samedan','crans','qschool','wentworth','masters','pga','usopen','open'];const pg=save.prog||0;save.cur=OLD[Math.min(pg,9)];if(pg>=10)save.done=true;save.flags=save.flags||{}}
  settings.camp=CAMP;writeSettings();const C=CAMPS[CAMP];const em=document.querySelector('#title h1 em');if(em)em.textContent=C.title;const sb=document.querySelector('#title .sub');if(sb)sb.textContent=C.sub;document.querySelectorAll('#camps button').forEach(b=>b.classList.toggle('on',+b.dataset.c===CAMP));SPEAK.legend.n=legendName()+' · Grand-Slam-Sieger';SPEAK.legend.i=initials(legendName())}
 function runChoice(D){return new Promise(res=>{if(!D)return res(null);hideAll();$('#hud').hidden=true;const m=SPEAK[D.who]||SPEAK.legend;$('#chWho').textContent=D.who==='legend'?legendName():m.n;$('#chPt').textContent=m.i;$('#chPt').style.background=m.c;$('#chQ').textContent=fill(D.q);
@@ -2075,6 +2146,78 @@ function makeField(ev){
  pool=pool.sort(()=>R()-.5);let leadHeld=F.some(p=>p.tot<=lead);
  for(let i=0;F.length<ev.size;i++){const nm=pool[i%pool.length];const tot=!leadHeld?lead:lead+1+Math.floor(Math.pow(R(),1.25)*(ev.field==='junior'?9:13));leadHeld=true;F.push({name:nm[0]+(i>=pool.length?' Jr.':''),cc:nm[1],skill:base+gauss()*.03-(tot-lead)*.004,tot,today:0,hist:[]})}
  S.field=F}
+// ---------- Matchplay-Engine (v25): Loch für Loch, Vierball, Ryder-Cup-Punkte ----------
+function mpShort(n){return n.split(' ').slice(-1)[0]}
+function mpScName(d){return d<=-2?'Eagle':d===-1?'Birdie':d===0?'Par':d===1?'Bogey':'Doppel-Bogey'}
+function makeMatch(ev){const m=ev.match,base=FIELD_SKILL[ev.field]+(ev.boost||0);
+ S.you={name:save.name,cc:'SUI',you:true,skill:0,tot:0,today:0,hist:[]};
+ const o={name:m.opp,cc:m.cc,rival:true,skill:base+(m.skill||0),tot:0,today:0,hist:[]};S.field=[S.you,o];
+ const M=S.mp={up:0,over:false,log:[],extra:0,rem:0,ev};
+ if(m.team){const mt=m.mate(save);M.mate={name:mt.name,cc:mt.cc,skill:base+mt.skill-.03};M.opp2={name:m.opp2,cc:m.cc,skill:base+(m.o2skill||0)-.03}}}
+function mpLeft(){return S.mp?Math.max(0,S.holes.length-S.mp.log.length):0}
+function mpStatus(long){const M=S.mp,a=Math.abs(M.up);if(!a)return'All Square';const nm=M.up>0?'Du':mpShort(S.duelP.name);const rem=mpLeft();return nm+(long&&M.up>0?' führst ':long?' führt ':' ')+a+' UP'+(!M.over&&rem>0&&a===rem?' · Dormie':'')}
+function matchHole(par){const M=S.mp,P=S.duelP,h=S.hole;const mine=S.strokes,opp=par+S.duelD;let me=mine,they=opp,extra='';
+ if(M.mate){const ms=par+M.mateD,os=par+M.opp2D;me=Math.min(mine,ms);they=Math.min(opp,os);extra=' · '+mpShort(M.mate.name)+': '+mpScName(ms-par)+' · '+mpShort(M.opp2.name)+': '+mpScName(os-par)}
+ const r=me<they?1:me>they?-1:0;M.up+=r;M.log.push({n:h.idx+1,me,they,r,up:M.up});
+ const rem=S.holes.length-S.hi-1;
+ if(M.up!==0&&Math.abs(M.up)>rem){M.over=true;M.rem=rem}
+ else if(rem===0&&M.up===0){if(M.ev.match.halveOk){M.over=true;M.rem=0}else{S.holes.push((S.holes[S.holes.length-1]+1)%18);M.extra++}}
+ const res=r>0?'Loch gewonnen':r<0?'Loch verloren':'Loch geteilt';
+ const st=M.over?(M.up>0?'Match gewonnen':M.up<0?'Match verloren':'Match geteilt'):(rem===0&&M.up===0?'All Square – Extraloch!':mpStatus(true));
+ setTimeout(()=>{toast(esc(mpShort(P.name))+': '+mpScName(opp-par)+'<small>'+esc(res+extra)+' · '+esc(st)+'</small>',3200);if(r!==0&&S.ev.crowd)AU.crowd(r>0?.85:.3,r>0?undefined:'ooh');renderDuel()},2100);
+ M.msg='Loch '+(h.idx+1)+': '+(r>0?save.name+(M.mate?' & '+mpShort(M.mate.name):'')+' gewinnt':r<0?P.name+(M.mate?' & '+mpShort(M.opp2.name):'')+' gewinnt':'geteilt')+' – '+st+'.';
+ if(r>0)xp(15,'Loch gewonnen')}
+function renderDuelMp(el){const M=S.mp,P=S.duelP,a=Math.abs(M.up),rem=mpLeft();
+ el.innerHTML='<span class="dl">'+(M.mate?'Vierball':'Matchplay')+'</span><span class="me">'+esc(M.mate?'Du & '+mpShort(M.mate.name):'Du')+'</span><span class="vs">vs</span><span class="op">'+esc(M.mate?mpShort(P.name)+' & '+mpShort(M.opp2.name):mpShort(P.name))+'</span><span class="st">'+(a?(M.up>0?a+' UP':a+' DOWN'):'AS')+(rem&&!M.over?' · noch '+rem:'')+'</span>';
+ el.className='hud pnl '+(M.up>0?'lead':M.up<0?'trail':'even')}
+function renderMiniLbMp(){const M=S.mp,P=S.duelP;$('#lbTitle').textContent=S.ev.name;$('#lbRound').textContent=M.up?(M.up>0?'Du ':mpShort(P.name)+' ')+Math.abs(M.up)+' UP':'All Square';
+ const rows=M.log.map((l,i)=>`<div class="row${i===M.log.length-1?' me':''}"><span class="pos num">L${l.n}</span><span class="nm" style="color:${l.r>0?'#ffd166':l.r<0?'#9fc0ff':'#cfd9d2'}">${l.r>0?'Du':l.r<0?esc(mpShort(P.name)):'Geteilt'}</span><span class="tp num">${l.me}:${l.they}</span><span class="th num">${l.up?Math.abs(l.up)+(l.up>0?'↑':'↓'):'AS'}</span></div>`);
+ if(!rows.length)rows.push(`<div class="row me"><span class="pos num">–</span><span class="nm">Du vs ${esc(mpShort(P.name))}</span><span class="tp num">AS</span><span class="th num">${mpLeft()}</span></div>`);
+ $('#lbRows').innerHTML=rows.join('');layoutHud();renderDuel()}
+function matchIntro(ev){return new Promise(res=>{hideAll();$('#intro').hidden=false;const m=ev.match,M=S.mp,P=S.duelP;$('#inTour').textContent=ev.tour;$('#inName2').textContent=ev.name;$('#inCourse').textContent=S.course.name;$('#inLoc').textContent=S.course.loc;
+ $('#inGoal').innerHTML=`<span class="chip next">${goalText(ev.goal)}</span><span class="chip">${M.mate?'Vierball':'Matchplay'} · Loch ${m.from+1}–${m.from+m.holes}</span><span class="chip">${m.holes} Löcher</span>`;$('#inText').textContent=fill(ev.txt);
+ const rows=M.mate?[[save.name,'SUI','Europa',1],[M.mate.name,M.mate.cc,'Europa',1],[P.name,P.cc,'USA',0],[M.opp2.name,M.opp2.cc,'USA',0]]:[[save.name,'SUI','Du',1],[P.name,P.cc,'Gegner',0]];
+ $('#inLb').innerHTML='<tr><th>'+(M.mate?'Team':'Match')+'</th><th>Spieler</th><th class="r">Nation</th></tr>'+rows.map(r=>`<tr class="${r[3]?'me':''}"><td>${esc(r[2])}</td><td>${esc(r[0])}</td><td class="r">${r[1]}</td></tr>`).join('')+(m.session?`<tr><td colspan="3" style="text-align:center;color:var(--gold)">Ryder Cup · ${esc(rcLine(save))}</td></tr>`:'');
+ $('#bStart').onclick=()=>{AU.init();res()}})}
+function matchNews(R){return new Promise(res=>{const ev=R.ev,n=save.name,c=COURSES[ev.course],M=R.M,P=R.opp;const cup=ev.match.cup?save.flags.cup:null;
+ const h=cup?(cup==='won'?'Europa jubelt! '+n+' schlägt Voss':cup==='kept'?'Geteilt in Rom – der Cup bleibt in Europa':'Amerika holt den Ryder Cup'):R.won?n+' zähmt Tyler Voss':'Voss zu stark – aber '+n+' kämpft bis zum Schluss';
+ const sub=cup?'Endstand '+rcLine(save)+'. Das Einzel gegen die Nummer eins der Welt endete '+R.how+'.':R.won?'Matchplay-Weltmeister! Im Finale von Andermatt gewinnt '+n+' '+R.how+' gegen die Nummer eins der Welt.':'Im Finale von Andermatt verliert '+n+' '+R.how+'. Captain Nora Lindqvist hat trotzdem genau hingeschaut.';
+ const W=M.log.filter(l=>l.r>0).length,L=M.log.filter(l=>l.r<0).length,Hv=M.log.length-W-L;
+ const stats=[['Resultat',R.how],['Gewonnen',W],['Verloren',L],['Geteilt',Hv]];
+ const lead=n+(R.won?' gewinnt ':R.halved?' teilt ':' verliert ')+'das Match gegen '+P.name+' '+R.how+'. '+(M.log.some(l=>l.r>0)?'Die Löcher '+M.log.filter(l=>l.r>0).map(l=>l.n).join(', ')+' gingen an '+n+'.':'Ein Loch-Gewinn wollte nicht gelingen.')+(cup?' Damit endet der Ryder Cup '+rcLine(save)+'.':'');
+ const paper=PAPERS[ev.ch]||'The Fairway Herald';const date='Kapitel '+ev.ch+' · '+c.loc.split(' · ').slice(-2).join(' · ');
+ $('#npPaper').innerHTML=`<div class="np-top"><span>${esc(date)}</span><span class="np-mast">${esc(paper)}</span><span>Sport</span></div><div class="np-rule"></div><h2 class="np-h">${esc(h)}</h2><div class="np-sub">${esc(sub)}</div><div class="np-body"><figure>${S.snap?'<img src="'+S.snap+'" alt="Szene vom Match">':'<div class="np-noimg"></div>'}<figcaption>${esc(n)} auf dem ${esc(c.name)}.</figcaption></figure><div class="np-col"><div class="np-stats">${stats.map(([a,b])=>'<div><b>'+esc(String(b))+'</b>'+a+'</div>').join('')}</div><p class="lead">${esc(lead)}</p><div class="np-briefs"><div><b>Fans</b>${esc(fmtK(save.fans||0))} Fans verfolgen die Karriere.</div>${R.prize?'<div><b>Preisgeld</b>'+esc(chf(R.prize))+'</div>':''}</div></div></div><div class="np-foot"><button class="btn primary" type="button" id="bNewsOk">Weiter</button></div>`;
+ (save.news=save.news||[]).push({paper,h,sub,q:'',date,ev:ev.name});if(save.news.length>40)save.news.shift();writeSave();
+ hideAll();$('#news').hidden=false;$('#bNewsOk').onclick=()=>{$('#news').hidden=true;S.snap=null;res()}})}
+async function finishMatch(){const ev=S.ev,m=ev.match,M=S.mp,P=S.duelP,i=S.evIdx;
+ const won=M.up>0,halved=M.up===0,a=Math.abs(M.up),ok=won||(halved&&!!m.halveOk);
+ const how=halved?'unentschieden':M.extra?'am '+M.extra+'. Extraloch':M.rem>0?a+'&'+M.rem:a+' UP';M.how=how;
+ const onPath=!save.done&&save.cur===ev.key;const pts=won?1:halved?.5:0;let sess=null;
+ if(m.session&&onPath){const rc=save.rc=save.rc||{eu:0,us:0};const n=m.session.n-1;let e=0;
+  if(m.cup){const bias=save.flags&&save.flags.order==='first'?(won?1:M.up<0?-1:0):0;e=clamp(Math.round((13.5-rc.eu+bias)*2)/2,0,n)}
+  else for(let k=0;k<n;k++){const r=Math.random();e+=r<.47?1:r<.6?.5:0}
+  sess={name:m.session.name,eu:e+pts,us:n-e+1-pts};rc.eu+=sess.eu;rc.us+=sess.us;
+  if(m.cup){save.flags=save.flags||{};save.flags.cup=rc.eu>rc.us?'won':rc.eu===rc.us?'kept':'lost'}}
+ const prevRes=save.res[ev.key];const prize=won?(ev.purse||0):Math.round((ev.purse||0)*.35/100)*100;save.money=(save.money||0)+prize;
+ save.res[ev.key]={pos:won?'Sieg':halved?'Geteilt':'Niederlage',win:won||(prevRes&&prevRes.win),ok:ok||(prevRes&&prevRes.ok)};
+ save.fans=(save.fans||0)+Math.round((won?2500:halved?1200:400)*((ev.lv||0)+1));xp(won?120:halved?50:20,won?'Match gewonnen':halved?'Match geteilt':'Match gespielt');
+ let retry=!ok&&!m.session;
+ if(onPath){(save.path=save.path||[]).push({k:ev.key,ok,won,pos:save.res[ev.key].pos});const before=save.cur;advance(ev,ok,won);retry=!ok&&save.cur===before&&!save.pending&&!save.done}
+ const R={ev,ok,won,halved,how,M,opp:P,prize,onPath};S.round=R;writeSave();
+ $('#hud').hidden=true;$('#pressure').style.boxShadow='none';gradePass.uniforms.uPulse.value=0;
+ const party=m.cup?(onPath&&save.flags.cup!=='lost'):(won&&m.final);
+ if(party)await ceremony(ev);else{S.snapReq=true;await frameWait();await frameWait();await frameWait()}
+ hideAll();$('#hud').hidden=true;$('#results').hidden=false;$('#resBanner').className='banner pnl '+(ok?'win':'fail');$('#resK').textContent=ev.name+' · '+(M.mate?'Vierball':'Matchplay');
+ $('#resH').textContent=m.cup&&onPath&&save.flags.cup!=='lost'?(save.flags.cup==='won'?'Ryder Cup gewonnen!':'Ryder Cup behalten!'):won?'Match gewonnen':halved?'Match geteilt':'Match verloren';
+ const us=M.mate?save.name+' & '+mpShort(M.mate.name):save.name,them=M.mate?mpShort(P.name)+' & '+mpShort(M.opp2.name):P.name;
+ let t=won?us+(M.mate?' schlagen ':' schlägt ')+them+' '+how+'.':halved?us+' und '+them+' teilen das Match.':us+(M.mate?' verlieren':' verliert')+' gegen '+them+' '+how+'.';
+ if(sess)t+=' '+sess.name+': Europa '+rcHalf(sess.eu)+' – '+rcHalf(sess.us)+' USA. Gesamt: '+rcLine(save)+'.';
+ if(prize)t+=' Preisgeld: '+chf(prize)+'.';if(retry)t+=' Im K.-o. heisst es: nochmals!';$('#resP').textContent=t;
+ let up=0;$('#resLb').innerHTML='<tr><th>Loch</th><th>Schläge</th><th class="r">Stand</th></tr>'+M.log.map(l=>{up=l.up;return`<tr class="${l.r>0?'me':''}"><td class="num">${l.n}</td><td>${l.me} : ${l.they} · ${l.r>0?'Loch an dich':l.r<0?'Loch an '+esc(mpShort(P.name)):'geteilt'}</td><td class="r num">${up?(up>0?'Du ':esc(mpShort(P.name))+' ')+Math.abs(up)+' UP':'AS'}</td></tr>`}).join('');
+ $('#resActs').innerHTML=`${retry?'<button class="btn" type="button" id="bRetry">Nochmals versuchen</button>':''}<button class="btn primary" type="button" id="bResNext">Weiter</button>`;
+ if($('#bRetry'))$('#bRetry').onclick=()=>playEvent(i);
+ $('#bResNext').onclick=async()=>{if(m.final||m.cup)await matchNews(R);await runDialog(won?ev.win:halved&&ev.halve?ev.halve:ok?ev.win:ev.lose);if(onPath&&save.pending===ev.key)await runChoice(pendingDecide());
+  if(m.cup&&onPath&&save.done)await runDialog(epilogue4(save));renderHub()}}
 function aiDelta(par,skill){const pE=par===5?clamp(.035+skill*.15,.004,.1):par===4?.004:.002;const pB=clamp((par===5?.38:par===3?.14:.19)+skill,.03,.6);const pBo=clamp((par===3?.17:par===4?.15:.09)-skill*.9,.02,.45);const pD=clamp(.025-skill*.12,.003,.12);
  let r=Math.random();if(r<pE)return-2;r-=pE;if(r<pB)return-1;r-=pB;if(r<pD)return 2;r-=pD;if(r<pBo)return 1;return 0}
 function ranked(){return S.field.slice().sort((a,b)=>a.tot-b.tot||(a.you?-1:b.you?1:0))}
@@ -2102,7 +2245,7 @@ function showHoleSummary(nm){const h=S.hole;if(!h)return;const fir=h.par>3?(S.fi
  el.classList.add('on');$('#miniLb').classList.add('open');layoutHud();setTimeout(()=>{$('#miniLb').classList.remove('open');layoutHud()},3600);clearTimeout(S.hsT);S.hsT=setTimeout(()=>el.classList.remove('on'),3300)}
 function updateWeatherAndSky(){const was=S.weather;if(!S.playoff)S.weather=(S.rainPlan&&S.hi>=S.rainFrom)?'rain':'clear';const n=S.holes.length;S.skyMix=S.time!=='golden'&&!S.playoff?{to:'golden',u:clamp(S.hi/Math.max(1,n-1),0,1)*.85}:S.skyMix;setSky(S.course.theme,S.time);AU.setRain(S.weather==='rain'?.07:0);
  if(S.weather==='rain'&&was!=='rain'&&S.hi>0)setTimeout(()=>toast('Regen setzt ein<small>Nasse Grüns und Fairways – der Ball rollt weniger.</small>',3000),900)}
-function computePressure(){const holesLeft=S.holes.length-S.hi;const lead=ranked().find(p=>!p.you);const gap=S.you.tot-(lead?lead.tot:0);let pr=0;
+function computePressure(){if(S.mp){const M=S.mp,rem=S.holes.length-S.hi,a=Math.abs(M.up);let pr=0;if(rem<=2&&a<=1)pr=.6;if(rem<=1&&a<=1)pr=1;if(M.extra)pr=1;if(S.ev.match.cup&&save.flags&&save.flags.order==='anchor')pr=Math.max(pr,.4);S.pressure=pr;return}const holesLeft=S.holes.length-S.hi;const lead=ranked().find(p=>!p.you);const gap=S.you.tot-(lead?lead.tot:0);let pr=0;
  if(S.ev.goal.win||S.ev.major){if(holesLeft<=3&&Math.abs(gap)<=1)pr=.6;if(holesLeft<=1&&Math.abs(gap)<=1)pr=1}else{if(holesLeft<=2)pr=.4}
  if(S.playoff)pr=1;S.pressure=pr}
 
@@ -2119,13 +2262,13 @@ function nextTick(){if(!tickQ.length){tickBusy=false;return}tickBusy=true;const 
 function layoutHud(){const lb=$('#miniLb');document.documentElement.style.setProperty('--lbh',(lb.offsetHeight||200)+'px')}
 function holeLabel(i){return S.course.names?S.course.names[i]:`Loch ${i+1}`}
 function updateHoleCard(){const h=S.hole;$('#hcNum').textContent=h.idx+1;$('#hcName').textContent=S.playoff?'Stechen · '+holeLabel(h.idx):holeLabel(h.idx);$('#hcMeta').textContent=`Par ${h.par} · ${fmtD(h.nominal)} · Hcp ${S.si[h.idx]}`;
- const rel=S.strokes-h.par;$('#hcStroke').textContent=`Schlag ${S.strokes+1} · Heute ${fmtPar(S.you.today)} · Total ${fmtPar(S.you.tot)}`}
+ const rel=S.strokes-h.par;$('#hcStroke').textContent=S.mp?`Schlag ${S.strokes+1} · ${mpStatus()}`:`Schlag ${S.strokes+1} · Heute ${fmtPar(S.you.today)} · Total ${fmtPar(S.you.tot)}`}
 function initials(n){return n.split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase()}
 function duelMark(){if(S.dm)return S.dm;const g=new THREE.Group();g.add(new THREE.Mesh(new THREE.SphereGeometry(.03,16,12),new THREE.MeshStandardMaterial({color:0x9cc3ff,emissive:0x2255cc,emissiveIntensity:.7})));
  const cv=document.createElement('canvas');cv.width=160;cv.height=64;const x=cv.getContext('2d');const tx=new THREE.CanvasTexture(cv);tx.colorSpace=THREE.SRGBColorSpace;const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tx,depthTest:false,transparent:true,fog:false,toneMapped:false}));sp.renderOrder=12;g.add(sp);
  const pole=new THREE.Mesh(new THREE.CylinderGeometry(.006,.006,1,6).translate(0,.5,0),new THREE.MeshBasicMaterial({color:0x9cc3ff,transparent:true,opacity:.7,fog:false}));g.add(pole);g.userData={x,tx,sp,pole};g.visible=false;scene.add(g);S.dm=g;return g}
 function setDuelMark(pos,label){const g=duelMark();if(!pos){g.visible=false;return}const u=g.userData,x=u.x;x.clearRect(0,0,160,64);x.fillStyle='rgba(31,79,181,.94)';x.fillRect(6,8,148,48);x.fillStyle='#fff';x.font='800 30px sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText(label,80,33);u.tx.needsUpdate=true;g.position.set(pos.x,S.hole.H(pos.x,pos.z)+.03,pos.z);g.visible=true}
-function renderDuel(){const el=$('#duel');if(!el)return;const P=S.duelP;if(!P||!S.you){el.hidden=true;return}el.hidden=false;const diff=S.you.tot-P.tot;const nm=P.name.split(' ').slice(-1)[0];
+function renderDuel(){const el=$('#duel');if(!el)return;const P=S.duelP;if(!P||!S.you){el.hidden=true;return}el.hidden=false;if(S.mp)return renderDuelMp(el);const diff=S.you.tot-P.tot;const nm=P.name.split(' ').slice(-1)[0];
  el.innerHTML='<span class="dl">'+(P.rival?'Duell':'Flight')+'</span><span class="me">Du '+fmtPar(S.you.tot)+'</span><span class="vs">vs</span><span class="op">'+esc(nm)+' '+fmtPar(P.tot)+'</span><span class="st">'+(diff<0?(-diff)+' vorne':diff>0?diff+' hinten':'gleichauf')+'</span>';el.className='hud pnl '+(diff<0?'lead':diff>0?'trail':'even')}
 function partnerTee(){const P=S.duelP,h=S.hole;S.partnerTurn=true;const sm=golfer.mats.shirt;if(sm.map){sm.map=null}sm.color.set(P.rival?'#1f4fb5':P.star?'#2b2b2b':'#6a2c8c');sm.needsUpdate=true;golfer.mats.pants.color.set(P.rival?'#e9e4d6':'#3a3f47');golfer.mats.cap.color.set(P.rival?'#1f4fb5':'#ffffff');golfer.glasses.visible=!!P.rival;
  S.ball.set(0,h.H(0,0)+.02,0);S.prev.copy(S.ball);S.lie='tee';S.shotType='normal';S.chipMode=false;S.spin.x=0;S.spin.y=0;S.powerArmed=false;S.club=autoClub();const c=CLUBS[S.club];autoAim();S.aim+=(Math.random()-.5)*.02;
@@ -2148,7 +2291,7 @@ function duelApproach(){if(!S.duelP||S.duelOnGreen||S.duelD==null||S.playoff)ret
  else{setDuelMark(new V3(x,0,z),initials(S.duelP.name));setTimeout(()=>toast(esc(nm)+': '+(h.surf(x,z)==='green'?'auf dem Grün':'neben dem Grün')+'<small>'+fmtD(r,true)+' von der Fahne</small>',2400),600)}}
 function duelReveal(par){if(!S.duelP||S.playoff)return;const P=S.duelP,sc=P.hist[P.hist.length-1];if(sc==null)return;const pd=sc-par;const nm=P.name.split(' ').slice(-1)[0];const t=pd<=-2?'Eagle':pd===-1?'Birdie':pd===0?'Par':pd===1?'Bogey':'Doppel-Bogey';const diff=S.you.tot-P.tot;
  setTimeout(()=>{toast(esc(nm)+': '+t+'<small>'+(diff<0?'Du führst im Duell mit '+(-diff):diff>0?esc(nm)+' führt im Duell mit '+diff:'Duell ausgeglichen')+'</small>',2600);renderDuel()},2100)}
-function renderMiniLb(){const r=ranked();const rows=[];const top=r.slice(0,6);if(!top.includes(S.you))top.push(S.you);const riv=S.field.find(p=>p.rival);if(riv&&!top.includes(riv))top.push(riv);
+function renderMiniLb(){if(S.mp)return renderMiniLbMp();const r=ranked();const rows=[];const top=r.slice(0,6);if(!top.includes(S.you))top.push(S.you);const riv=S.field.find(p=>p.rival);if(riv&&!top.includes(riv))top.push(riv);
  const thru=S.playoff?'P':(S.hi>=S.holes.length?'F':S.hi);
  for(const p of top){const ps=posOf(p).s;rows.push(`<div class="row${p.you?' me':''}${p.rival?' riv':''}"><span class="pos num">${ps}</span><span class="nm">${esc(p.name)}</span><span class="tp num ${p.tot<0?'under':''}">${fmtPar(p.tot)}</span><span class="th num">${thru}</span></div>`)}
  $('#lbRows').innerHTML=rows.join('');$('#lbTitle').textContent=S.ev.name;{const ld=ranked().find(p=>!p.you);const gap=S.you.tot-(ld?ld.tot:0);$('#lbRound').textContent=gap<0?'Führung '+(-gap):gap===0?'Geteilt vorne':'Rückstand '+gap}layoutHud();renderDuel()}
@@ -2194,8 +2337,8 @@ function runDialog(lines){if(typeof lines==='function')lines=lines(save);return 
  const next=()=>{if(typing){clearInterval(typing);typing=null;$('#dlgTxt').textContent=full;return}i++;if(i>=lines.length){box.onclick=null;removeEventListener('keydown',kh);$('#dialog').hidden=true;res();return}showL()};
  const kh=e=>{if(e.code==='Space'||e.code==='Enter'){e.preventDefault();next()}};box.onclick=next;addEventListener('keydown',kh);showL()})}
 function lbTable(el,rows,hl){el.innerHTML=`<tr><th>Pos</th><th>Spieler</th><th class="r">Total</th></tr>`+rows.map(p=>`<tr class="${p.you?'me':''}"><td class="num">${posOf(p).s}</td><td>${esc(p.name)}<span class="cc">${p.cc}</span></td><td class="r num ${p.tot<0?'under':''}">${fmtPar(p.tot)}</td></tr>`).join('')}
-function goalText(g){return g.win?'Ziel: Sieg':`Ziel: Top ${g.top}`}
-function introScreen(ev){return new Promise(res=>{hideAll();$('#intro').hidden=false;$('#inTour').textContent=ev.tour;$('#inName2').textContent=ev.name;$('#inCourse').textContent=S.course.name;$('#inLoc').textContent=S.course.loc;
+function goalText(g){return g.point?'Ziel: Punkt für Europa':g.match?'Ziel: Match gewinnen':g.win?'Ziel: Sieg':`Ziel: Top ${g.top}`}
+function introScreen(ev){if(ev.match)return matchIntro(ev);return new Promise(res=>{hideAll();$('#intro').hidden=false;$('#inTour').textContent=ev.tour;$('#inName2').textContent=ev.name;$('#inCourse').textContent=S.course.name;$('#inLoc').textContent=S.course.loc;
  const first=S.holes[0]+1;$('#inGoal').innerHTML=`<span class="chip next">${goalText(ev.goal)}</span><span class="chip">Finalrunde · Start Loch ${first}</span><span class="chip">${S.holes.length} Löcher</span>`;$('#inText').textContent=fill(ev.txt);
  const r=ranked();const rows=r.slice(0,8);if(!rows.includes(S.you))rows.push(S.you);lbTable($('#inLb'),rows);$('#bStart').onclick=()=>{AU.init();res()}})}
 
@@ -2237,7 +2380,7 @@ function fmtK(v){return v>=1e6?(v/1e6).toFixed(1).replace('.',',')+' Mio.':v>=10
 function reputation(){const p=(save&&save.persona)||{};const a=[['h','Ruf: bescheiden'],['b','Ruf: selbstbewusst'],['f','Ruf: Entertainer']].sort((x,y)=>(p[y[0]]||0)-(p[x[0]]||0));return(p[a[0][0]]||0)?a[0][1]:'Ruf: noch unbekannt'}
 function advance(ev,ok,won){const f=save.flags||(save.flags={});
  if(won&&ev.onWin)Object.assign(f,ev.onWin);if(ev.key==='ragaz'&&!won)f.jannikJunior=true;if(ev.key==='crans'&&ok)f.pro=true;if(ev.key==='qschool'&&ok)f.card=true;if(ev.key==='hoylake'&&won)f.amMasters=true;if(ev.key==='hoylake'&&!won)f.pro=true;
- let nk=ev.next?(ok?ev.next.ok:ev.next.fail):null;if(nk==='__choice'){save.pending=ev.key;nk=null}
+ let nk=ev.next?(ok?ev.next.ok:ev.next.fail):null;if(nk==='__choice'){save.pending=ev.key;nk=null}if(nk==='__done'){save.done=true;nk=null}
  if(nk==='season'){if(MAJORS.every(m=>save.majors[m[0]])){save.done=true;nk=null}else{save.extra=(save.extra||0)+1;nk=MAJORS.map(m=>m[0]).find(k=>!save.majors[k])}}
  if(nk)save.cur=nk;save.prog=curIdx()}
 function storyIntro(ev){let L=typeof ev.intro==='function'?ev.intro(save):ev.intro.slice();const p=(save&&save.persona)||{};const ex=[];
@@ -2334,9 +2477,9 @@ function interview(R){return new Promise(res=>{const qs=interviewQs(R);let qi=0;
   $('#ivA').querySelectorAll('button').forEach(b=>b.onclick=()=>{AU.init();const a=as[+b.dataset.i];p[a[0]]=(p[a[0]]||0)+1;if(qi===0||a[0]==='b')R.quote=fill(a[1]);const lvl=(R.ev.lv||0)+1;if(a[0]==='b')save.fans=(save.fans||0)+400*lvl;if(a[0]==='f'){save.fans=(save.fans||0)+250*lvl;xp(10,'Pressekonferenz')}if(a[0]==='h')xp(15,'Sympathisch');writeSave();qi++;if(qi<qs.length)show();else{$('#interview').hidden=true;res()}})};show()})}
 function chapterCard(ch){return new Promise(res=>{const c=CHAPTERS[ch];if(!c)return res();hideAll();$('#hud').hidden=true;$('#chN').textContent='Kapitel '+ch;$('#chT').textContent=c[0];$('#chS').textContent=c[1];const el=$('#chap');el.hidden=false;const w=el.querySelector('.chw');w.style.animation='none';void w.offsetWidth;w.style.animation='';if(AU.jingle)AU.jingle(1);let done=false;const fin=()=>{if(done)return;done=true;el.hidden=true;el.onclick=null;res()};el.onclick=fin;setTimeout(fin,3800)})}
 function ceremony(ev){return new Promise(res=>{S.state='ceremony';S.orb=0;S.cereBase=null;$('#hud').hidden=true;ballMesh.visible=false;aimRing.visible=false;puttLine.visible=false;if(arcLine)arcLine.visible=false;if(chevrons)chevrons.visible=false;
- golfer.setTrophy(ev.major?'big':(ev.lv||0)<3?'gold':'silver');if(ev.major==='masters'){const sm=golfer.mats.shirt;sm.map=null;sm.color.set('#0e6b3a');sm.needsUpdate=true}
+ golfer.setTrophy(ev.major||ev.cere?'big':(ev.lv||0)<3?'gold':'silver');if(ev.major==='masters'){const sm=golfer.mats.shirt;sm.map=null;sm.color.set('#0e6b3a');sm.needsUpdate=true}
  golfer.g.visible=true;AU.crowd(1);S.cheerT=T0;if(AU.jingle)AU.jingle(2);
- hideAll();$('#cere').hidden=false;$('#cereK').textContent=ev.major?'Major Champion':'Turniersieg';$('#cereH').textContent=ev.major==='masters'?'Green Jacket':ev.major==='open'?'Champion':'Sieger';$('#cereS').textContent=ev.name+' · '+fmtPar(S.you.tot);
+ hideAll();$('#cere').hidden=false;$('#cereK').textContent=ev.cere?ev.cere[0]:ev.major?'Major Champion':'Turniersieg';$('#cereH').textContent=ev.cere?(ev.match&&ev.match.cup&&save.flags.cup==='kept'?'Behalten':ev.cere[1]):ev.major==='masters'?'Green Jacket':ev.major==='open'?'Champion':'Sieger';$('#cereS').textContent=ev.name+' · '+(S.mp?(ev.match.cup?rcLine(save):S.mp.how):fmtPar(S.you.tot));
  const t0=performance.now();let snapped=false,fired=false;const done=()=>{if(fired)return;fired=true;clearInterval(iv);if(!snapped)S.snapReq=true;$('#cere').hidden=true;$('#cere').onclick=null;setTimeout(()=>{golfer.setTrophy(null);S.state='wait';res()},120)};
  const iv=setInterval(()=>{const el=performance.now()-t0;if(!snapped&&el>2600){snapped=true;S.snapReq=true}if(el>8500)done()},200);
  $('#cere').onclick=()=>{if(performance.now()-t0>1200)done()}})}
@@ -2351,26 +2494,26 @@ function renderPress(){const el=$('#hubPress');if(!el||!save)return;const N=(sav
 function renderHub(){
  hideAll();$('#hub').hidden=false;$('#hud').hidden=true;if(S.dm)S.dm.visible=false;S.showcase=false;S.scPlaced=false;golfer.g.visible=false;$('.hubw').dataset.tab='karriere';document.querySelectorAll('.htabs button').forEach(x=>x.classList.toggle('on',x.dataset.t==='karriere'));const s=save;
  $('#hubName').textContent=s.name;$('#hubAv').textContent=s.name.split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase();
- const done=!!s.done;const nextI=done?EVENTS.findIndex(e=>e.key==='open'):curIdx();const nev=EVENTS[nextI];const age=nev.age+(s.extra||0);
+ const done=!!s.done;const nextI=done?(CAMP===4?EVENTS.length-1:EVENTS.findIndex(e=>e.key==='open')):curIdx();const nev=EVENTS[nextI];const age=nev.age+(s.extra||0);
  const wins=Object.values(s.res).filter(r=>r.win).length,majors=Object.values(s.majors).filter(Boolean).length;
  const rank=Math.max(1,Math.round(nev.rank/(1+majors*.8)));
  $('#hubMeta').textContent=`${age} Jahre · ${CAMPS[CAMP].home} · ${reputation()}`;
  $('#hubKpis').innerHTML=[['Weltrangliste','#'+rank],['Fans',fmtK(s.fans||0)],['Siege',wins],['Preisgeld',chf(s.money||0)]].map(([a,b])=>`<div class="kpi"><span>${a}</span><b>${b}</b></div>`).join('');
  const lv=lvWith(nextI);const PL=playerLevel(),xpN=(s.xp||0),nxt=150*(PL+1)*(PL+1),cur0=150*PL*PL;$('#hubStats').innerHTML=`<div class="stat"><span>Stufe ${PL}</span><span class="bar"><i style="width:${Math.round((xpN-cur0)/(nxt-cur0)*100)}%;background:#ff9a3c"></i></span><span class="num">${xpN}</span></div>`+[['Power',lv.power/1.03],['Präzision',lv.acc],['Putten',lv.putt],['Nerven',lv.nerve]].map(([n,v])=>`<div class="stat"><span>${n}</span><span class="bar"><i style="width:${Math.round(v*100)}%"></i></span><span class="num">${Math.round(v*99)}</span></div>`).join('');
  const trophy='<svg viewBox="0 0 24 24"><path d="M7 3h10v3a5 5 0 0 1-10 0z M5 4h2v2a2 2 0 0 1-2-2z M19 4h-2v2a2 2 0 0 0 2-2z M11 11h2v5h-2z M8 17h8v3H8z" fill="currentColor"/></svg>';
- $('#hubSlams').innerHTML=MAJORS.map(([k,n,t])=>`<div class="slam ${s.majors[k]?'won':''}">${trophy}${n}<br><span style="font-weight:500;font-size:11px">${t}</span></div>`).join('');
+ $('#hubSlams').innerHTML=CAMP===4?[['mpChamp','Matchplay','Weltmeister'],['rc','Ryder Cup','Rom']].map(([k,n,t])=>{const w=k==='rc'?(s.flags&&s.flags.cup&&s.flags.cup!=='lost'):(s.flags&&s.flags.mpChamp);return`<div class="slam ${w?'won':''}">${trophy}${n}<br><span style="font-weight:500;font-size:11px">${t}</span></div>`}).join(''):MAJORS.map(([k,n,t])=>`<div class="slam ${s.majors[k]?'won':''}">${trophy}${n}<br><span style="font-weight:500;font-size:11px">${t}</span></div>`).join('');
  const nc=COURSES[nev.course];const ch=CHAPTERS[nev.ch]||['',''];
  $('#heroCh').textContent=done?'Epilog · Legende':`Kapitel ${nev.ch} · ${ch[0]}`;
  $('#heroTour').textContent=done?'Grand Slam komplett – spiel deine Lieblingsturniere nochmals':`Nächstes Turnier · ${nev.tour}`;$('#heroName').textContent=nev.name;$('#heroCourse').textContent=`${nc.name} · ${nc.loc}`;
- $('#heroGoal').innerHTML=`<span class="chip next">${goalText(nev.goal)}</span><span class="chip">${nev.stage}</span><span class="chip">${settings.holes} Löcher</span>`;$('#heroTxt').textContent=fill(nev.txt);{const rr=$('#hubRels');if(CAMP===3&&s.rel){const L=[['family','Familie','#ff8fab'],['caddie','Caddie Sepp','#ffd166'],['fans','Fans','#5fd0ff'],['tour','Ansehen Tour','#6fdc8c']];rr.innerHTML=L.map(([k,n,c])=>'<div class="rl"><span>'+n+'</span><span class="rb"><i style="width:'+s.rel[k]+'%;background:'+c+'"></i></span><span class="rv">'+s.rel[k]+'</span></div>').join('');rr.hidden=false}else rr.hidden=true}
+ $('#heroGoal').innerHTML=`<span class="chip next">${goalText(nev.goal)}</span><span class="chip">${nev.stage}</span><span class="chip">${nev.match?nev.match.holes+' Löcher · Matchplay':settings.holes+' Löcher'}</span>`;$('#heroTxt').textContent=fill(nev.txt);{const rr=$('#hubRels');if(CAMP===3&&s.rel){const L=[['family','Familie','#ff8fab'],['caddie','Caddie Sepp','#ffd166'],['fans','Fans','#5fd0ff'],['tour','Ansehen Tour','#6fdc8c']];rr.innerHTML=L.map(([k,n,c])=>'<div class="rl"><span>'+n+'</span><span class="rb"><i style="width:'+s.rel[k]+'%;background:'+c+'"></i></span><span class="rv">'+s.rel[k]+'</span></div>').join('');rr.hidden=false}else rr.hidden=true}
  const last=(s.news||[]).slice(-1)[0];$('#heroNews').innerHTML=last?`<div class="np-mast">${esc(last.paper)}</div><div class="np-date">${esc(last.date)}</div><h4>${esc(last.h)}</h4><p>${esc(last.sub)}</p>`:`<div class="np-mast">${esc(PAPERS[1])}</div><div class="np-date">Lokales · ${CAMPS[CAMP].home}</div><h4>Talent aus ${CAMPS[CAMP].home} vor dem ersten grossen Turnier</h4><p>Die ganze Region schaut zu, wenn ${esc(s.name)} zum ersten Mal abschlägt.</p>`;
  renderRoute();renderPress();
  let html='',chN=0;EVENTS.forEach((e,i)=>{if(e.ch!==chN){chN=e.ch;html+=`<div class="stage">Kapitel ${chN} · ${CHAPTERS[chN][0]}</div>`}const r=s.res[e.key];const isCur=!done&&e.key===s.cur;const playable=isCur||!!r;const c=COURSES[e.course];
   const chip=r&&r.win?'<span class="chip win">Sieg</span>':r&&r.ok?`<span class="chip ok">${esc(r.pos)}</span>`:isCur?'<span class="chip next">Als Nächstes</span>':r?`<span class="chip">${esc(r.pos)}</span>`:'<span class="chip">Gesperrt</span>';
   html+=`<button class="ev" type="button" data-i="${i}" ${playable?'':'disabled'}><div><div class="nm">${esc(e.name)}</div><div class="cs">${esc(c.name)} · ${esc(goalText(e.goal))}</div></div>${chip}</button>`});
  $('#hubEvents').innerHTML=html;document.querySelectorAll('#hubEvents .ev').forEach(b=>b.onclick=()=>{if(!b.disabled)playEvent(+b.dataset.i)});
- const tk=(s.news||[]).slice(-8).reverse().map(n=>n.paper+': '+n.h).join('   ◆   ');$('#hubTickTx').textContent=tk||(CAMP===2?'Saastaler Anzeiger: Hotelkind aus dem Saastal zur Aufnahmeprüfung eingeladen   ◆   Alpine Golf Akademie: Legende sucht die nächsten Champions   ◆   Brandt Capital investiert Millionen in Nachwuchsgolf':'Markgräfler Tagesbote: Talent aus Kandern vor dem ersten grossen Turnier   ◆   Swiss Golf: Juniorenmeisterschaft in Bad Ragaz mit Rekordfeld   ◆   Augusta: Die Azaleen blühen früh in diesem Jahr');
- $('#bPlayNext').textContent=done?'Nochmals spielen':'Turnier spielen';$('#bPlayNext').onclick=()=>playEvent(nextI);
+ const tk=(s.news||[]).slice(-8).reverse().map(n=>n.paper+': '+n.h).join('   ◆   ');$('#hubTickTx').textContent=tk||(CAMP===4?'Walliser Bote: Matchplay-WM in Crans-Montana – sechzehn Spieler, ein Pokal   ◆   Tyler Voss: «Europas Team ist ein Haufen netter Leute»   ◆   Ryder Cup Rom: Captain Lindqvist sucht noch eine Wildcard':CAMP===2?'Saastaler Anzeiger: Hotelkind aus dem Saastal zur Aufnahmeprüfung eingeladen   ◆   Alpine Golf Akademie: Legende sucht die nächsten Champions   ◆   Brandt Capital investiert Millionen in Nachwuchsgolf':'Markgräfler Tagesbote: Talent aus Kandern vor dem ersten grossen Turnier   ◆   Swiss Golf: Juniorenmeisterschaft in Bad Ragaz mit Rekordfeld   ◆   Augusta: Die Azaleen blühen früh in diesem Jahr');
+ $('#bPlayNext').textContent=done?'Nochmals spielen':nev.match?'Match spielen':'Turnier spielen';$('#bPlayNext').onclick=()=>playEvent(nextI);
  renderOutfit();applyOutfit();AU.setMurmur(0);AU.setRain(0);if(S.weather==='rain'){S.weather='clear';S.skyMix=null;setSky(S.course.theme,S.time)}renderShop();$('#bReset').textContent='Karriere löschen';$('#bReset').dataset.arm='';S.state='menu';if(save.pending&&pendingDecide())setTimeout(()=>{if(S.state==='menu'&&!$('#hub').hidden)runChoice(pendingDecide()).then(()=>renderHub())},500);
  if(S.course!==COURSES[nev.course]&&!S.building){S.building=true;S.ev=nev;S.evIdx=nextI;S.course=COURSES[nev.course];S.time=nev.time;setSky(S.course.theme,nev.time);buildHole(17).then(()=>{golfer.g.visible=false;ballMesh.visible=false;aimRing.visible=false;puttLine.visible=false;S.building=false})}}
 const ASSETS={};
@@ -2412,25 +2555,26 @@ async function playEvent(i){
  AU.init();applyOutfit();const ev=EVENTS[i];ev.idx=i;S.ev=ev;S.evIdx=i;S.course=COURSES[ev.course];S.si=strokeIndex(S.course);S.time=ev.time;S.playoff=false;S.showcase=false;
  if(save&&save.cur===ev.key&&save.seenCh!==ev.ch){save.seenCh=ev.ch;writeSave();await chapterCard(ev.ch)}
  await runDialog(storyIntro(ev));
- const N=settings.holes;S.holes=Array.from({length:N},(_,k)=>18-N+k);S.hi=0;S.scores=new Array(18).fill(null);
- makeField(ev);S.RL={holes:[],putts:0,gir:0,fir:0,firN:0,water:0,maxDrive:0,trailMax:0,ledAt:false,rain:false};S.duelP=S.field.find(p=>p.rival)||S.field.find(p=>p.star)||ranked().find(p=>!p.you);S.rainPlan=i>0&&Math.random()<(THEMES[COURSES[ev.course].theme]===THEMES.links?.55:.2);S.rainFrom=S.rainPlan?Math.floor(Math.random()*Math.max(1,settings.holes-1)):99;S.weather=S.rainPlan&&S.rainFrom===0?'rain':'clear';S.skyMix=null;S.xpRound=0;S.streak=0;S.inZone=false;S.powerLeft=3;S.powerArmed=false;
+ const N=ev.match?ev.match.holes:settings.holes;S.holes=Array.from({length:N},(_,k)=>(ev.match?ev.match.from:18-N)+k);S.hi=0;S.scores=new Array(18).fill(null);
+ S.mp=null;if(ev.match)makeMatch(ev);else makeField(ev);S.RL={holes:[],putts:0,gir:0,fir:0,firN:0,water:0,maxDrive:0,trailMax:0,ledAt:false,rain:false};S.duelP=S.field.find(p=>p.rival)||S.field.find(p=>p.star)||ranked().find(p=>!p.you);S.rainPlan=i>0&&Math.random()<(THEMES[COURSES[ev.course].theme]===THEMES.links?.55:.2);S.rainFrom=S.rainPlan?Math.floor(Math.random()*Math.max(1,settings.holes-1)):99;S.weather=S.rainPlan&&S.rainFrom===0?'rain':'clear';S.skyMix=null;S.xpRound=0;S.streak=0;S.inZone=false;S.powerLeft=3;S.powerArmed=false;
  await loading(`${S.course.name} wird vorbereitet …`);
  setSky(S.course.theme,ev.time);AU.birds=THEMES[S.course.theme].birds;
  S.windKmh=0;newWind();await buildHole(S.holes[0]);S.state='menu';orbitT=0;
  hideAll();await introScreen(ev);
- for(S.hi=0;S.hi<S.holes.length;S.hi++){await playHole(S.holes[S.hi])}
- await finishRound();
+ for(S.hi=0;S.hi<S.holes.length;S.hi++){await playHole(S.holes[S.hi]);if(S.mp&&S.mp.over)break}
+ await (S.mp?finishMatch():finishRound());
 }
 function newWind(){const T=THEMES[S.course.theme];const k=Math.round(lerp(T.wind[0],T.wind[1],Math.random()));const a=Math.random()*Math.PI*2;S.windKmh=k;S.wind.set(Math.sin(a),0,Math.cos(a)).multiplyScalar(k/3.6);U_WIND.value.set(S.wind.x,S.wind.z)}
 function playHole(idx){return new Promise(async res=>{
  S.resolve=res;updateWeatherAndSky();if(!S.hole||S.hole.idx!==idx||S.hole.course!==S.course){await loading(`Loch ${idx+1} …`);newWind();await buildHole(idx)}else if(S.hi>0||S.playoff){newWind()}
- hideAll();$('#hud').hidden=false;S.strokes=0;S.putts=0;S.lie='tee';TURF.clear();S.lastShot=null;S.fir=false;S.gir=false;S.xpHole=0;chooseChallenge();AU.setMurmur(S.ev&&S.ev.crowd?.035:0);S.ball.set(0,S.hole.H(0,0)+.02,0);S.prev.copy(S.ball);S.topView=false;computePressure();S.duelOnGreen=false;setDuelMark(null);if(S.duelP&&!S.playoff){const P=S.duelP;let sk=P.skill;const hl=S.holes.length-S.hi-1;if((P.rival||P.star)&&hl<=4){const gap=P.tot-S.you.tot;if(gap>=0&&gap<=2)sk+=.14;else if(gap<0)sk-=.03}S.duelD=aiDelta(S.course.par[idx],sk)}else S.duelD=null;
+ hideAll();$('#hud').hidden=false;S.strokes=0;S.putts=0;S.lie='tee';TURF.clear();S.lastShot=null;S.fir=false;S.gir=false;S.xpHole=0;chooseChallenge();AU.setMurmur(S.ev&&S.ev.crowd?.035:0);S.ball.set(0,S.hole.H(0,0)+.02,0);S.prev.copy(S.ball);S.topView=false;computePressure();S.duelOnGreen=false;setDuelMark(null);if(S.duelP&&!S.playoff){const P=S.duelP;let sk=P.skill;const hl=S.holes.length-S.hi-1;if((P.rival||P.star)&&hl<=4){const gap=P.tot-S.you.tot;if(gap>=0&&gap<=2)sk+=.14;else if(gap<0)sk-=.03}S.duelD=aiDelta(S.course.par[idx],sk)}else S.duelD=null;if(S.mp&&S.duelP){const par=S.course.par[idx],rem=S.holes.length-S.hi;S.duelD=aiDelta(par,S.duelP.skill+(S.mp.up>0&&rem<=2?.03:0));if(S.mp.mate){S.mp.mateD=aiDelta(par,S.mp.mate.skill);S.mp.opp2D=aiDelta(par,S.mp.opp2.skill)}}
  renderMiniLb();updateHoleCard();placeGrass(0,20);
  $('#ltNum').textContent=idx+1;$('#ltName').textContent=holeLabel(idx);$('#ltMeta').textContent=`Par ${S.hole.par} · ${fmtD(S.hole.nominal)} · Wind ${S.windKmh} km/h`;commentate('intro',{h:idx+1,par:S.hole.par,len:fmtD(S.hole.nominal),w:S.windKmh<6?'Kaum Wind.':S.windKmh>18?`Kräftiger Wind, ${S.windKmh} km/h.`:`Leichter Wind, ${S.windKmh} km/h.`});
  startFlyover()})}
 function startFlyover(){S.state='flyover';$('#dragHint').hidden=true;$('#distPill').hidden=true;S.fly={t:0,dur:3.4};$('#lowerThird').classList.add('on');$('#flyHint').hidden=false;['#shotPanel','#windBox','#hint','#meter','#pathBar','#sbar'].forEach(q=>$(q).style.visibility='hidden');ballMesh.visible=false;golfer.g.visible=false;aimRing.visible=false;puttLine.visible=false;if(arcLine)arcLine.visible=false}
 function endFlyover(){$('#lowerThird').classList.remove('on');$('#flyHint').hidden=true;['#shotPanel','#windBox','#hint'].forEach(s=>$(s).style.visibility='');ballMesh.visible=true;golfer.g.visible=true;setupAddress(true)}
 function setupAddress(first){
+ if(S.mp&&S.strokes>0&&!S.duelOnGreen&&S.duelD!=null)duelApproach();
  const h=S.hole;S.state='address';$('#lowerThird').classList.remove('on');$('#flyHint').hidden=true;['#shotPanel','#windBox','#hint'].forEach(q=>$(q).style.visibility='');ballMesh.visible=true;golfer.g.visible=true;S.club=autoClub();const c=CLUBS[S.club];S.spinManual=false;S.tapIn=false;S.shotType='normal';$('#clubBag').hidden=true;applyAutoSpin();updatePowerUi();
  if(c.putter){const d=distToPin();const steps=[3,5,8,12,16,22,30,40];S.puttRange=steps.find(q=>q>=d*1.4)||40}
  autoAim();golfer.setClub(c);golfer.place(S.ball,S.aim);golfer.pose(0,0,0);ballMesh.position.copy(S.ball);ballMesh.position.y=ballY(S.ball.x,S.ball.z,S.ball.y);ballMesh.scale.setScalar(1);updateSpinUi();
@@ -2573,10 +2717,10 @@ async function holeOut(pickup){
  if(d<0||S.strokes===1)S.golferCheer=T0;
  if(!S.playoff&&S.RL){S.RL.holes.push({n:h.idx+1,par,st:S.strokes,d,chip:!pickup&&!S.tapIn&&!!S.shot&&!S.shot.putt&&S.strokes>1,putt:(S.shot&&S.shot.putt&&!pickup)?Math.hypot(S.prev.x-h.pin_x,S.prev.z-h.pin_z):0});S.RL.putts+=S.putts||0;if(S.gir)S.RL.gir++;if(par>3){S.RL.firN++;if(S.fir)S.RL.fir++}if(S.weather==='rain')S.RL.rain=true}
  if(!S.playoff){S.scores[h.idx]=S.strokes;S.you.tot+=d;S.you.today+=d;S.you.hist.push(S.strokes)}
- setTimeout(()=>{callout(nm,`${S.strokes} ${S.strokes===1?'Schlag':'Schläge'} · ${S.playoff?'Stechen':'Total '+fmtPar(S.you.tot)}`);if(d<0){AU.crowd(d<=-2?1:.7);S.cheerT=T0}else if(d===0)AU.crowd(.3);},350);
+ setTimeout(()=>{callout(nm,`${S.strokes} ${S.strokes===1?'Schlag':'Schläge'} · ${S.playoff?'Stechen':S.mp?(S.mp.mate?'Vierball':'Matchplay'):'Total '+fmtPar(S.you.tot)}`);if(d<0){AU.crowd(d<=-2?1:.7);S.cheerT=T0}else if(d===0)AU.crowd(.3);},350);
  if(S.playoff){await sleep(2800);S.resolve&&S.resolve(S.strokes);return}
- const holesLeft=S.holes.length-S.hi-1;const msgs=simulateAI(h.idx,holesLeft);setDuelMark(null);duelReveal(par);if(S.RL){const ld=ranked().find(p=>!p.you);const gap=S.you.tot-(ld?ld.tot:0);S.RL.trailMax=Math.max(S.RL.trailMax,gap);if(gap<0)S.RL.ledAt=true}
- await sleep(1700);renderMiniLb();const p=posOf(S.you);ticker([`${save.name}: ${nm} auf der ${h.idx+1} – ${p.s}. Platz bei ${fmtPar(S.you.tot)}.`,...msgs]);
+ const holesLeft=S.holes.length-S.hi-1;const msgs=simulateAI(h.idx,holesLeft);setDuelMark(null);(S.mp?matchHole(par):duelReveal(par));if(S.RL){const ld=ranked().find(p=>!p.you);const gap=S.you.tot-(ld?ld.tot:0);S.RL.trailMax=Math.max(S.RL.trailMax,gap);if(gap<0)S.RL.ledAt=true}
+ await sleep(1700);renderMiniLb();const p=posOf(S.you);ticker(S.mp?[S.mp.msg]:[`${save.name}: ${nm} auf der ${h.idx+1} – ${p.s}. Platz bei ${fmtPar(S.you.tot)}.`,...msgs]);
  await sleep(1500);S.resolve&&S.resolve()}
 
 async function finishRound(){
@@ -2765,7 +2909,7 @@ $('#bCont').onclick=()=>{AU.init();renderHub()};
 document.querySelectorAll('#camps button').forEach(b=>b.onclick=()=>{AU.init();setCampaign(+b.dataset.c);showTitle()});
 $('#bToTitle').onclick=showTitle;if(/Electron/.test(navigator.userAgent))for(const id of ['#bExit','#bExit2']){const b=$(id);b.hidden=false;b.onclick=()=>window.close()}
 $('#bReset').onclick=e=>{const b=e.currentTarget;if(b.dataset.arm){try{localStorage.removeItem(SKEY_CUR)}catch(err){}save=null;showTitle()}else{b.dataset.arm='1';b.textContent='Wirklich löschen? Nochmals klicken'}};
-async function boot(){if(!settings.c23){settings.camp=3;settings.c23=true}setCampaign(settings.camp||3);
+async function boot(){if(!settings.c23){settings.camp=3;settings.c23=true}if(!settings.c25){settings.camp=4;settings.c25=true}setCampaign(settings.camp||4);
  await loading('Platz wird gemäht …');await loadAssets();
  const ev=save?EVENTS[curIdx()]:(EVENTS.find(e=>e.key==='crans')||EVENTS[0]);S.ev=ev;S.evIdx=EVENTS.indexOf(ev);S.course=COURSES[ev.course];S.time=ev.time;
  setSky(S.course.theme,ev.time);S.windKmh=6;S.wind.set(.8,0,1.2);await buildHole(save?17:6);golfer.g.visible=false;ballMesh.visible=false;aimRing.visible=false;puttLine.visible=false;
