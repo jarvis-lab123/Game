@@ -2201,8 +2201,9 @@ async function finishMatch(){const ev=S.ev,m=ev.match,M=S.mp,P=S.duelP,i=S.evIdx
  const prevRes=save.res[ev.key];const prize=won?(ev.purse||0):m.final?Math.round((ev.purse||0)*.5/100)*100:0;save.money=(save.money||0)+prize;
  save.res[ev.key]={pos:won?'Sieg':halved?'Geteilt':'Niederlage',win:won||(prevRes&&prevRes.win),ok:ok||(prevRes&&prevRes.ok)};
  save.fans=(save.fans||0)+Math.round((won?2500:halved?1200:400)*((ev.lv||0)+1));xp(won?120:halved?50:20,won?'Match gewonnen':halved?'Match geteilt':'Match gespielt');
- let retry=!ok&&!m.session;
- if(onPath){(save.path=save.path||[]).push({k:ev.key,ok,won,pos:save.res[ev.key].pos});const before=save.cur;advance(ev,ok,won);retry=!ok&&save.cur===before&&!save.pending&&!save.done}
+ let retry=!ok&&!m.session,lucky=false;
+ if(onPath&&!ok&&!m.session&&ev.next.fail===ev.key){const tr=save.tries=save.tries||{};tr[ev.key]=(tr[ev.key]||0)+1;if(tr[ev.key]>=2)lucky=true}
+ if(onPath){(save.path=save.path||[]).push({k:ev.key,ok,won,pos:save.res[ev.key].pos});const before=save.cur;advance(ev,ok||lucky,won);retry=!ok&&save.cur===before&&!save.pending&&!save.done}
  const R={ev,ok,won,halved,how,M,opp:P,prize,onPath};S.round=R;writeSave();
  $('#hud').hidden=true;$('#pressure').style.boxShadow='none';gradePass.uniforms.uPulse.value=0;
  const party=m.cup?(onPath&&save.flags.cup!=='lost'):(won&&m.final);
@@ -2212,11 +2213,11 @@ async function finishMatch(){const ev=S.ev,m=ev.match,M=S.mp,P=S.duelP,i=S.evIdx
  const us=M.mate?save.name+' & '+mpShort(M.mate.name):save.name,them=M.mate?mpShort(P.name)+' & '+mpShort(M.opp2.name):P.name;
  let t=won?us+(M.mate?' schlagen ':' schlägt ')+them+' '+how+'.':halved?us+' und '+them+' teilen das Match.':us+(M.mate?' verlieren':' verliert')+' gegen '+them+' '+how+'.';
  if(sess)t+=' '+sess.name+': Europa '+rcHalf(sess.eu)+' – '+rcHalf(sess.us)+' USA. Gesamt: '+rcLine(save)+'.';
- if(prize)t+=' Preisgeld: '+chf(prize)+'.';if(retry)t+=' Im K.-o. heisst es: nochmals!';$('#resP').textContent=t;
+ if(prize)t+=' Preisgeld: '+chf(prize)+'.';if(lucky)t+=' Doch dann: '+P.name+' hatte 15 Schläger in der Tasche – Regelverstoss, das Match geht an dich!';else if(retry)t+=' Im K.-o. heisst es: nochmals!';$('#resP').textContent=t;
  let up=0;$('#resLb').innerHTML='<tr><th>Loch</th><th>Schläge</th><th class="r">Stand</th></tr>'+M.log.map(l=>{up=l.up;return`<tr class="${l.r>0?'me':''}"><td class="num">${l.n}</td><td>${l.me} : ${l.they} · ${l.r>0?'Loch an dich':l.r<0?'Loch an '+esc(mpShort(P.name)):'geteilt'}</td><td class="r num">${up?(up>0?'Du ':esc(mpShort(P.name))+' ')+Math.abs(up)+' UP':'AS'}</td></tr>`}).join('');
  $('#resActs').innerHTML=`${retry?'<button class="btn" type="button" id="bRetry">Nochmals versuchen</button>':''}<button class="btn primary" type="button" id="bResNext">Weiter</button>`;
  if($('#bRetry'))$('#bRetry').onclick=()=>playEvent(i);
- $('#bResNext').onclick=async()=>{if(m.final||m.cup)await matchNews(R);await runDialog(won?ev.win:halved&&ev.halve?ev.halve:ok?ev.win:ev.lose);if(onPath&&save.pending===ev.key)await runChoice(pendingDecide());
+ $('#bResNext').onclick=async()=>{if(m.final||m.cup)await matchNews(R);await runDialog(lucky?[['gio','Fünfzehn Schläger! Erlaubt sind vierzehn. Glück gehabt – aber im nächsten Match gewinnen wir selbst, okay?']]:won?ev.win:halved&&ev.halve?ev.halve:ok?ev.win:ev.lose);if(onPath&&save.pending===ev.key)await runChoice(pendingDecide());
   if(m.cup&&onPath&&save.done)await runDialog(epilogue4(save));renderHub()}}
 function aiDelta(par,skill){const pE=par===5?clamp(.035+skill*.15,.004,.1):par===4?.004:.002;const pB=clamp((par===5?.38:par===3?.14:.19)+skill,.03,.6);const pBo=clamp((par===3?.17:par===4?.15:.09)-skill*.9,.02,.45);const pD=clamp(.025-skill*.12,.003,.12);
  let r=Math.random();if(r<pE)return-2;r-=pE;if(r<pB)return-1;r-=pB;if(r<pD)return 2;r-=pD;if(r<pBo)return 1;return 0}
