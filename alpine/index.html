@@ -2198,7 +2198,7 @@ async function finishMatch(){const ev=S.ev,m=ev.match,M=S.mp,P=S.duelP,i=S.evIdx
   else for(let k=0;k<n;k++){const r=Math.random();e+=r<.47?1:r<.6?.5:0}
   sess={name:m.session.name,eu:e+pts,us:n-e+1-pts};rc.eu+=sess.eu;rc.us+=sess.us;
   if(m.cup){save.flags=save.flags||{};save.flags.cup=rc.eu>rc.us?'won':rc.eu===rc.us?'kept':'lost'}}
- const prevRes=save.res[ev.key];const prize=won?(ev.purse||0):Math.round((ev.purse||0)*.35/100)*100;save.money=(save.money||0)+prize;
+ const prevRes=save.res[ev.key];const prize=won?(ev.purse||0):m.final?Math.round((ev.purse||0)*.5/100)*100:0;save.money=(save.money||0)+prize;
  save.res[ev.key]={pos:won?'Sieg':halved?'Geteilt':'Niederlage',win:won||(prevRes&&prevRes.win),ok:ok||(prevRes&&prevRes.ok)};
  save.fans=(save.fans||0)+Math.round((won?2500:halved?1200:400)*((ev.lv||0)+1));xp(won?120:halved?50:20,won?'Match gewonnen':halved?'Match geteilt':'Match gespielt');
  let retry=!ok&&!m.session;
@@ -2486,7 +2486,7 @@ function ceremony(ev){return new Promise(res=>{S.state='ceremony';S.orb=0;S.cere
 function renderRoute(){const el=$('#hubRoute');if(!el||!save)return;const W=1200,H=300;const P=k=>{const e=EVENTS.find(x=>x.key===k);return[50+e.map[0]*84,42+e.map[1]*84]};
  const visited=new Set((save.path||[]).map(p=>p.k));const cur=save.done?null:save.cur;const pairs=new Set();(save.path||[]).forEach((p,i,a)=>{const nx=a[i+1]?a[i+1].k:save.cur;pairs.add(p.k+'>'+nx)});
  let edges='',nodes='';
- for(const e of EVENTS){if(!e.next)continue;for(const [kind,to] of [['ok',e.next.ok],['fail',e.next.fail],...(e.alt||[]).map(a=>['alt',a])]){if(!to||to===e.key||to==='season'||to==='__choice')continue;if(kind==='fail'&&to===e.next.ok)continue;const [x1,y1]=P(e.key),[x2,y2]=P(to);const mx=(x1+x2)/2;edges+=`<path d="M${x1} ${y1} C${mx} ${y1} ${mx} ${y2} ${x2} ${y2}" class="rt ${kind} ${pairs.has(e.key+'>'+to)?'on':''}"/>`}}
+ for(const e of EVENTS){if(!e.next)continue;for(const [kind,to] of [['ok',e.next.ok],['fail',e.next.fail],...(e.alt||[]).map(a=>['alt',a])]){if(!to||to===e.key||to==='season'||to==='__choice'||to==='__done')continue;if(kind==='fail'&&to===e.next.ok)continue;const [x1,y1]=P(e.key),[x2,y2]=P(to);const mx=(x1+x2)/2;edges+=`<path d="M${x1} ${y1} C${mx} ${y1} ${mx} ${y2} ${x2} ${y2}" class="rt ${kind} ${pairs.has(e.key+'>'+to)?'on':''}"/>`}}
  for(const e of EVENTS){const [x,y]=P(e.key);const r=save.res[e.key];const st=e.key===cur?'cur':visited.has(e.key)?(r&&r.ok?'done':'miss'):'';nodes+=`<g class="nd ${st}" data-k="${e.key}" transform="translate(${x} ${y})"><title>${esc(e.name)}</title><circle r="${e.major?15:12}"/>${r&&r.win?'<path d="M-5 -5h10v3a5 5 0 0 1-10 0z M-1 1h2v3h-2z M-4 4h8v2h-8z" class="tr"/>':''}<text y="${e.map[1]>1.5?32:-22}" text-anchor="middle">${esc(e.short||e.name)}</text></g>`}
  el.innerHTML=`<div class="rh"><div class="cap">Dein Karriere-Weg · jedes Ergebnis verändert die Geschichte</div><div class="lg"><span class="l"></span>Ziel erreicht<span class="l fail"></span>Ziel verpasst<span class="dot"></span>Als Nächstes</div></div><div class="rs"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Karriere-Weg">${edges}${nodes}</svg></div>`;
  el.querySelectorAll('.nd').forEach(n=>n.onclick=()=>{const k=n.dataset.k;const i=EVENTS.findIndex(e=>e.key===k);if(k===cur||save.res[k])playEvent(i)})}
