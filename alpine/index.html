@@ -2208,8 +2208,8 @@ async function finishMatch(){const ev=S.ev,m=ev.match,M=S.mp,P=S.duelP,i=S.evIdx
  $('#hud').hidden=true;$('#pressure').style.boxShadow='none';gradePass.uniforms.uPulse.value=0;
  const party=m.cup?(onPath&&save.flags.cup!=='lost'):(won&&m.final);
  if(party)await ceremony(ev);else{S.snapReq=true;await frameWait();await frameWait();await frameWait()}
- hideAll();$('#hud').hidden=true;$('#results').hidden=false;$('#resBanner').className='banner pnl '+(ok?'win':'fail');$('#resK').textContent=ev.name+' · '+(M.mate?'Vierball':'Matchplay');
- $('#resH').textContent=m.cup&&onPath&&save.flags.cup!=='lost'?(save.flags.cup==='won'?'Ryder Cup gewonnen!':'Ryder Cup behalten!'):won?'Match gewonnen':halved?'Match geteilt':'Match verloren';
+ hideAll();$('#hud').hidden=true;$('#results').hidden=false;$('#resBanner').className='banner pnl '+(ok||lucky?'win':'fail');$('#resK').textContent=ev.name+' · '+(M.mate?'Vierball':'Matchplay');
+ $('#resH').textContent=m.cup&&onPath&&save.flags.cup!=='lost'?(save.flags.cup==='won'?'Ryder Cup gewonnen!':'Ryder Cup behalten!'):lucky?'Glück gehabt – weiter!':won?'Match gewonnen':halved?'Match geteilt':'Match verloren';
  const us=M.mate?save.name+' & '+mpShort(M.mate.name):save.name,them=M.mate?mpShort(P.name)+' & '+mpShort(M.opp2.name):P.name;
  let t=won?us+(M.mate?' schlagen ':' schlägt ')+them+' '+how+'.':halved?us+' und '+them+' teilen das Match.':us+(M.mate?' verlieren':' verliert')+' gegen '+them+' '+how+'.';
  if(sess)t+=' '+sess.name+': Europa '+rcHalf(sess.eu)+' – '+rcHalf(sess.us)+' USA. Gesamt: '+rcLine(save)+'.';
@@ -2505,7 +2505,7 @@ function renderHub(){
  $('#hubSlams').innerHTML=CAMP===4?[['mpChamp','Matchplay','Weltmeister'],['rc','Ryder Cup','Rom']].map(([k,n,t])=>{const w=k==='rc'?(s.flags&&s.flags.cup&&s.flags.cup!=='lost'):(s.flags&&s.flags.mpChamp);return`<div class="slam ${w?'won':''}">${trophy}${n}<br><span style="font-weight:500;font-size:11px">${t}</span></div>`}).join(''):MAJORS.map(([k,n,t])=>`<div class="slam ${s.majors[k]?'won':''}">${trophy}${n}<br><span style="font-weight:500;font-size:11px">${t}</span></div>`).join('');
  const nc=COURSES[nev.course];const ch=CHAPTERS[nev.ch]||['',''];
  $('#heroCh').textContent=done?'Epilog · Legende':`Kapitel ${nev.ch} · ${ch[0]}`;
- $('#heroTour').textContent=done?'Grand Slam komplett – spiel deine Lieblingsturniere nochmals':`Nächstes Turnier · ${nev.tour}`;$('#heroName').textContent=nev.name;$('#heroCourse').textContent=`${nc.name} · ${nc.loc}`;
+ $('#heroTour').textContent=done?(CAMP===4?'Geschichte komplett – spiel deine Lieblingsmatches nochmals':'Grand Slam komplett – spiel deine Lieblingsturniere nochmals'):`Nächstes Turnier · ${nev.tour}`;$('#heroName').textContent=nev.name;$('#heroCourse').textContent=`${nc.name} · ${nc.loc}`;
  $('#heroGoal').innerHTML=`<span class="chip next">${goalText(nev.goal)}</span><span class="chip">${nev.stage}</span><span class="chip">${nev.match?nev.match.holes+' Löcher · Matchplay':settings.holes+' Löcher'}</span>`;$('#heroTxt').textContent=fill(nev.txt);{const rr=$('#hubRels');if(CAMP===3&&s.rel){const L=[['family','Familie','#ff8fab'],['caddie','Caddie Sepp','#ffd166'],['fans','Fans','#5fd0ff'],['tour','Ansehen Tour','#6fdc8c']];rr.innerHTML=L.map(([k,n,c])=>'<div class="rl"><span>'+n+'</span><span class="rb"><i style="width:'+s.rel[k]+'%;background:'+c+'"></i></span><span class="rv">'+s.rel[k]+'</span></div>').join('');rr.hidden=false}else rr.hidden=true}
  const last=(s.news||[]).slice(-1)[0];$('#heroNews').innerHTML=last?`<div class="np-mast">${esc(last.paper)}</div><div class="np-date">${esc(last.date)}</div><h4>${esc(last.h)}</h4><p>${esc(last.sub)}</p>`:`<div class="np-mast">${esc(PAPERS[1])}</div><div class="np-date">Lokales · ${CAMPS[CAMP].home}</div><h4>Talent aus ${CAMPS[CAMP].home} vor dem ersten grossen Turnier</h4><p>Die ganze Region schaut zu, wenn ${esc(s.name)} zum ersten Mal abschlägt.</p>`;
  renderRoute();renderPress();
