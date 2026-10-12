@@ -366,7 +366,7 @@ table.sc tr.hcp td{color:#6a6a5a;font-size:12px}
 @media (max-width:760px){.np-body{grid-template-columns:1fr}.hero{grid-template-columns:1fr}.paper.mini{display:none}.hubtop .kpis{grid-template-columns:repeat(2,1fr)}}
 /* ---------- v23 Grand Slam 3 ---------- */
 .rels{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 16px;max-width:520px;margin:0 0 16px}.rels .rl{display:grid;grid-template-columns:110px 1fr 32px;align-items:center;gap:8px;font:700 11px var(--disp);letter-spacing:.1em;text-transform:uppercase;color:#dfe8e1}.rels .rb{height:8px;border-radius:4px;background:rgba(255,255,255,.14);overflow:hidden}.rels .rb i{display:block;height:100%;border-radius:4px}.rels .rv{font:800 13px var(--disp);text-align:right}
-.camps{grid-template-columns:repeat(4,1fr)!important}
+.camps{grid-template-columns:repeat(5,1fr)!important}
 /* ---------- v22 Grand Slam 2 ---------- */
 #choice .cw2{width:min(760px,100%);padding:22px 24px;border-radius:16px;pointer-events:auto}
 #choice .ch-h{display:flex;gap:14px;align-items:center}#choice .pt{width:58px;height:58px;border-radius:12px;display:grid;place-items:center;font:800 22px var(--disp);color:#fff}
@@ -564,7 +564,7 @@ html,body{overscroll-behavior:none;-webkit-touch-callout:none;-webkit-tap-highli
 <div id="app">
  <canvas id="gl"></canvas>
  <div id="pressure" class="hud"></div>
- <div id="verTag" class="hud">Version 25</div>
+ <div id="verTag" class="hud">Version 26</div>
  <button id="bSnd" type="button" aria-label="Ton an"></button>
  <div id="replayTag" class="hud">▶ Replay · Klick zum Beenden</div>
 
@@ -619,11 +619,11 @@ html,body{overscroll-behavior:none;-webkit-touch-callout:none;-webkit-tap-highli
 
  <div id="title" class="screen scrim" hidden>
   <div class="tl">
-   <div class="brand"><span class="cross" aria-hidden="true"></span><span>Golf Story · Version 25 · Ryder Cup</span></div>
+   <div class="brand"><span class="cross" aria-hidden="true"></span><span>Golf Story · Version 26 · Die Weltreise</span></div>
    <h1>Alpine<em>Grand Slam</em></h1>
    <p class="sub">Vom Jugendturnier in Kandern bis zum Claret Jug in St Andrews. Fünfzehn Turniere auf echten Plätzen, ein Rivale, der nicht verschwindet – und eine Geschichte, die sich mit jedem Ergebnis verändert.</p>
    <div class="feat"><span>15 Turniere</span><span>Verzweigte Story</span><span>Interviews &amp; Schlagzeilen</span><span>TrackMan-Ballflug</span></div>
-<div class="camps" id="camps"><button type="button" data-c="4"><b>Ryder Cup <span class="new">Neu</span></b><small>Matchplay · Rom · 30 Min.</small></button><button type="button" data-c="3"><b>Grand Slam 3</b><small>Gipfelsturm · Zermatt</small></button><button type="button" data-c="2"><b>Grand Slam 2</b><small>Die Akademie · Saastal</small></button><button type="button" data-c="1"><b>Teil 1</b><small>Der Weg nach St Andrews</small></button></div>
+<div class="camps" id="camps"><button type="button" data-c="5"><b>Weltreise <span class="new">Neu</span></b><small>6 Kontinente · 2 Std.</small></button><button type="button" data-c="4"><b>Ryder Cup</b><small>Matchplay · Rom · 30 Min.</small></button><button type="button" data-c="3"><b>Grand Slam 3</b><small>Gipfelsturm · Zermatt</small></button><button type="button" data-c="2"><b>Grand Slam 2</b><small>Die Akademie · Saastal</small></button><button type="button" data-c="1"><b>Teil 1</b><small>Der Weg nach St Andrews</small></button></div>
    <div class="menu">
     <button class="mbtn cont" id="bCont" type="button" hidden><b>Karriere fortsetzen</b><small id="contMeta"></small><span class="arr">→</span></button>
     <div id="newBox" class="newbox">
@@ -884,6 +884,25 @@ const THEMES={
  canyon:{amp:6,hump:1.4,fwSmooth:.8,greenUnd:1.1,trend:0,prof:20,fw:29,ob:58,margin:130,noSnow:true,rockC:[176,88,56],c:{rough:[192,124,80],rough2:[178,110,70],outer:[186,112,72],meadow:[200,128,84],forest:[164,96,60],semi:[116,156,68],fair:[100,160,62],fair2:[114,172,72],sand:[232,196,152]},trees:{cactus:.75,palm:.25},tc:{cactus:[70,130,70],palm:[60,120,50]},density:.35,bush:{kind:'sage',n:160},
   mount:{amp:600,near:1200},sea:null,water:.25,sky:{turb:3.4,ray:1.3,mie:.006},fogCol:[236,210,186],fog:.00014,wind:[3,14],clouds:5,birds:false,grassH:.7,hero:['peak_red'],heroN:7,heroDist:1600,heroH:300}
 };
+// ---------- v26 Weltreise: neue Landschaften ----------
+Object.assign(THEMES,{
+ vineyard:{amp:9,hump:1.1,fwSmooth:.85,greenUnd:1.05,trend:.04,fw:32,ob:85,margin:135,c:{rough:[96,140,56],rough2:[112,152,62],outer:[92,132,54],meadow:[118,160,64]},trees:{dec:.7,con:.3},tc:{dec:[70,104,42],con:[30,60,36]},density:.7,bush:{kind:'orchard',n:150},
+  mount:{amp:1500,near:1400},sea:{ang:2.6,dist:480,level:-12,band:1600},water:.2,sky:{turb:2.2,ray:1.1,mie:.004},fogCol:[182,202,220],fog:.00014,wind:[2,10],clouds:9,birds:true,grassH:1,village:true,vineyard:true,flowers:1.2},
+ volcano:{amp:5,hump:1.7,fwSmooth:.6,greenUnd:1.2,trend:0,prof:12,fw:31,ob:95,margin:130,rockC:[58,56,62],c:{rough:[100,118,72],rough2:[124,132,86],outer:[78,86,70],meadow:[110,124,78],forest:[56,62,56],semi:[100,136,66],fair:[96,150,66],fair2:[110,160,74],sand:[66,64,70]},trees:{},density:0,bush:{kind:'lupine',n:300},
+  mount:{amp:1100,near:1300},sea:{ang:-1.4,dist:380,level:-4},water:.12,sky:{turb:3.8,ray:1.6,mie:.006},fogCol:[176,186,196],fog:.00026,wind:[10,24],clouds:22,birds:true,grassH:1.4},
+ savanna:{amp:4,hump:1,fwSmooth:.85,greenUnd:1,trend:0,prof:8,fw:33,ob:85,margin:130,noSnow:true,rockC:[150,110,80],c:{rough:[170,150,82],rough2:[188,164,92],outer:[176,150,86],meadow:[196,170,96],forest:[120,110,62],semi:[120,150,64],fair:[96,154,58],fair2:[110,166,66],sand:[236,214,170]},trees:{umb:.85,dec:.15},tc:{umb:[78,96,42],dec:[90,110,46]},density:.38,bush:{kind:'savanna',n:240},
+  mount:{amp:450,near:1500},sea:null,water:.3,sky:{turb:3.2,ray:1.3,mie:.006},fogCol:[226,214,190],fog:.00016,wind:[3,13],clouds:6,birds:true,grassH:1.2},
+ oasis:{amp:5,hump:1.2,fwSmooth:.85,greenUnd:1.05,trend:0,prof:10,fw:31,ob:70,margin:130,rockC:[186,112,72],c:{rough:[198,160,104],rough2:[186,148,96],outer:[206,168,110],meadow:[214,176,116],forest:[170,130,84],semi:[116,160,70],fair:[98,160,62],fair2:[112,172,72],sand:[238,214,176]},trees:{palm:.75,umb:.25},tc:{palm:[56,120,50],umb:[70,96,48]},density:.6,bush:{kind:'olive',n:200},
+  mount:{amp:1500,near:1500},sea:null,water:.4,sky:{turb:3.2,ray:1.3,mie:.006},fogCol:[236,220,198],fog:.00014,wind:[3,13],clouds:4,birds:true,grassH:.8},
+ sakura:{amp:6,hump:1.05,fwSmooth:.85,greenUnd:1.05,trend:.02,fw:32,ob:85,margin:130,c:{rough:[86,138,60],rough2:[104,150,66],outer:[84,128,56],meadow:[112,154,70]},trees:{dec:.6,con:.4},tc:{dec:[170,90,120],con:[30,62,40]},tcv:{dec:[[150,70,100],[168,92,120],[140,60,94],[178,112,136],[160,84,112]]},density:.9,bush:{kind:'blossom',n:220},
+  mount:{amp:900,near:1500},sea:{ang:2.0,dist:460,level:-10},water:.2,sky:{turb:2.4,ray:1.2,mie:.004},fogCol:[206,212,226],fog:.00016,wind:[3,12],clouds:8,birds:true,grassH:1,flowers:1.3},
+ karst:{amp:4,hump:1,fwSmooth:.85,greenUnd:1,trend:0,prof:6,fw:32,ob:85,margin:130,c:{rough:[70,146,62],rough2:[86,160,68],semi:[92,168,72],fair:[102,184,74],fair2:[118,196,84],outer:[62,130,56],meadow:[82,150,64],forest:[30,90,44],sand:[240,232,206]},trees:{palm:.5,dec:.5},tc:{palm:[50,138,52],dec:[34,114,48]},density:.75,bush:{kind:'hibiscus',n:200},
+  mount:{amp:500,near:1500},sea:{ang:1.8,dist:380,level:-4},water:.4,sky:{turb:3,ray:1.4,mie:.006},fogCol:[196,214,214],fog:.00022,wind:[3,13],clouds:14,birds:true,grassH:1},
+ andes:{amp:7,hump:1.15,fwSmooth:.85,greenUnd:1.1,trend:0,prof:16,fw:30,ob:82,margin:135,c:{rough:[90,132,58],rough2:[110,142,64],outer:[86,122,54],meadow:[118,148,66],forest:[28,58,36]},trees:{con:.55,dec:.45},tc:{con:[26,56,36],dec:[150,100,40]},tcv:{dec:[[150,96,36],[170,120,40],[130,80,34],[110,120,50]]},density:.9,bush:null,
+  mount:{amp:1000,near:1450},sea:{ang:2.4,dist:500,level:-14,band:1700},water:.25,sky:{turb:1.8,ray:1,mie:.003},fogCol:[186,206,228],fog:.0001,wind:[4,15],clouds:9,birds:true,grassH:1},
+ lava:{amp:5,hump:1.1,fwSmooth:.85,greenUnd:1.05,trend:0,prof:12,fw:33,ob:85,margin:130,noSnow:true,rockC:[52,48,50],c:{rough:[78,150,62],rough2:[94,162,68],semi:[96,172,72],fair:[104,188,74],fair2:[120,200,84],outer:[70,124,56],meadow:[86,150,64],forest:[40,80,42],sand:[244,236,210]},trees:{palm:.6,dec:.4},tc:{palm:[52,140,52],dec:[40,120,48]},density:.55,bush:{kind:'hibiscus',n:220},
+  mount:{amp:1300,near:1500},sea:{ang:-1.0,dist:420,level:-6},water:.25,sky:{turb:2.4,ray:1.4,mie:.005},fogCol:[198,222,232],fog:.00016,wind:[8,20],clouds:12,birds:true,grassH:1}
+});
 for(const t of Object.values(THEMES))t.c=Object.assign({},BASEC,t.c);
 function vivid(c,sat=1.32,li=1.12){const col=new THREE.Color().setRGB(c[0]/255,c[1]/255,c[2]/255);const hsl={};col.getHSL(hsl);col.setHSL(hsl.h,Math.min(1,hsl.s*sat),Math.min(.9,hsl.l*li));return[col.r*255,col.g*255,col.b*255]}
 for(const t of Object.values(THEMES)){for(const k in t.c)t.c[k]=vivid(vivid(t.c[k]),1.16,1.06);for(const k in t.tc)t.tc[k]=vivid(t.tc[k],1.45,1.14)}
@@ -892,6 +911,7 @@ Object.assign(THEMES.snow,{hero:['peak_massif'],heroN:3,heroDist:3300,heroH:1150
 Object.assign(THEMES.alpine,{hero:['peak_massif'],heroN:2,heroDist:3500,heroH:1150,chalets:true});
 Object.assign(THEMES.high,{hero:['peak_massif','peak_matterhorn'],heroN:3,heroDist:3400,heroH:1250,chalets:true});
 Object.assign(THEMES.autumn,{hero:['peak_massif'],heroN:2,heroDist:3300,heroH:850,chalets:true});
+Object.assign(THEMES.vineyard,{hero:['peak_massif'],heroN:3,heroDist:3600,heroH:1100});Object.assign(THEMES.volcano,{hero:['peak_massif'],heroN:2,heroDist:3200,heroH:900});Object.assign(THEMES.oasis,{hero:['peak_massif'],heroN:3,heroDist:3800,heroH:1400});Object.assign(THEMES.sakura,{hero:['peak_massif'],heroN:1,heroDist:4300,heroH:1700});Object.assign(THEMES.karst,{hero:['peak_dolomite'],heroN:9,heroDist:1700,heroH:380});Object.assign(THEMES.andes,{hero:['peak_massif','peak_matterhorn'],heroN:3,heroDist:3600,heroH:1300,chalets:true});Object.assign(THEMES.lava,{hero:['peak_massif'],heroN:1,heroDist:4200,heroH:1500});
 
 const AUG_N=['Tea Olive','Pink Dogwood','Flowering Peach','Flowering Crab Apple','Magnolia','Juniper','Pampas','Yellow Jasmine','Carolina Cherry','Camellia','White Dogwood','Golden Bell','Azalea','Chinese Fir','Firethorn','Redbud','Nandina','Holly'];
 const SA_N=['Burn','Dyke','Cartgate (Out)','Ginger Beer','Hole O’Cross (Out)','Heathery (Out)','High (Out)','Short','End','Bobby Jones','High (In)','Heathery (In)','Hole O’Cross (In)','Long','Cartgate (In)','Corner of the Dyke','Road','Tom Morris'];
@@ -960,6 +980,19 @@ const COURSES={
  whistling:{name:'Whistling Straits · Straits Course',loc:'Kohler · Wisconsin · USA',theme:'cliffs',par:[4,5,3,4,5,4,3,4,4,4,5,3,4,4,5,4,3,4],flag:'white'},
  oakmont:{name:'Oakmont Country Club',loc:'Oakmont · Pennsylvania · USA',theme:'park',par:[4,4,4,3,4,3,4,3,5,4,4,5,3,4,4,3,4,4],flag:'yellow'},
  muirfield:{name:'Muirfield',loc:'Gullane · East Lothian · Schottland',theme:'links',par:[4,4,4,3,5,4,3,4,5,4,4,4,3,4,4,3,5,4],flag:'yellow'},
+ lavaux:{name:'Golf du Lavaux · Terrasses',loc:'Chexbres · Lavaux · Waadt · Schweiz',theme:'vineyard',par:[4,3,4,5,4,4,3,5,4,4,3,4,5,4,4,3,4,5],flag:'swiss'},
+ brautarholt:{name:'Brautarholt Golf Club',loc:'Kjalarnes · Reykjavík · Island',theme:'volcano',par:[4,4,3,5,4,3,4,4,5,4,3,5,4,4,3,4,4,5],flag:'red'},
+ leopard:{name:'Leopard Creek Country Club',loc:'Malelane · Mpumalanga · Südafrika',theme:'savanna',par:[4,5,3,4,4,4,3,5,4,4,4,3,5,4,4,3,4,5],flag:'yellow'},
+ royalpalm:{name:'Royal Palm Golf · Atlas Course',loc:'Marrakech · Atlas · Marokko',theme:'oasis',par:[4,4,3,5,4,4,3,4,5,4,4,3,5,4,3,4,5,4],flag:'red'},
+ kawana:{name:'Kawana Hotel · Fuji Course',loc:'Itō · Izu · Japan',theme:'sakura',par:[5,4,3,4,4,4,3,4,5,4,4,3,4,5,3,4,4,5],flag:'white'},
+ halong:{name:'Ha Long Bay Golf Club',loc:'Hạ Long · Quảng Ninh · Vietnam',theme:'karst',par:[4,4,3,5,4,4,3,5,4,4,3,4,5,4,4,3,4,5],flag:'red'},
+ handara:{name:'Handara Golf · Kraterkurs',loc:'Bedugul · Bali · Indonesien',theme:'tropic',par:[4,5,3,4,4,3,5,4,4,4,4,3,5,4,4,3,4,5],flag:'yellow'},
+ capekidnappers:{name:'Cape Kidnappers',loc:'Hawke’s Bay · Neuseeland',theme:'cliffs',par:[4,4,3,5,4,4,3,4,5,4,4,3,5,4,5,3,4,4],flag:'white'},
+ barnbougle:{name:'Barnbougle Dunes',loc:'Bridport · Tasmanien · Australien',theme:'links',par:[4,4,4,3,5,4,3,4,5,4,4,3,4,4,5,3,4,4],flag:'yellow'},
+ llaollao:{name:'Llao Llao Golf',loc:'San Carlos de Bariloche · Patagonien · Argentinien',theme:'andes',par:[4,3,4,5,4,4,3,4,5,4,3,4,5,4,4,3,4,5],flag:'white'},
+ kapalua:{name:'Kapalua · Plantation Course',loc:'Maui · Hawaii · USA',theme:'lava',par:[4,4,3,4,5,4,3,4,5,4,3,4,4,5,4,3,4,5],flag:'yellow'},
+ arosa:{name:'Golfclub Arosa',loc:'Arosa · Graubünden · 1 850 m ü. M.',theme:'high',par:[4,3,4,4,5,3,4,4,5,4,3,4,4,5,3,4,4,5],flag:'swiss'},
+ aletsch:{name:'Aletsch Glacier Links',loc:'Riederalp · Aletschgletscher · Wallis',theme:'glacier',par:[4,3,5,4,4,3,4,5,4,4,3,5,4,3,4,4,3,5],flag:'swiss'},
  gornergrat:{name:'The Summit · Gornergrat Glacier Links',loc:'Gornergrat · 3089 m ü. M. · Zermatt',theme:'glacier',par:[4,3,5,4,4,3,4,5,4,4,3,5,4,4,3,4,5,4],flag:'swiss'}
 };
 for(const [k,c] of Object.entries(COURSES))c.key=k;
@@ -1333,6 +1366,102 @@ function epilogue4(s){const f=s.flags||{},r=s.rc||{eu:0,us:0};const L=[['tv','Da
  L.push(r.eu>r.us?['nora','Ich habe viele Rookies gesehen. Keiner hat einen Ryder Cup so entschieden wie du.']:r.eu===r.us?['nora','Behalten ist das neue Gewinnen. Und in zwei Jahren bist du kein Rookie mehr.']:['nora','In zwei Jahren spielen wir in New York. Und du bist mein erster Name auf der Liste.']);
  L.push(f.partner==='kai'?['kai','Feuer und Eis. Wir sollten das öfter machen.']:['mila','Fondue. Jetzt. Du zahlst – Ryder-Cup-Regel.']);
  return L}
+// ---------- Grand Slam 5 · Die Weltreise (v26) ----------
+Object.assign(SPEAK,{diary:{n:'Tagebuch von Onkel Emil · 1974',c:'#8a6d3b',i:'E.',letter:true},helene:{n:'Grossmutter Hélène',c:'#9b3f58',i:'H'},noa:{n:'Noa Keller · Caddie & Kamera',c:'#d0702a',i:'NK'},rafael:{n:'Rafael Ortega',c:'#a0182c',i:'RO'},kenji:{n:'Kenji Watanabe · Turnierdirektor',c:'#3a3f8f',i:'KW'}});
+const CH5={1:['Das Tagebuch','Lavaux · Island'],2:['Hitze','Südafrika · Marokko'],3:['Der Osten','Japan · Vietnam · Bali'],4:['Down Under','Neuseeland · Tasmanien'],5:['Neue Welt','Patagonien · Hawaii'],6:['Heimkehr','Arosa · Aletschgletscher']};
+const PP5={1:'24 heures',2:'Sport-Blitz',3:'Asia Golf Digest',4:'Southern Golf Weekly',5:'The Fairway Herald',6:'Walliser Bote'};
+const RAF=s=>!!(s&&s.flags&&s.flags.allied);
+const EV5=[
+ {key:'w_lavaux',short:'Lavaux',ch:1,lv:6,purse:400000,rank:160,map:[0,1],next:{ok:'w_iceland',fail:'w_iceland'},course:'lavaux',name:'Lavaux Vineyard Open',tour:'Challenge Tour · Genfersee',stage:'Europa',age:24,holes:6,from:12,goal:{top:10},field:'tour',size:50,you:-3,lead:-6,star:['Joost Verbeek','NED'],starTot:-5,time:'morning',crowd:true,
+  txt:'Weinterrassen über dem Genfersee, ein Dorf mit Kirchturm, und in deiner Tasche ein Buch mit Ledereinband, das seit fünfzig Jahren niemand geöffnet hat.',
+  intro:[['helene','Ich habe auf dem Estrich aufgeräumt. Das hier gehört Emil, meinem Bruder. Dein Grossonkel. Er war der beste Golfer der Schweiz – und 1974 hat er von einem Tag auf den anderen aufgehört. Lies es. Vielleicht verstehst du, warum.'],['diary','Lavaux, 2. Mai 1974. Joaquín und ich brechen auf: dreizehn Plätze, einmal um die Welt. Wer am Ende vorne liegt, bekommt den Holzpokal von Papa – und das Recht, die Geschichte zu erzählen. Letztes Loch: auf dem Eis am Aletsch.'],['noa','Hi! Noa Keller, ich drehe Golf-Videos und wohne zwei Dörfer weiter. Deine Grossmutter hat mir vom Tagebuch erzählt. Eine Weltreise auf den Spuren von 1974? Ich trage deine Tasche, wenn ich filmen darf.']],
+  win:[['noa','Sieg zum Auftakt! Das Video hat schon zehntausend Klicks. Nächster Halt laut Tagebuch: Island.']],
+  lose:[['noa','Kein Pokal, aber ein guter Anfang. Emil hat hier übrigens auch nicht gewonnen – steht auf Seite drei. Nächster Halt: Island.']]},
+ {key:'w_iceland',short:'Island',ch:1,lv:6,purse:600000,rank:140,map:[1,1.6],next:{ok:'__choice',fail:'__choice'},course:'brautarholt',name:'Arctic Links Classic',tour:'Challenge Tour · Island',stage:'Europa',age:24,holes:6,from:3,goal:{top:5},field:'tour',size:40,you:-2,lead:-4,wind:[16,30],time:'golden',crowd:false,
+  txt:'Schwarzer Sand, Moos, Lupinen und eine Sonne, die um Mitternacht nicht untergeht. Und dann kommt der Sturm vom Atlantik.',
+  intro:[['diary','Island, Juni 1974. Der Wind hat Joaquíns Mütze über die Klippe getragen. Er hat drei Tage nicht mehr mit mir gesprochen – nicht wegen der Mütze, sondern weil ich ihn auf der 7 geschlagen habe.'],['noa','Sturmwarnung! 30 km/h Wind. Flach spielen, Stinger, und die Kamera festhalten.'],['tv','Achtung: Heute bläst es kräftig an der Küste. Die Bälle fliegen, wohin der Wind will.']],
+  win:[['noa','Im Sturm vorne! Ich habe ALLES gefilmt. Auch den Moment, in dem dein Hut ins Meer geflogen ist.']],
+  lose:[['noa','Der Wind hat gewonnen. Aber was für Bilder! Ich habe ALLES gefilmt.']],
+  decide:{who:'noa',q:'Noas Sturm-Video ist fertig: du, der Wind, der Hut im Meer, und am Ende liest du eine Seite aus Emils Tagebuch vor. Noa will es veröffentlichen.',opts:[
+   {t:'Veröffentlichen – die Welt soll mitreisen',d:'Mehr Fans, mehr Sponsoren – aber Emils Geschichte gehört dann allen (Fans ++).',set:{video:true},fans:8000,next:'w_leopard',say:[['noa','Online! … Oh. Oh wow. Eine Million Aufrufe in einer Nacht. Und ein Spanier hat kommentiert: «Mein Grossvater kannte Emil Favre.»']]},
+   {t:'Privat behalten – das gehört der Familie',d:'Kein Rummel. Grossmutter Hélène wird es zu schätzen wissen (Nerven +).',set:{video:false},perk:{nerve:.03},next:'w_leopard',say:[['helene','Danke, Kind. Emil mochte keine Kameras. Er mochte Menschen, die zuhören.'],['noa','Okay. Aber die Bilder bleiben auf meiner Festplatte. Für später.']]}]}},
+ {key:'w_leopard',short:'Südafrika',ch:2,lv:7,purse:1100000,rank:118,map:[2,.6],next:{ok:'w_marrakech',fail:'w_marrakech'},course:'leopard',name:'Leopard Creek Championship',tour:'Sunshine Tour · Südafrika',stage:'Afrika',age:24,holes:6,from:12,goal:{top:5},field:'tour',size:50,you:-4,rival:-5,lead:-6,rivalName:'Rafael Ortega',rivalSpk:'rafael',time:'afternoon',crowd:true,stand:true,
+  txt:'Am Rand des Krüger-Nationalparks. Hinter dem Zaun am 13. Grün liegen Flusspferde in der Sonne, und am Abschlag wartet ein Mann im pinken Hemd, der dich schon kennt.',
+  intro:s=>[['diary','Malelane, August 1974. Ein Elefant hat auf der 13 meinen Ball gefressen. Joaquín schwört, er habe es nicht gesehen. Er lacht seit zwei Tagen.'],['rafael','Rafael Ortega, Madrid. '+(s&&s.flags&&s.flags.video?'Ich habe dein Video gesehen. Emil Favre – mein Grossvater Joaquín hat jahrelang von ihm geredet.':'Mein Grossvater Joaquín Ortega hat ein Tagebuch, genau wie deines. Ich glaube, wir reisen auf derselben Route.')+' Nur, dass ich schneller bin.'],['noa','Der Typ trägt Pink. Auf einem Golfplatz. In Afrika. Ich mag ihn jetzt schon nicht.']],
+  win:[['rafael','Nicht schlecht für jemanden aus einem Weindorf. Marrakech – Skins Game. Da wird es um Geld gehen.']],
+  lose:[['rafael','Die Flusspferde haben mehr Birdies gemacht als du. Wir sehen uns in Marrakech.']]},
+ {key:'w_marrakech',short:'Marokko',ch:2,lv:7,purse:0,rank:105,map:[3,1.4],next:{ok:'__choice',fail:'__choice'},course:'royalpalm',name:'Atlas Skins Challenge',tour:'Skins Game · Marrakech',stage:'Afrika',age:24,goal:{skins:true},field:'tour',time:'golden',crowd:true,stand:true,
+  skins:{opps:[['Rafael Ortega','ESP',.03],['Jin-ho Park','KOR',.01],['Lars Eklund','SWE',0]],holes:5,from:13,val:[20000,20000,30000,40000,60000]},
+  txt:'Palmen, Orangenbäume, und hinter der Wüste die Schneegipfel des Atlas. Vier Spieler, fünf Löcher, jedes Loch hat einen Preis. Wer das Loch allein am besten spielt, kassiert. Bei Gleichstand wandert das Geld ins nächste Loch.',
+  intro:[['diary','Marrakech, September 1974. Joaquín und ich haben um Datteln gespielt. Ich habe verloren und musste ihm eine Woche lang die Schuhe putzen.'],['noa','Skins Game! Ein Loch allein gewinnen = Geld. Zwei gleich gut = alles bleibt im Topf. Je länger keiner gewinnt, desto teurer wird es.'],['rafael','Ich spiele nicht um Datteln. Ich spiele um alles.']],
+  win:[['noa','Die meisten Skins! Ich habe nachgezählt. Zweimal.']],
+  lose:[['rafael','Das Geld gehört mir. Mach dir nichts draus – man gewöhnt sich ans Verlieren.']],
+  decide:s=>({who:'noa',q:'Nach dem Skins Game besucht ihr eine Dorfschule im Atlas. Der Golflehrer dort hat zwölf Kinder und sieben Schläger. '+(s.skinsWon?'Du hast '+chf(s.skinsWon)+' gewonnen.':'Du hast heute nichts gewonnen – aber etwas Erspartes.'),opts:[
+   {t:'Spenden – die Kinder bekommen Schläger',d:'Gutes tun. Weniger Geld für den Pro-Shop (Fans +, Präzision +).',set:{donated:true},fans:5000,perk:{acc:.02},money:-20000,next:'w_kawana',say:[['noa','Zwölf Kinder, zwölf Schläger. Ich hab geheult. Kamera war aus. Fast.'],['rafael','… Das war anständig. Sag es niemandem, dass ich das gesagt habe.']]},
+   {t:'Behalten – die Reise ist teuer',d:'Japan, Vietnam, Australien, Amerika: Flüge kosten. Mehr Geld fürs Material.',set:{donated:false},money:20000,next:'w_kawana',say:[['noa','Verständlich. Die Flüge nach Japan bezahlen sich nicht von allein.']]}]})},
+ {key:'w_kawana',short:'Japan',ch:3,lv:7,purse:2200000,rank:88,map:[4,.6],next:{ok:'w_halong',fail:'w_halong'},course:'kawana',name:'Fuji Kirschblüten Open',tour:'Japan Golf Tour',stage:'Asien',age:24,holes:9,from:9,goal:{top:3},field:'tour',size:60,you:-5,rival:-6,lead:-7,rivalName:'Rafael Ortega',rivalSpk:'rafael',star:['Jin-ho Park','KOR'],starTot:-6,time:'morning',crowd:true,stand:true,
+  txt:'Kirschblüten über den Fairways, der Pazifik unter den Klippen und am Horizont der Fuji. Das grösste Turnier eurer Reise bisher: neun Löcher Finalrunde.',
+  intro:[['kenji','Kenji Watanabe, Turnierdirektor. Wir haben 1974 einen Schweizer und einen Spanier hier gehabt. Mein Vater hat erzählt, sie hätten auf dem 15. Grün geweint. Vor Lachen.'],['diary','Kawana, Oktober 1974. Joaquín hat mir heute gesagt, dass er nach der Reise heiraten will. Ich habe ihm meinen besten Putter geschenkt. Dummerweise mitten in der Runde.'],['noa','Neun Löcher, Top drei, und Rafael führt vor uns. Kirschblüten-Modus: konzentriert, aber schön.']],
+  win:[['kenji','Ein Schweizer gewinnt wieder auf dem Fuji-Kurs. Mein Vater wäre begeistert.']],
+  lose:[['noa','Fuji war stärker. Aber schau dir diese Bilder an. Nächster Halt: Vietnam. Rafael hat dich herausgefordert.']]},
+ {key:'w_halong',short:'Vietnam',ch:3,lv:7,purse:300000,rank:80,map:[5,1.4],next:{ok:'w_handara',fail:'w_handara'},course:'halong',name:'Duell in der Halong-Bucht',tour:'Exhibition · Matchplay',stage:'Asien',age:24,goal:{win:true,match:true},field:'tour',time:'golden',crowd:true,
+  match:{opp:'Rafael Ortega',cc:'ESP',skill:.0,from:5,holes:4},
+  txt:'Kalksteinfelsen ragen aus dem smaragdgrünen Meer, Dschunken ziehen vorbei. Rafael hat dich zu einem Matchplay-Duell herausgefordert. Einsatz: die Antwort auf die Frage, was 1974 auf dem Gletscher passiert ist.',
+  intro:[['rafael','Mein Grossvater hat die letzte Seite von Emils Tagebuch. Ich habe sie gelesen. Gewinn dieses Match, und ich erzähle dir, was drinsteht.'],['noa','Vier Löcher Matchplay. Loch für Loch. Wer vorne liegt, gewinnt. Ich halte die Kamera ruhig. Versprochen.']],
+  win:[['rafael','… Okay. Abgemacht ist abgemacht. Auf der letzten Seite steht nur ein Satz: «Wenn ich falle, spiel trotzdem weiter.» Mehr weiss ich nicht.']],
+  lose:[['rafael','Die letzte Seite bleibt bei mir. Noch. Vielleicht verdienst du sie später.']]},
+ {key:'w_handara',short:'Bali',ch:3,lv:8,purse:1000000,rank:72,map:[6,.6],next:{ok:'__choice',fail:'__choice'},course:'handara',name:'Bali Monsun Classic',tour:'Asian Tour · Bali',stage:'Asien',age:24,holes:6,from:0,goal:{top:5},field:'tour',size:50,you:-3,rival:-4,lead:-5,rivalName:'Rafael Ortega',rivalSpk:'rafael',rain:true,time:'afternoon',crowd:true,
+  txt:'Ein Golfplatz im Krater eines alten Vulkans, Nebelwald, Tempel am See. Und mittendrin der Monsun: Regen ab dem ersten Abschlag, nasse Grüns, kein Roll.',
+  intro:[['noa','Wetterbericht: Regen. Viel Regen. Die Grüns sind langsam, die Fairways weich. Mehr Schläger nehmen!'],['diary','Bedugul, November 1974. Es regnet seit fünf Tagen. Joaquín sagt, auf dem Gletscher werde es wenigstens trocken sein. Ich habe Angst vor dem Gletscher, aber das sage ich ihm nicht.']],
+  win:[['noa','Durch den Monsun! Du bist nass bis auf die Knochen, und du grinst.']],
+  lose:[['noa','Der Regen hat gewonnen. Ich habe trockene Socken für dich. Und Rafael wartet am Ausgang.']],
+  decide:{who:'rafael',q:'Nach der Runde steht Rafael unter dem Tempeldach. «Unsere Grossväter sind die Reise zusammen gefahren. Vielleicht sollten wir das auch. Teilen wir Flüge, Hotels, Trainings – bis zum Gletscher.»',opts:[
+   {t:'Zusammen reisen',d:'Freundschaft statt Feindschaft. Rafael zeigt dir seine Tricks (Putten +, Power +).',set:{allied:true},perk:{putt:.02,power:.01},next:'w_capekid',say:[['rafael','Bueno. Aber am Gletscher schenke ich dir nichts. Gar nichts.'],['noa','Wir sind jetzt zu dritt? Ich brauche mehr Speicherkarten.']]},
+   {t:'Getrennte Wege – Rivalen bleiben',d:'Du willst ihn am Ende schlagen, nicht umarmen. Mehr Biss (Nerven +).',set:{allied:false},perk:{nerve:.025},next:'w_capekid',say:[['rafael','Wie du willst. Dann sehen wir uns auf dem Eis.'],['noa','Kühl. Sehr kühl. Ich mag es.']]}]}},
+ {key:'w_capekid',short:'Neuseeland',ch:4,lv:8,purse:500000,rank:66,map:[7,1.4],next:{ok:'w_barnbougle',fail:'w_barnbougle'},course:'capekidnappers',name:'Cape Kidnappers Pro-Am',tour:'Pro-Am · Scramble',stage:'Ozeanien',age:24,holes:6,from:6,goal:{win:true},field:'tour',size:40,you:-6,lead:-7,boost:.07,scramble:{name:'Noa Keller',cc:'SUI',skill:-.06},time:'golden',crowd:true,
+  txt:'Klippen wie Finger, 140 Meter über dem Pazifik. Heute spielt Noa mit dir: Scramble – pro Loch zählt das bessere Ergebnis von euch beiden. Zum ersten Mal steht die Kamerafrau selbst auf dem Abschlag.',
+  intro:[['noa','Ich habe seit der Schule keinen Schläger mehr angefasst. Und jetzt Pro-Am an den gefährlichsten Klippen der Welt? Perfekt. Super. Kein Problem.'],['diary','Cape Kidnappers, Dezember 1974. Ein Jahr unterwegs. Joaquín und ich spielen heute im Team, gegen zwei Neuseeländer. Zum ersten Mal auf derselben Seite. Es fühlt sich richtig an.'],['tv','Scramble-Format: Wenn einer patzt, kann der andere das Loch retten.']],
+  win:[['noa','WIR HABEN GEWONNEN! Ich habe ein Birdie gemacht! Ein echtes! Ich muss mich hinsetzen.']],
+  lose:[['noa','Ich habe einen Ball ins Meer geschlagen. Vom Grün aus. Das wird ein sehr ehrliches Video.']]},
+ {key:'w_barnbougle',short:'Tasmanien',ch:4,lv:8,purse:1800000,rank:58,map:[8,.6],next:{ok:'__choice',fail:'__choice'},course:'barnbougle',name:'Tasmanian Dunes Open',tour:'PGA Tour of Australasia',stage:'Ozeanien',age:25,holes:9,from:9,goal:{top:3},field:'tour',size:60,you:-4,rival:-5,lead:-6,rivalName:'Rafael Ortega',rivalSpk:'rafael',wind:[14,26],time:'afternoon',crowd:true,stand:true,
+  txt:'Riesige Dünen, Strandhafer, Wind von der Bass-Strasse. Neun Löcher Links-Golf am Ende der Welt – und dein Rücken meldet sich zum ersten Mal.',
+  intro:[['noa','Du hältst dir dauernd den Rücken. Sag nicht, das sei nichts.'],['rafael','Links-Golf. Der Ball muss rollen, nicht fliegen. Das hat Emil meinem Grossvater beigebracht. Oder umgekehrt.'],['diary','Bridport, Januar 1975. Ich hätte nie gedacht, dass ich Heimweh nach Schnee bekomme. Noch zwei Kontinente.']],
+  win:[['tv','Was für ein Finish in den Dünen! Und das mit Rückenschmerzen.']],
+  lose:[['noa','Der Wind, die Dünen, der Rücken. Drei Gegner auf einmal.']],
+  decide:{who:'noa',q:'Die Physiotherapeutin ist ehrlich: Dein Rücken ist überlastet. Eine Woche Pause würde helfen – aber Patagonien wartet.',opts:[
+   {t:'Pause machen und behandeln lassen',d:'Langsam, aber gesund weiter. Du kommst ruhiger zurück (Nerven +, Präzision +).',set:{rested:true},perk:{nerve:.02,acc:.015},next:'w_llaollao',say:[['noa','Eine Woche ohne Golf? Ich zeige dir Tasmanien. Es gibt hier Wombats!']]},
+   {t:'Mit Tape weiterspielen',d:'Kein Tag verloren. Dafür vorsichtiger Schwung (Power −, Fans +).',set:{rested:false},perk:{power:-.01},fans:4000,next:'w_llaollao',say:[['rafael','Mit Tape? Du bist verrückt. Mein Grossvater hätte dich gemocht.']]}]}},
+ {key:'w_llaollao',short:'Patagonien',ch:5,lv:8,purse:1400000,rank:50,map:[9,1.4],next:{ok:'w_kapalua',fail:'w_kapalua'},course:'llaollao',name:'Patagonia Lakes Open',tour:'PGA Tour Latinoamérica',stage:'Amerika',age:25,holes:6,from:3,goal:{top:5},field:'tour',size:50,you:-4,rival:-5,lead:-6,rivalName:'Rafael Ortega',rivalSpk:'rafael',time:'golden',crowd:true,
+  txt:'Bergseen in Türkis, die Anden mit Schneekappen, Südbuchen im Herbstrot. Am Abend klingelt das Telefon: Grossmutter Hélène.',
+  intro:[['helene','Ich muss dir etwas sagen. 1975, kurz vor dem Gletscher, ist Emil in eine Spalte gestürzt. Er hat überlebt, aber er konnte nie mehr richtig schwingen. Das letzte Match hat nie stattgefunden.'],['diary','Bariloche, März 1975. Die Seen hier sind so blau, dass Joaquín sagt, man könnte darauf putten. Morgen fliegen wir nach Hawaii. Dann nach Hause. Dann aufs Eis.'],['noa','Das letzte Match hat nie stattgefunden … Weisst du, was das heisst? Ihr zwei müsst es spielen. Du und Rafael.']],
+  win:[['rafael','Gewonnen in Patagonien. Nächste Station: Hawaii. Das Turnier der Sieger.']],
+  lose:[['noa','Die Anden waren heute grösser als du. Hawaii wird besser.']]},
+ {key:'w_kapalua',short:'Hawaii',ch:5,lv:9,purse:3000000,rank:40,map:[10,.6],next:{ok:'w_arosa',fail:'w_arosa'},course:'kapalua',name:'Maui Champions Classic',tour:'PGA Tour · Hawaii',stage:'Amerika',age:25,holes:6,from:12,goal:{win:true},field:'major',size:30,you:-6,rival:-6,lead:-7,rivalName:'Rafael Ortega',rivalSpk:'rafael',star:['Tyler Voss','USA'],starTot:-7,time:'golden',crowd:true,stand:true,
+  txt:'Ananasfelder, Wale vor der Küste, schwarze Lavafelsen und der Wind von den Passatbergen. Nur Turniersieger dürfen hier starten – und die Nummer eins der Welt ist auch da.',
+  intro:s=>[['tv','Tyler Voss, die Nummer eins der Welt, ist auch am Start. Und zwei Weltreisende, über die alle reden.'],['rafael',RAF(s)?'Zusammen bis hierher. Jetzt schlagen wir Voss. Zuerst. Dann einander.':'Hawaii. Hier schlage ich dich. Und Voss gleich mit.'],['diary','Kapalua, April 1975. Wir haben heute Wale gesehen. Joaquín sagt, sie spielen auch Golf. Mit Inseln als Bällen.']],
+  win:[['tv','Sieg auf Maui! Der Weltreisende aus Lavaux schlägt die Nummer eins der Welt.'],['noa','Nach Hause. Zum Gletscher. Ich glaube, ich bin nervöser als du.']],
+  lose:[['noa','Kein Sieg auf Hawaii – aber was für eine Reise. Jetzt geht es nach Hause.']]},
+ {key:'w_arosa',short:'Arosa',ch:6,lv:9,purse:1200000,rank:34,map:[11,1.4],next:{ok:'w_aletsch',fail:'w_aletsch'},course:'arosa',name:'Swiss Alpine Open',tour:'DP World Tour · Heimkehr',stage:'Schweiz',age:25,holes:6,from:6,goal:{top:3},field:'tour',size:60,you:-5,rival:-6,lead:-7,rivalName:'Rafael Ortega',rivalSpk:'rafael',time:'morning',crowd:true,stand:true,
+  txt:'Zurück in der Schweiz. 1850 Meter, Lärchen, Arvenholz und die ganze Familie auf der Tribüne – Grossmutter Hélène mit Emils altem Holzpokal im Arm.',
+  intro:[['helene','Ich habe Emils Pokal mitgebracht. Er stand fünfzig Jahre im Estrich. Er soll endlich wieder einen Gletscher sehen.'],['noa','Letztes Turnier vor dem Finale. Und die Schweizer Fans singen deinen Namen. Falsch, aber laut.'],['rafael','Morgen fahren wir zum Aletsch. Heute spielen wir noch Golf wie normale Menschen.']],
+  win:[['helene','Emil hätte gesagt: «Gut. Und jetzt aufs Eis.»']],
+  lose:[['helene','Das macht nichts, Kind. Morgen ist das wichtigere Spiel.']]},
+ {key:'w_aletsch',short:'Gletscher',ch:6,lv:9,purse:0,rank:25,map:[12,1],next:{ok:'__done',fail:'__done'},course:'aletsch',name:'Das letzte Match · Aletschgletscher',tour:'Das Versprechen von 1974',stage:'Finale',age:25,goal:{win:true,match:true},field:'major',time:'golden',crowd:true,stand:true,
+  match:{opp:'Rafael Ortega',cc:'ESP',skill:.02,from:12,holes:6,final:true},cere:['Das Versprechen','Eingelöst'],
+  news:R=>({h:R.won?'Fünfzig Jahre später: Das letzte Match ist gespielt':R.halved?'Unentschieden auf dem Eis – wie es sich gehört':'Ortega gewinnt auf dem Gletscher – und beide weinen',sub:'Am Rand des Aletschgletschers spielen die Enkel von Emil Favre und Joaquín Ortega das Match, das 1975 nie stattfand. Ergebnis: '+R.how+'.'}),
+  txt:'Der grösste Gletscher der Alpen, ein Golfplatz an seinem Rand, Eis bis zum Horizont. Sechs Löcher Matchplay: das Match, das Emil und Joaquín 1975 nie spielen konnten.',
+  intro:s=>[['helene','Emil hätte heute Geburtstag. Er wäre 80. Spielt für die beiden. Und für euch.'],['rafael',RAF(s)?'Wir sind ein Jahr zusammen gereist. Heute bin ich trotzdem dein Gegner. Das schulden wir ihnen.':'Ein Jahr lang Rivalen. Heute endet es. Hier, wo es hätte enden sollen.'],['noa','Ich filme das letzte Match. Und dann, verspreche ich, lege ich die Kamera weg.'],['diary','Riederalp, Mai 1975. Morgen ist es so weit. Joaquín und ich, sechs Löcher, auf dem Eis. Wer auch immer gewinnt – der andere …']],
+  win:[['rafael','Gewonnen. Fair und ehrlich. Hier – die letzte Seite. Lies sie vor.'],['diary','«… der andere zahlt das Fondue. Und nächstes Jahr spielen wir wieder. Das ist das Versprechen.» – Emil Favre, Mai 1975']],
+  halve:[['rafael','Unentschieden. Ich glaube, so hätten sie es gewollt. Hier – die letzte Seite.'],['diary','«… der andere zahlt das Fondue. Und nächstes Jahr spielen wir wieder. Das ist das Versprechen.» – Emil Favre, Mai 1975']],
+  lose:[['rafael','Ich habe gewonnen. Und trotzdem gehört diese Seite dir. Lies sie vor.'],['diary','«… der andere zahlt das Fondue. Und nächstes Jahr spielen wir wieder. Das ist das Versprechen.» – Emil Favre, Mai 1975']]}
+];
+EV5.forEach(e=>{if(e.boost==null)e.boost=.01;if(e.match){e.rivalName=e.match.opp;e.rivalSpk='rafael'}});
+function epilogue5(s){const f=s.flags||{};const L=[['tv','Das war die Weltreise von {name}: dreizehn Plätze, sechs Kontinente – auf den Spuren eines Tagebuchs von 1974.']];
+ L.push(['helene','Emils Pokal steht jetzt bei mir im Wohnzimmer. Zwischen zwei Fotos: Emil und Joaquín 1974 – und ihr zwei auf dem Gletscher.']);
+ L.push(f.allied?['rafael','Nächstes Jahr spielen wir wieder. Das ist das Versprechen. Und das Fondue zahlst diesmal du.']:['rafael','Rivalen bleiben wir. Aber nächstes Jahr spielen wir wieder. Das ist das Versprechen.']);
+ L.push(f.video?['noa','Die Reise-Serie hat 40 Millionen Aufrufe. Und die meisten Kommentare lauten: «Was ist mit dem Fondue passiert?»']:['noa','Ich habe die Bilder nie veröffentlicht. Nur einen Film gemacht, für deine Grossmutter. Sie hat ihn dreimal geschaut.']);
+ if(f.donated)L.push(['tv','In einem Dorf im Atlas gibt es jetzt einen Golfclub für Kinder. Er heisst «Club Emil».']);
+ L.push(['diary','Lavaux, 1976. Heute habe ich zum ersten Mal wieder einen Schläger in die Hand genommen. Nur um zu putten. Joaquín hat am Telefon gelacht. Ich glaube, die Reise ist nie zu Ende.']);return L}
 let EVENTS=EV1;
 const MAJORS=[['masters','Masters','Green Jacket'],['pga','PGA','Wanamaker'],['usopen','U.S. Open','Trophy'],['open','The Open','Claret Jug']];
 
@@ -1363,14 +1492,15 @@ const PP2={1:'Saastaler Anzeiger',2:'Swiss Junior Golf',3:'Golf Welt Europa',4:'
 const CAMPS={1:{title:'Grand Slam',sub:'Teil 1: Vom Jugendturnier in Kandern bis zum Claret Jug in St Andrews – mit dem Putter deines Grossvaters.',home:'Kandern',first:'kandern'},2:{title:'Grand Slam 2',sub:'Die Akademie: Mit 12 aus dem Saastal nach Crans-Montana. Neue Freunde, neue Rivalen, ein Hotel, das gerettet werden muss – und Entscheidungen, die deinen Weg verändern.',home:'Saastal',first:'aq'}};
 CAMPS[3]={title:'Grand Slam 3',sub:'Gipfelsturm: Zermatt, Summit League oder Tour, eine Lawine, die alles verändert – und ein Finale auf 3089 Metern. Deine Entscheidungen formen Familie, Caddie, Fans und deinen Ruf.',home:'Zermatt',first:'matt'};
 CAMPS[4]={title:'Ryder Cup',sub:'Grand Slam 4: Erst die Matchplay-WM in den Alpen, dann der Ryder Cup in Rom. Loch für Loch, Duell um Duell – und am Sonntag spielst du für ganz Europa. In rund 30 Minuten durchgespielt.',home:'Crans-Montana',first:'m16'};
+CAMPS[5]={title:'Die Weltreise',sub:'Grand Slam 5: Ein Tagebuch von 1974, dreizehn neue Plätze auf sechs Kontinenten – Weinberge, Vulkane, Savanne, Kirschblüten, Monsun und ein Gletscher. Rund zwei Stunden Story.',home:'Lavaux',first:'w_lavaux'};
 function legendName(){const p1=loadJSON(SKEY);const n1=p1&&p1.name;return(n1&&save&&n1!==save.name)?n1:'Leon Walter'}
-function setCampaign(n){CAMP=[1,2,3,4].includes(n)?n:4;EVENTS=CAMP===4?EV4:CAMP===3?EV3:CAMP===2?EV2:EV1;CHAPTERS=CAMP===4?CH4:CAMP===3?CH3:CAMP===2?CH2:CH1;PAPERS=CAMP===4?PP4:CAMP===3?PP3:CAMP===2?PP2:PP1;SKEY_CUR=CAMP===4?'ags4-save-v1':CAMP===3?'ags3-save-v1':CAMP===2?'ags2-save-v1':SKEY;save=loadJSON(SKEY_CUR);if(save&&save.v!==1)save=null;
+function setCampaign(n){CAMP=[1,2,3,4,5].includes(n)?n:5;EVENTS=CAMP===5?EV5:CAMP===4?EV4:CAMP===3?EV3:CAMP===2?EV2:EV1;CHAPTERS=CAMP===5?CH5:CAMP===4?CH4:CAMP===3?CH3:CAMP===2?CH2:CH1;PAPERS=CAMP===5?PP5:CAMP===4?PP4:CAMP===3?PP3:CAMP===2?PP2:PP1;SKEY_CUR=CAMP===5?'ags5-save-v1':CAMP===4?'ags4-save-v1':CAMP===3?'ags3-save-v1':CAMP===2?'ags2-save-v1':SKEY;save=loadJSON(SKEY_CUR);if(save&&save.v!==1)save=null;
  if(save&&CAMP===1&&save.cur==null){const OLD=['kandern','ragaz','samedan','crans','qschool','wentworth','masters','pga','usopen','open'];const pg=save.prog||0;save.cur=OLD[Math.min(pg,9)];if(pg>=10)save.done=true;save.flags=save.flags||{}}
  settings.camp=CAMP;writeSettings();const C=CAMPS[CAMP];const em=document.querySelector('#title h1 em');if(em)em.textContent=C.title;const sb=document.querySelector('#title .sub');if(sb)sb.textContent=C.sub;document.querySelectorAll('#camps button').forEach(b=>b.classList.toggle('on',+b.dataset.c===CAMP));SPEAK.legend.n=legendName()+' · Grand-Slam-Sieger';SPEAK.legend.i=initials(legendName())}
 function runChoice(D){return new Promise(res=>{if(!D)return res(null);hideAll();$('#hud').hidden=true;const m=SPEAK[D.who]||SPEAK.legend;$('#chWho').textContent=D.who==='legend'?legendName():m.n;$('#chPt').textContent=m.i;$('#chPt').style.background=m.c;$('#chQ').textContent=fill(D.q);
  $('#chOpts').innerHTML=D.opts.map((o,i)=>'<button type="button" data-i="'+i+'"><b>'+esc(fill(o.t))+'</b><small>'+esc(fill(o.d))+'</small></button>').join('');$('#choice').hidden=false;
  $('#chOpts').querySelectorAll('button').forEach(b=>b.onclick=async()=>{AU.init();const o=D.opts[+b.dataset.i];$('#choice').hidden=true;applyChoice(o);if(o.say)await runDialog(o.say);res(o)})})}
-function applyChoice(o){const f=save.flags=save.flags||{};if(o.set)Object.assign(f,o.set);if(o.money)save.money=(save.money||0)+o.money;if(o.fans)save.fans=Math.max(0,(save.fans||0)+o.fans);if(o.perk){const p=f.perks=f.perks||{};for(const k in o.perk)p[k]=(p[k]||0)+o.perk[k]}if(o.rel){save.rel=save.rel||{family:50,caddie:50,fans:50,tour:50};for(const k in o.rel)save.rel[k]=clamp((save.rel[k]??50)+o.rel[k],0,100)}const nx=o.nextFn?o.nextFn(save):o.next;if(nx){save.cur=nx;save.prog=curIdx()}save.pending=null;(save.choices=save.choices||[]).push(o.t);writeSave()}
+function applyChoice(o){const f=save.flags=save.flags||{};if(o.set)Object.assign(f,o.set);if(o.money)save.money=Math.max(0,(save.money||0)+o.money);if(o.fans)save.fans=Math.max(0,(save.fans||0)+o.fans);if(o.perk){const p=f.perks=f.perks||{};for(const k in o.perk)p[k]=(p[k]||0)+o.perk[k]}if(o.rel){save.rel=save.rel||{family:50,caddie:50,fans:50,tour:50};for(const k in o.rel)save.rel[k]=clamp((save.rel[k]??50)+o.rel[k],0,100)}const nx=o.nextFn?o.nextFn(save):o.next;if(nx){save.cur=nx;save.prog=curIdx()}save.pending=null;(save.choices=save.choices||[]).push(o.t);writeSave()}
 function pendingDecide(){if(!save||!save.pending)return null;const e=EVENTS.find(x=>x.key===save.pending);if(!e||!e.decide)return null;return typeof e.decide==='function'?e.decide(save):e.decide}
 
 /* =========================================================
@@ -1826,7 +1956,7 @@ function placeTrees(h,ev){
    const rad=t.h*t.w*(type==='umb'?.4:type==='dec'?.3:type==='palm'?.25:type==='cactus'?.08:.22);const key=Math.floor(t.x/12)+','+Math.floor(t.z/12);if(!treeGrid.has(key))treeGrid.set(key,[]);treeGrid.get(key).push({x:t.x,z:t.z,y:t.y,r:rad,h:t.h,lo:t.h*(type==='con'?.15:type==='palm'?.8:type==='cactus'?0:.4)})});
   fol.castShadow=tr.castShadow=true;const ol=new THREE.InstancedMesh(TREEGEO[type],OL.tree,list.length);ol.instanceMatrix=fol.instanceMatrix;ol.userData.keep=true;ol.userData.keepMat=true;world.add(fol,tr,ol)}
  // bushes
- if(T.bush){const B=T.bush;const cols=B.kind==='azalea'?[[236,96,160],[204,40,112],[246,236,240],[250,130,176],[222,70,140]]:B.kind==='gorse'?[[214,184,44],[196,170,40],[92,104,52],[110,118,58]]:B.kind==='orchard'?[[250,248,244],[252,210,226],[120,176,70],[246,236,200]]:B.kind==='rhodo'?[[150,70,150],[186,90,160],[70,100,50]]:B.kind==='hibiscus'?[[230,60,90],[250,170,60],[250,120,160],[60,140,60]]:B.kind==='autumn'?[[210,110,40],[230,170,60],[190,70,40]]:B.kind==='sage'?[[150,160,120],[170,170,130],[130,140,100]]:[[104,116,78],[124,130,90]];
+ if(T.bush){const B=T.bush;const cols=B.kind==='lupine'?[[150,110,220],[120,90,200],[190,150,240],[96,112,72]]:B.kind==='blossom'?[[255,190,214],[250,160,196],[255,230,238],[236,140,180]]:B.kind==='savanna'?[[176,150,84],[150,132,72],[118,122,62],[196,170,100]]:B.kind==='azalea'?[[236,96,160],[204,40,112],[246,236,240],[250,130,176],[222,70,140]]:B.kind==='gorse'?[[214,184,44],[196,170,40],[92,104,52],[110,118,58]]:B.kind==='orchard'?[[250,248,244],[252,210,226],[120,176,70],[246,236,200]]:B.kind==='rhodo'?[[150,70,150],[186,90,160],[70,100,50]]:B.kind==='hibiscus'?[[230,60,90],[250,170,60],[250,120,160],[60,140,60]]:B.kind==='autumn'?[[210,110,40],[230,170,60],[190,70,40]]:B.kind==='sage'?[[150,160,120],[170,170,130],[130,140,100]]:[[104,116,78],[124,130,90]];
   const list=[];let tr=0;const n=Math.round(B.n*(QS===QUAL.low?.5:1));
   while(list.length<n&&tr<n*20){tr++;let x,z;if(B.near==='green'&&R()<.75){const a=R()*6.28,d=24+R()*40;x=h.green.x+Math.cos(a)*d;z=h.green.z+Math.sin(a)*d}else{x=lerp(h.minX+10,h.maxX-10,R());z=lerp(h.minZ+10,h.maxZ-10,R())}
    const c=h.cd(x,z);if(c.d<h.fw*.5+(B.kind==='gorse'?7:12)||ell(h.green,x,z)<2.6||h.nearHazard(x,z)||Math.hypot(x,z)<15||(h.surf(x,z)!=='rough'&&h.surf(x,z)!=='deep'))continue;
@@ -2137,7 +2267,7 @@ function autoAim(){
 
 /* ---------- Field & leaderboard ---------- */
 function makeField(ev){
- const N=settings.holes;const f=N===3?.5:N===18?1.15:1;const sc=v=>v==null?null:ev.you+Math.round((v-ev.you)*f);
+ const N=ev.holes||settings.holes;const f=N===3?.5:N===18?1.15:1;const sc=v=>v==null?null:ev.you+Math.round((v-ev.you)*f);
  const base=FIELD_SKILL[ev.field]+(ev.boost||0);const F=[];const R=Math.random;
  S.you={name:save.name,cc:'SUI',you:true,skill:0,tot:ev.you,today:0,hist:[]};F.push(S.you);
  if(ev.rival!=null)F.push({name:ev.rivalName||'Jannik Vogt',cc:'SUI',rival:true,skill:base+.05,tot:sc(ev.rival),today:0,hist:[]});
@@ -2180,8 +2310,8 @@ function matchIntro(ev){return new Promise(res=>{hideAll();$('#intro').hidden=fa
  $('#inLb').innerHTML='<tr><th>'+(M.mate?'Team':'Match')+'</th><th>Spieler</th><th class="r">Nation</th></tr>'+rows.map(r=>`<tr class="${r[3]?'me':''}"><td>${esc(r[2])}</td><td>${esc(r[0])}</td><td class="r">${r[1]}</td></tr>`).join('')+(m.session?`<tr><td colspan="3" style="text-align:center;color:var(--gold)">Ryder Cup · ${esc(rcLine(save))}</td></tr>`:'');
  $('#bStart').onclick=()=>{AU.init();res()}})}
 function matchNews(R){return new Promise(res=>{const ev=R.ev,n=save.name,c=COURSES[ev.course],M=R.M,P=R.opp;const cup=ev.match.cup?save.flags.cup:null;
- const h=cup?(cup==='won'?'Europa jubelt! '+n+' schlägt Voss':cup==='kept'?'Geteilt in Rom – der Cup bleibt in Europa':'Amerika holt den Ryder Cup'):R.won?n+' zähmt Tyler Voss':'Voss zu stark – aber '+n+' kämpft bis zum Schluss';
- const sub=cup?'Endstand '+rcLine(save)+'. Das Einzel gegen die Nummer eins der Welt endete '+R.how+'.':R.won?'Matchplay-Weltmeister! Im Finale von Andermatt gewinnt '+n+' '+R.how+' gegen die Nummer eins der Welt.':'Im Finale von Andermatt verliert '+n+' '+R.how+'. Captain Nora Lindqvist hat trotzdem genau hingeschaut.';
+ const NW=ev.news?ev.news(R):null;const h=NW?NW.h:cup?(cup==='won'?'Europa jubelt! '+n+' schlägt Voss':cup==='kept'?'Geteilt in Rom – der Cup bleibt in Europa':'Amerika holt den Ryder Cup'):R.won?n+' zähmt Tyler Voss':'Voss zu stark – aber '+n+' kämpft bis zum Schluss';
+ const sub=NW?NW.sub:cup?'Endstand '+rcLine(save)+'. Das Einzel gegen die Nummer eins der Welt endete '+R.how+'.':R.won?'Matchplay-Weltmeister! Im Finale von Andermatt gewinnt '+n+' '+R.how+' gegen die Nummer eins der Welt.':'Im Finale von Andermatt verliert '+n+' '+R.how+'. Captain Nora Lindqvist hat trotzdem genau hingeschaut.';
  const W=M.log.filter(l=>l.r>0).length,L=M.log.filter(l=>l.r<0).length,Hv=M.log.length-W-L;
  const stats=[['Resultat',R.how],['Gewonnen',W],['Verloren',L],['Geteilt',Hv]];
  const lead=n+(R.won?' gewinnt ':R.halved?' teilt ':' verliert ')+'das Match gegen '+P.name+' '+R.how+'. '+(M.log.some(l=>l.r>0)?'Die Löcher '+M.log.filter(l=>l.r>0).map(l=>l.n).join(', ')+' gingen an '+n+'.':'Ein Loch-Gewinn wollte nicht gelingen.')+(cup?' Damit endet der Ryder Cup '+rcLine(save)+'.':'');
@@ -2218,7 +2348,42 @@ async function finishMatch(){const ev=S.ev,m=ev.match,M=S.mp,P=S.duelP,i=S.evIdx
  $('#resActs').innerHTML=`${retry?'<button class="btn" type="button" id="bRetry">Nochmals versuchen</button>':''}<button class="btn primary" type="button" id="bResNext">Weiter</button>`;
  if($('#bRetry'))$('#bRetry').onclick=()=>playEvent(i);
  $('#bResNext').onclick=async()=>{if(m.final||m.cup)await matchNews(R);await runDialog(lucky?[['gio','Fünfzehn Schläger! Erlaubt sind vierzehn. Glück gehabt – aber im nächsten Match gewinnen wir selbst, okay?']]:won?ev.win:halved&&ev.halve?ev.halve:ok?ev.win:ev.lose);if(onPath&&save.pending===ev.key)await runChoice(pendingDecide());
-  if(m.cup&&onPath&&save.done)await runDialog(epilogue4(save));renderHub()}}
+  if(onPath&&save.done)await runDialog(CAMP===5?epilogue5(save):epilogue4(save));renderHub()}}
+// ---------- Skins Game & Scramble (v26) ----------
+function makeSkins(ev){const k=ev.skins,base=FIELD_SKILL[ev.field]+(ev.boost||0);
+ S.you={name:save.name,cc:'SUI',you:true,skill:0,tot:0,today:0,hist:[],cash:0,skins:0};
+ const O=k.opps.map(([n,cc,sk],i)=>({name:n,cc,rival:i===0,skill:base+sk,tot:0,today:0,hist:[],cash:0,skins:0}));
+ S.field=[S.you,...O];S.sk={pot:0,log:[],ev}}
+function skinsVal(){const k=S.sk.ev.skins;return k.val[Math.min(S.sk.log.length,k.val.length-1)]}
+function skinsHole(par){const K=S.sk,h=S.hole;const val=skinsVal(),pot=K.pot+val;const sc=S.field.map(p=>({p,s:p.you?S.strokes:p.hist[p.hist.length-1]}));const best=Math.min(...sc.map(x=>x.s));const top=sc.filter(x=>x.s===best);
+ let msg,small;if(top.length===1){const w=top[0].p;w.cash+=pot;w.skins++;K.pot=0;K.log.push({n:h.idx+1,w:w.name,amt:pot,you:!!w.you});msg=(w.you?'Skin für dich!':esc(mpShort(w.name))+' holt den Skin')+'';small=chf(pot)+' · '+mpScName(best-par);if(w.you){xp(25,'Skin gewonnen');AU.crowd(.9)}}
+ else{K.pot=pot;K.log.push({n:h.idx+1,w:null,amt:0});msg='Skin geht weiter!';small=top.map(x=>x.p.you?'Du':mpShort(x.p.name)).join(', ')+' mit '+mpScName(best-par)+' · Topf jetzt '+chf(pot)}
+ const last=S.hi>=S.holes.length-1;if(last&&K.pot){small+=' · Der Rest geht an die Stiftung';K.charity=K.pot;K.pot=0}
+ setTimeout(()=>{toast(msg+'<small>'+esc(small)+'</small>',3200);renderDuel()},2100);
+ K.msg='Loch '+(h.idx+1)+': '+(top.length===1?(top[0].p.you?save.name:top[0].p.name)+' gewinnt den Skin ('+chf(K.log[K.log.length-1].amt)+')':'Gleichstand – der Skin wandert weiter, Topf '+chf(pot))+'.'}
+function renderDuelSk(el){const K=S.sk;el.innerHTML='<span class="dl">Skins</span><span class="me">Du '+esc(chf(S.you.cash))+'</span><span class="vs">·</span><span class="st">Topf '+esc(chf(K.pot+(S.hi<S.holes.length?skinsVal():0)))+'</span>';el.className='hud pnl '+(S.you.cash>0?'lead':'even')}
+function renderMiniLbSk(){const r=S.field.slice().sort((a,b)=>b.cash-a.cash);$('#lbTitle').textContent=S.ev.name;$('#lbRound').textContent='Topf '+chf(S.sk.pot);
+ $('#lbRows').innerHTML=r.map(p=>`<div class="row${p.you?' me':''}${p.rival?' riv':''}"><span class="pos num">${p.skins}</span><span class="nm">${esc(p.you?save.name:p.name)}</span><span class="tp num">${esc(fmtK(p.cash))}</span><span class="th num"></span></div>`).join('');layoutHud();renderDuel()}
+function skinsIntro(ev){return new Promise(res=>{hideAll();$('#intro').hidden=false;const k=ev.skins;$('#inTour').textContent=ev.tour;$('#inName2').textContent=ev.name;$('#inCourse').textContent=S.course.name;$('#inLoc').textContent=S.course.loc;
+ $('#inGoal').innerHTML=`<span class="chip next">${goalText(ev.goal)}</span><span class="chip">Skins · Loch ${k.from+1}–${k.from+k.holes}</span><span class="chip">Total ${chf(k.val.reduce((a,b)=>a+b,0))}</span>`;$('#inText').textContent=fill(ev.txt);
+ $('#inLb').innerHTML='<tr><th>Loch</th><th>Skin-Wert</th><th class="r">Spieler</th></tr>'+k.val.map((v,i)=>`<tr><td class="num">${k.from+i+1}</td><td class="num">${chf(v)}</td><td class="r">${i<S.field.length?esc(S.field[i].you?save.name:S.field[i].name):''}</td></tr>`).join('');
+ $('#bStart').onclick=()=>{AU.init();res()}})}
+async function finishSkins(){const ev=S.ev,K=S.sk,i=S.evIdx;const r=S.field.slice().sort((a,b)=>b.cash-a.cash);const me=S.you.cash;
+ const won=me>0&&r.filter(p=>p.cash===r[0].cash).length===1&&r[0].you;const ok=me>0;
+ const onPath=!save.done&&save.cur===ev.key;const prevRes=save.res[ev.key];save.money=(save.money||0)+me;save.skinsWon=me;
+ const pos=r.indexOf(S.you)+1;save.res[ev.key]={pos:won?'Sieg':pos+'.',win:won||(prevRes&&prevRes.win),ok:ok||(prevRes&&prevRes.ok)};
+ save.fans=(save.fans||0)+Math.round((won?2500:ok?1000:300)*((ev.lv||0)+1));xp(won?100:ok?40:15,'Skins Game');
+ if(onPath){(save.path=save.path||[]).push({k:ev.key,ok,won,pos:save.res[ev.key].pos});advance(ev,ok,won)}
+ writeSave();$('#hud').hidden=true;$('#pressure').style.boxShadow='none';gradePass.uniforms.uPulse.value=0;S.snapReq=true;await frameWait();await frameWait();await frameWait();
+ hideAll();$('#results').hidden=false;$('#resBanner').className='banner pnl '+(ok?'win':'fail');$('#resK').textContent=ev.name+' · Skins Game';
+ $('#resH').textContent=won?'Die meisten Skins!':ok?me>=r[0].cash?'Geteilter Spitzenplatz':'Skins gewonnen':'Kein Skin';
+ $('#resP').textContent=save.name+' gewinnt '+S.you.skins+' Skin'+(S.you.skins===1?'':'s')+' und '+chf(me)+'.'+(K.charity?' '+chf(K.charity)+' gehen an die Stiftung.':'');
+ $('#resLb').innerHTML='<tr><th>Spieler</th><th>Skins</th><th class="r">Gewinn</th></tr>'+r.map(p=>`<tr class="${p.you?'me':''}"><td>${esc(p.you?save.name:p.name)}<span class="cc">${p.cc}</span></td><td class="num">${p.skins}</td><td class="r num">${esc(chf(p.cash))}</td></tr>`).join('');
+ $('#resActs').innerHTML='<button class="btn primary" type="button" id="bResNext">Weiter</button>';
+ $('#bResNext').onclick=async()=>{await runDialog(ok?ev.win:ev.lose);if(onPath&&save.pending===ev.key)await runChoice(pendingDecide());renderHub()}}
+function scrambleHole(par,d){const P=S.ev.scramble;const pd=aiDelta(par,FIELD_SKILL[S.ev.field]+P.skill);const nm=P.name.split(' ')[0];
+ if(pd<d)setTimeout(()=>toast(esc(nm)+' rettet das Loch!<small>Teamscore '+mpScName(pd)+' statt '+mpScName(d)+'</small>',2600),1200);
+ else setTimeout(()=>toast('Teamscore: '+mpScName(d)+'<small>'+esc(nm)+': '+mpScName(pd)+'</small>',2200),1200);return Math.min(d,pd)}
 function aiDelta(par,skill){const pE=par===5?clamp(.035+skill*.15,.004,.1):par===4?.004:.002;const pB=clamp((par===5?.38:par===3?.14:.19)+skill,.03,.6);const pBo=clamp((par===3?.17:par===4?.15:.09)-skill*.9,.02,.45);const pD=clamp(.025-skill*.12,.003,.12);
  let r=Math.random();if(r<pE)return-2;r-=pE;if(r<pB)return-1;r-=pB;if(r<pD)return 2;r-=pD;if(r<pBo)return 1;return 0}
 function ranked(){return S.field.slice().sort((a,b)=>a.tot-b.tot||(a.you?-1:b.you?1:0))}
@@ -2246,7 +2411,7 @@ function showHoleSummary(nm){const h=S.hole;if(!h)return;const fir=h.par>3?(S.fi
  el.classList.add('on');$('#miniLb').classList.add('open');layoutHud();setTimeout(()=>{$('#miniLb').classList.remove('open');layoutHud()},3600);clearTimeout(S.hsT);S.hsT=setTimeout(()=>el.classList.remove('on'),3300)}
 function updateWeatherAndSky(){const was=S.weather;if(!S.playoff)S.weather=(S.rainPlan&&S.hi>=S.rainFrom)?'rain':'clear';const n=S.holes.length;S.skyMix=S.time!=='golden'&&!S.playoff?{to:'golden',u:clamp(S.hi/Math.max(1,n-1),0,1)*.85}:S.skyMix;setSky(S.course.theme,S.time);AU.setRain(S.weather==='rain'?.07:0);
  if(S.weather==='rain'&&was!=='rain'&&S.hi>0)setTimeout(()=>toast('Regen setzt ein<small>Nasse Grüns und Fairways – der Ball rollt weniger.</small>',3000),900)}
-function computePressure(){if(S.mp){const M=S.mp,rem=S.holes.length-S.hi,a=Math.abs(M.up);let pr=0;if(rem<=2&&a<=1)pr=.6;if(rem<=1&&a<=1)pr=1;if(M.extra)pr=1;if(S.ev.match.cup&&save.flags&&save.flags.order==='anchor')pr=Math.max(pr,.4);S.pressure=pr;return}const holesLeft=S.holes.length-S.hi;const lead=ranked().find(p=>!p.you);const gap=S.you.tot-(lead?lead.tot:0);let pr=0;
+function computePressure(){if(S.sk){S.pressure=S.holes.length-S.hi<=1?.4:0;return}if(S.mp){const M=S.mp,rem=S.holes.length-S.hi,a=Math.abs(M.up);let pr=0;if(rem<=2&&a<=1)pr=.6;if(rem<=1&&a<=1)pr=1;if(M.extra)pr=1;if(S.ev.match.cup&&save.flags&&save.flags.order==='anchor')pr=Math.max(pr,.4);S.pressure=pr;return}const holesLeft=S.holes.length-S.hi;const lead=ranked().find(p=>!p.you);const gap=S.you.tot-(lead?lead.tot:0);let pr=0;
  if(S.ev.goal.win||S.ev.major){if(holesLeft<=3&&Math.abs(gap)<=1)pr=.6;if(holesLeft<=1&&Math.abs(gap)<=1)pr=1}else{if(holesLeft<=2)pr=.4}
  if(S.playoff)pr=1;S.pressure=pr}
 
@@ -2263,13 +2428,13 @@ function nextTick(){if(!tickQ.length){tickBusy=false;return}tickBusy=true;const 
 function layoutHud(){const lb=$('#miniLb');document.documentElement.style.setProperty('--lbh',(lb.offsetHeight||200)+'px')}
 function holeLabel(i){return S.course.names?S.course.names[i]:`Loch ${i+1}`}
 function updateHoleCard(){const h=S.hole;$('#hcNum').textContent=h.idx+1;$('#hcName').textContent=S.playoff?'Stechen · '+holeLabel(h.idx):holeLabel(h.idx);$('#hcMeta').textContent=`Par ${h.par} · ${fmtD(h.nominal)} · Hcp ${S.si[h.idx]}`;
- const rel=S.strokes-h.par;$('#hcStroke').textContent=S.mp?`Schlag ${S.strokes+1} · ${mpStatus()}`:`Schlag ${S.strokes+1} · Heute ${fmtPar(S.you.today)} · Total ${fmtPar(S.you.tot)}`}
+ const rel=S.strokes-h.par;$('#hcStroke').textContent=S.mp?`Schlag ${S.strokes+1} · ${mpStatus()}`:S.sk?`Schlag ${S.strokes+1} · Skin-Wert ${chf(S.sk.pot+skinsVal())}`:`Schlag ${S.strokes+1} · Heute ${fmtPar(S.you.today)} · Total ${fmtPar(S.you.tot)}`}
 function initials(n){return n.split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase()}
 function duelMark(){if(S.dm)return S.dm;const g=new THREE.Group();g.add(new THREE.Mesh(new THREE.SphereGeometry(.03,16,12),new THREE.MeshStandardMaterial({color:0x9cc3ff,emissive:0x2255cc,emissiveIntensity:.7})));
  const cv=document.createElement('canvas');cv.width=160;cv.height=64;const x=cv.getContext('2d');const tx=new THREE.CanvasTexture(cv);tx.colorSpace=THREE.SRGBColorSpace;const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tx,depthTest:false,transparent:true,fog:false,toneMapped:false}));sp.renderOrder=12;g.add(sp);
  const pole=new THREE.Mesh(new THREE.CylinderGeometry(.006,.006,1,6).translate(0,.5,0),new THREE.MeshBasicMaterial({color:0x9cc3ff,transparent:true,opacity:.7,fog:false}));g.add(pole);g.userData={x,tx,sp,pole};g.visible=false;scene.add(g);S.dm=g;return g}
 function setDuelMark(pos,label){const g=duelMark();if(!pos){g.visible=false;return}const u=g.userData,x=u.x;x.clearRect(0,0,160,64);x.fillStyle='rgba(31,79,181,.94)';x.fillRect(6,8,148,48);x.fillStyle='#fff';x.font='800 30px sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText(label,80,33);u.tx.needsUpdate=true;g.position.set(pos.x,S.hole.H(pos.x,pos.z)+.03,pos.z);g.visible=true}
-function renderDuel(){const el=$('#duel');if(!el)return;const P=S.duelP;if(!P||!S.you){el.hidden=true;return}el.hidden=false;if(S.mp)return renderDuelMp(el);const diff=S.you.tot-P.tot;const nm=P.name.split(' ').slice(-1)[0];
+function renderDuel(){const el=$('#duel');if(!el)return;const P=S.duelP;if(!P||!S.you){el.hidden=true;return}el.hidden=false;if(S.mp)return renderDuelMp(el);if(S.sk)return renderDuelSk(el);const diff=S.you.tot-P.tot;const nm=P.name.split(' ').slice(-1)[0];
  el.innerHTML='<span class="dl">'+(P.rival?'Duell':'Flight')+'</span><span class="me">Du '+fmtPar(S.you.tot)+'</span><span class="vs">vs</span><span class="op">'+esc(nm)+' '+fmtPar(P.tot)+'</span><span class="st">'+(diff<0?(-diff)+' vorne':diff>0?diff+' hinten':'gleichauf')+'</span>';el.className='hud pnl '+(diff<0?'lead':diff>0?'trail':'even')}
 function partnerTee(){const P=S.duelP,h=S.hole;S.partnerTurn=true;const sm=golfer.mats.shirt;if(sm.map){sm.map=null}sm.color.set(P.rival?'#1f4fb5':P.star?'#2b2b2b':'#6a2c8c');sm.needsUpdate=true;golfer.mats.pants.color.set(P.rival?'#e9e4d6':'#3a3f47');golfer.mats.cap.color.set(P.rival?'#1f4fb5':'#ffffff');golfer.glasses.visible=!!P.rival;
  S.ball.set(0,h.H(0,0)+.02,0);S.prev.copy(S.ball);S.lie='tee';S.shotType='normal';S.chipMode=false;S.spin.x=0;S.spin.y=0;S.powerArmed=false;S.club=autoClub();const c=CLUBS[S.club];autoAim();S.aim+=(Math.random()-.5)*.02;
@@ -2292,7 +2457,7 @@ function duelApproach(){if(!S.duelP||S.duelOnGreen||S.duelD==null||S.playoff)ret
  else{setDuelMark(new V3(x,0,z),initials(S.duelP.name));setTimeout(()=>toast(esc(nm)+': '+(h.surf(x,z)==='green'?'auf dem Grün':'neben dem Grün')+'<small>'+fmtD(r,true)+' von der Fahne</small>',2400),600)}}
 function duelReveal(par){if(!S.duelP||S.playoff)return;const P=S.duelP,sc=P.hist[P.hist.length-1];if(sc==null)return;const pd=sc-par;const nm=P.name.split(' ').slice(-1)[0];const t=pd<=-2?'Eagle':pd===-1?'Birdie':pd===0?'Par':pd===1?'Bogey':'Doppel-Bogey';const diff=S.you.tot-P.tot;
  setTimeout(()=>{toast(esc(nm)+': '+t+'<small>'+(diff<0?'Du führst im Duell mit '+(-diff):diff>0?esc(nm)+' führt im Duell mit '+diff:'Duell ausgeglichen')+'</small>',2600);renderDuel()},2100)}
-function renderMiniLb(){if(S.mp)return renderMiniLbMp();const r=ranked();const rows=[];const top=r.slice(0,6);if(!top.includes(S.you))top.push(S.you);const riv=S.field.find(p=>p.rival);if(riv&&!top.includes(riv))top.push(riv);
+function renderMiniLb(){if(S.mp)return renderMiniLbMp();if(S.sk)return renderMiniLbSk();const r=ranked();const rows=[];const top=r.slice(0,6);if(!top.includes(S.you))top.push(S.you);const riv=S.field.find(p=>p.rival);if(riv&&!top.includes(riv))top.push(riv);
  const thru=S.playoff?'P':(S.hi>=S.holes.length?'F':S.hi);
  for(const p of top){const ps=posOf(p).s;rows.push(`<div class="row${p.you?' me':''}${p.rival?' riv':''}"><span class="pos num">${ps}</span><span class="nm">${esc(p.name)}</span><span class="tp num ${p.tot<0?'under':''}">${fmtPar(p.tot)}</span><span class="th num">${thru}</span></div>`)}
  $('#lbRows').innerHTML=rows.join('');$('#lbTitle').textContent=S.ev.name;{const ld=ranked().find(p=>!p.you);const gap=S.you.tot-(ld?ld.tot:0);$('#lbRound').textContent=gap<0?'Führung '+(-gap):gap===0?'Geteilt vorne':'Rückstand '+gap}layoutHud();renderDuel()}
@@ -2338,8 +2503,8 @@ function runDialog(lines){if(typeof lines==='function')lines=lines(save);return 
  const next=()=>{if(typing){clearInterval(typing);typing=null;$('#dlgTxt').textContent=full;return}i++;if(i>=lines.length){box.onclick=null;removeEventListener('keydown',kh);$('#dialog').hidden=true;res();return}showL()};
  const kh=e=>{if(e.code==='Space'||e.code==='Enter'){e.preventDefault();next()}};box.onclick=next;addEventListener('keydown',kh);showL()})}
 function lbTable(el,rows,hl){el.innerHTML=`<tr><th>Pos</th><th>Spieler</th><th class="r">Total</th></tr>`+rows.map(p=>`<tr class="${p.you?'me':''}"><td class="num">${posOf(p).s}</td><td>${esc(p.name)}<span class="cc">${p.cc}</span></td><td class="r num ${p.tot<0?'under':''}">${fmtPar(p.tot)}</td></tr>`).join('')}
-function goalText(g){return g.point?'Ziel: Punkt für Europa':g.match?'Ziel: Match gewinnen':g.win?'Ziel: Sieg':`Ziel: Top ${g.top}`}
-function introScreen(ev){if(ev.match)return matchIntro(ev);return new Promise(res=>{hideAll();$('#intro').hidden=false;$('#inTour').textContent=ev.tour;$('#inName2').textContent=ev.name;$('#inCourse').textContent=S.course.name;$('#inLoc').textContent=S.course.loc;
+function goalText(g){return g.skins?'Ziel: mindestens ein Skin':g.point?'Ziel: Punkt für Europa':g.match?'Ziel: Match gewinnen':g.win?'Ziel: Sieg':`Ziel: Top ${g.top}`}
+function introScreen(ev){if(ev.match)return matchIntro(ev);if(ev.skins)return skinsIntro(ev);return new Promise(res=>{hideAll();$('#intro').hidden=false;$('#inTour').textContent=ev.tour;$('#inName2').textContent=ev.name;$('#inCourse').textContent=S.course.name;$('#inLoc').textContent=S.course.loc;
  const first=S.holes[0]+1;$('#inGoal').innerHTML=`<span class="chip next">${goalText(ev.goal)}</span><span class="chip">Finalrunde · Start Loch ${first}</span><span class="chip">${S.holes.length} Löcher</span>`;$('#inText').textContent=fill(ev.txt);
  const r=ranked();const rows=r.slice(0,8);if(!rows.includes(S.you))rows.push(S.you);lbTable($('#inLb'),rows);$('#bStart').onclick=()=>{AU.init();res()}})}
 
@@ -2495,25 +2660,25 @@ function renderPress(){const el=$('#hubPress');if(!el||!save)return;const N=(sav
 function renderHub(){
  hideAll();$('#hub').hidden=false;$('#hud').hidden=true;if(S.dm)S.dm.visible=false;S.showcase=false;S.scPlaced=false;golfer.g.visible=false;$('.hubw').dataset.tab='karriere';document.querySelectorAll('.htabs button').forEach(x=>x.classList.toggle('on',x.dataset.t==='karriere'));const s=save;
  $('#hubName').textContent=s.name;$('#hubAv').textContent=s.name.split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase();
- const done=!!s.done;const nextI=done?(CAMP===4?EVENTS.length-1:EVENTS.findIndex(e=>e.key==='open')):curIdx();const nev=EVENTS[nextI];const age=nev.age+(s.extra||0);
+ const done=!!s.done;const nextI=done?(CAMP>=4?EVENTS.length-1:EVENTS.findIndex(e=>e.key==='open')):curIdx();const nev=EVENTS[nextI];const age=nev.age+(s.extra||0);
  const wins=Object.values(s.res).filter(r=>r.win).length,majors=Object.values(s.majors).filter(Boolean).length;
  const rank=Math.max(1,Math.round(nev.rank/(1+majors*.8)));
  $('#hubMeta').textContent=`${age} Jahre · ${CAMPS[CAMP].home} · ${reputation()}`;
  $('#hubKpis').innerHTML=[['Weltrangliste','#'+rank],['Fans',fmtK(s.fans||0)],['Siege',wins],['Preisgeld',chf(s.money||0)]].map(([a,b])=>`<div class="kpi"><span>${a}</span><b>${b}</b></div>`).join('');
  const lv=lvWith(nextI);const PL=playerLevel(),xpN=(s.xp||0),nxt=150*(PL+1)*(PL+1),cur0=150*PL*PL;$('#hubStats').innerHTML=`<div class="stat"><span>Stufe ${PL}</span><span class="bar"><i style="width:${Math.round((xpN-cur0)/(nxt-cur0)*100)}%;background:#ff9a3c"></i></span><span class="num">${xpN}</span></div>`+[['Power',lv.power/1.03],['Präzision',lv.acc],['Putten',lv.putt],['Nerven',lv.nerve]].map(([n,v])=>`<div class="stat"><span>${n}</span><span class="bar"><i style="width:${Math.round(v*100)}%"></i></span><span class="num">${Math.round(v*99)}</span></div>`).join('');
  const trophy='<svg viewBox="0 0 24 24"><path d="M7 3h10v3a5 5 0 0 1-10 0z M5 4h2v2a2 2 0 0 1-2-2z M19 4h-2v2a2 2 0 0 0 2-2z M11 11h2v5h-2z M8 17h8v3H8z" fill="currentColor"/></svg>';
- $('#hubSlams').innerHTML=CAMP===4?[['mpChamp','Matchplay','Weltmeister'],['rc','Ryder Cup','Rom']].map(([k,n,t])=>{const w=k==='rc'?(s.flags&&s.flags.cup&&s.flags.cup!=='lost'):(s.flags&&s.flags.mpChamp);return`<div class="slam ${w?'won':''}">${trophy}${n}<br><span style="font-weight:500;font-size:11px">${t}</span></div>`}).join(''):MAJORS.map(([k,n,t])=>`<div class="slam ${s.majors[k]?'won':''}">${trophy}${n}<br><span style="font-weight:500;font-size:11px">${t}</span></div>`).join('');
+ $('#hubSlams').style.gridTemplateColumns=CAMP===5?'repeat(6,'+(innerHeight<540?'40px':'64px')+')':'';$('#hubSlams').innerHTML=CAMP===5?Object.entries(CH5).map(([k,c])=>{const w=EVENTS.some(e=>e.ch==k&&s.res[e.key]&&s.res[e.key].ok);return`<div class="slam ${w?'won':''}" title="${esc(c[1])}">${trophy}${esc(c[0])}</div>`}).join(''):CAMP===4?[['mpChamp','Matchplay','Weltmeister'],['rc','Ryder Cup','Rom']].map(([k,n,t])=>{const w=k==='rc'?(s.flags&&s.flags.cup&&s.flags.cup!=='lost'):(s.flags&&s.flags.mpChamp);return`<div class="slam ${w?'won':''}">${trophy}${n}<br><span style="font-weight:500;font-size:11px">${t}</span></div>`}).join(''):MAJORS.map(([k,n,t])=>`<div class="slam ${s.majors[k]?'won':''}">${trophy}${n}<br><span style="font-weight:500;font-size:11px">${t}</span></div>`).join('');
  const nc=COURSES[nev.course];const ch=CHAPTERS[nev.ch]||['',''];
  $('#heroCh').textContent=done?'Epilog · Legende':`Kapitel ${nev.ch} · ${ch[0]}`;
- $('#heroTour').textContent=done?(CAMP===4?'Geschichte komplett – spiel deine Lieblingsmatches nochmals':'Grand Slam komplett – spiel deine Lieblingsturniere nochmals'):`Nächstes Turnier · ${nev.tour}`;$('#heroName').textContent=nev.name;$('#heroCourse').textContent=`${nc.name} · ${nc.loc}`;
- $('#heroGoal').innerHTML=`<span class="chip next">${goalText(nev.goal)}</span><span class="chip">${nev.stage}</span><span class="chip">${nev.match?nev.match.holes+' Löcher · Matchplay':settings.holes+' Löcher'}</span>`;$('#heroTxt').textContent=fill(nev.txt);{const rr=$('#hubRels');if(CAMP===3&&s.rel){const L=[['family','Familie','#ff8fab'],['caddie','Caddie Sepp','#ffd166'],['fans','Fans','#5fd0ff'],['tour','Ansehen Tour','#6fdc8c']];rr.innerHTML=L.map(([k,n,c])=>'<div class="rl"><span>'+n+'</span><span class="rb"><i style="width:'+s.rel[k]+'%;background:'+c+'"></i></span><span class="rv">'+s.rel[k]+'</span></div>').join('');rr.hidden=false}else rr.hidden=true}
+ $('#heroTour').textContent=done?(CAMP>=4?'Geschichte komplett – spiel deine Lieblingsmatches nochmals':'Grand Slam komplett – spiel deine Lieblingsturniere nochmals'):`Nächstes Turnier · ${nev.tour}`;$('#heroName').textContent=nev.name;$('#heroCourse').textContent=`${nc.name} · ${nc.loc}`;
+ $('#heroGoal').innerHTML=`<span class="chip next">${goalText(nev.goal)}</span><span class="chip">${nev.stage}</span><span class="chip">${nev.match?nev.match.holes+' Löcher · Matchplay':nev.skins?nev.skins.holes+' Löcher · Skins':(nev.holes||settings.holes)+' Löcher'+(nev.scramble?' · Scramble':'')}</span>`;$('#heroTxt').textContent=fill(nev.txt);{const rr=$('#hubRels');if(CAMP===3&&s.rel){const L=[['family','Familie','#ff8fab'],['caddie','Caddie Sepp','#ffd166'],['fans','Fans','#5fd0ff'],['tour','Ansehen Tour','#6fdc8c']];rr.innerHTML=L.map(([k,n,c])=>'<div class="rl"><span>'+n+'</span><span class="rb"><i style="width:'+s.rel[k]+'%;background:'+c+'"></i></span><span class="rv">'+s.rel[k]+'</span></div>').join('');rr.hidden=false}else rr.hidden=true}
  const last=(s.news||[]).slice(-1)[0];$('#heroNews').innerHTML=last?`<div class="np-mast">${esc(last.paper)}</div><div class="np-date">${esc(last.date)}</div><h4>${esc(last.h)}</h4><p>${esc(last.sub)}</p>`:`<div class="np-mast">${esc(PAPERS[1])}</div><div class="np-date">Lokales · ${CAMPS[CAMP].home}</div><h4>Talent aus ${CAMPS[CAMP].home} vor dem ersten grossen Turnier</h4><p>Die ganze Region schaut zu, wenn ${esc(s.name)} zum ersten Mal abschlägt.</p>`;
  renderRoute();renderPress();
  let html='',chN=0;EVENTS.forEach((e,i)=>{if(e.ch!==chN){chN=e.ch;html+=`<div class="stage">Kapitel ${chN} · ${CHAPTERS[chN][0]}</div>`}const r=s.res[e.key];const isCur=!done&&e.key===s.cur;const playable=isCur||!!r;const c=COURSES[e.course];
   const chip=r&&r.win?'<span class="chip win">Sieg</span>':r&&r.ok?`<span class="chip ok">${esc(r.pos)}</span>`:isCur?'<span class="chip next">Als Nächstes</span>':r?`<span class="chip">${esc(r.pos)}</span>`:'<span class="chip">Gesperrt</span>';
   html+=`<button class="ev" type="button" data-i="${i}" ${playable?'':'disabled'}><div><div class="nm">${esc(e.name)}</div><div class="cs">${esc(c.name)} · ${esc(goalText(e.goal))}</div></div>${chip}</button>`});
  $('#hubEvents').innerHTML=html;document.querySelectorAll('#hubEvents .ev').forEach(b=>b.onclick=()=>{if(!b.disabled)playEvent(+b.dataset.i)});
- const tk=(s.news||[]).slice(-8).reverse().map(n=>n.paper+': '+n.h).join('   ◆   ');$('#hubTickTx').textContent=tk||(CAMP===4?'Walliser Bote: Matchplay-WM in Crans-Montana – sechzehn Spieler, ein Pokal   ◆   Tyler Voss: «Europas Team ist ein Haufen netter Leute»   ◆   Ryder Cup Rom: Captain Lindqvist sucht noch eine Wildcard':CAMP===2?'Saastaler Anzeiger: Hotelkind aus dem Saastal zur Aufnahmeprüfung eingeladen   ◆   Alpine Golf Akademie: Legende sucht die nächsten Champions   ◆   Brandt Capital investiert Millionen in Nachwuchsgolf':'Markgräfler Tagesbote: Talent aus Kandern vor dem ersten grossen Turnier   ◆   Swiss Golf: Juniorenmeisterschaft in Bad Ragaz mit Rekordfeld   ◆   Augusta: Die Azaleen blühen früh in diesem Jahr');
+ const tk=(s.news||[]).slice(-8).reverse().map(n=>n.paper+': '+n.h).join('   ◆   ');$('#hubTickTx').textContent=tk||(CAMP===5?'24 heures: Tagebuch von 1974 auf dem Estrich in Lavaux gefunden   ◆   Challenge Tour: Lavaux Vineyard Open zwischen den Weinterrassen   ◆   Island: Sturmwarnung für das Arctic Links Classic':CAMP===4?'Walliser Bote: Matchplay-WM in Crans-Montana – sechzehn Spieler, ein Pokal   ◆   Tyler Voss: «Europas Team ist ein Haufen netter Leute»   ◆   Ryder Cup Rom: Captain Lindqvist sucht noch eine Wildcard':CAMP===2?'Saastaler Anzeiger: Hotelkind aus dem Saastal zur Aufnahmeprüfung eingeladen   ◆   Alpine Golf Akademie: Legende sucht die nächsten Champions   ◆   Brandt Capital investiert Millionen in Nachwuchsgolf':'Markgräfler Tagesbote: Talent aus Kandern vor dem ersten grossen Turnier   ◆   Swiss Golf: Juniorenmeisterschaft in Bad Ragaz mit Rekordfeld   ◆   Augusta: Die Azaleen blühen früh in diesem Jahr');
  $('#bPlayNext').textContent=done?'Nochmals spielen':nev.match?'Match spielen':'Turnier spielen';$('#bPlayNext').onclick=()=>playEvent(nextI);
  renderOutfit();applyOutfit();AU.setMurmur(0);AU.setRain(0);if(S.weather==='rain'){S.weather='clear';S.skyMix=null;setSky(S.course.theme,S.time)}renderShop();$('#bReset').textContent='Karriere löschen';$('#bReset').dataset.arm='';S.state='menu';if(save.pending&&pendingDecide())setTimeout(()=>{if(S.state==='menu'&&!$('#hub').hidden)runChoice(pendingDecide()).then(()=>renderHub())},500);
  if(S.course!==COURSES[nev.course]&&!S.building){S.building=true;S.ev=nev;S.evIdx=nextI;S.course=COURSES[nev.course];S.time=nev.time;setSky(S.course.theme,nev.time);buildHole(17).then(()=>{golfer.g.visible=false;ballMesh.visible=false;aimRing.visible=false;puttLine.visible=false;S.building=false})}}
@@ -2556,16 +2721,16 @@ async function playEvent(i){
  AU.init();applyOutfit();const ev=EVENTS[i];ev.idx=i;S.ev=ev;S.evIdx=i;S.course=COURSES[ev.course];S.si=strokeIndex(S.course);S.time=ev.time;S.playoff=false;S.showcase=false;
  if(save&&save.cur===ev.key&&save.seenCh!==ev.ch){save.seenCh=ev.ch;writeSave();await chapterCard(ev.ch)}
  await runDialog(storyIntro(ev));
- const N=ev.match?ev.match.holes:settings.holes;S.holes=Array.from({length:N},(_,k)=>(ev.match?ev.match.from:18-N)+k);S.hi=0;S.scores=new Array(18).fill(null);
- S.mp=null;if(ev.match)makeMatch(ev);else makeField(ev);S.RL={holes:[],putts:0,gir:0,fir:0,firN:0,water:0,maxDrive:0,trailMax:0,ledAt:false,rain:false};S.duelP=S.field.find(p=>p.rival)||S.field.find(p=>p.star)||ranked().find(p=>!p.you);S.rainPlan=i>0&&Math.random()<(THEMES[COURSES[ev.course].theme]===THEMES.links?.55:.2);S.rainFrom=S.rainPlan?Math.floor(Math.random()*Math.max(1,settings.holes-1)):99;S.weather=S.rainPlan&&S.rainFrom===0?'rain':'clear';S.skyMix=null;S.xpRound=0;S.streak=0;S.inZone=false;S.powerLeft=3;S.powerArmed=false;
+ const N=ev.match?ev.match.holes:ev.skins?ev.skins.holes:(ev.holes||settings.holes);S.holes=Array.from({length:N},(_,k)=>(ev.match?ev.match.from:ev.skins?ev.skins.from:ev.from!=null?ev.from:18-N)+k);S.hi=0;S.scores=new Array(18).fill(null);
+ S.mp=null;S.sk=null;if(ev.match)makeMatch(ev);else if(ev.skins)makeSkins(ev);else makeField(ev);S.RL={holes:[],putts:0,gir:0,fir:0,firN:0,water:0,maxDrive:0,trailMax:0,ledAt:false,rain:false};S.duelP=S.field.find(p=>p.rival)||S.field.find(p=>p.star)||ranked().find(p=>!p.you);S.rainPlan=!!ev.rain||i>0&&Math.random()<(THEMES[COURSES[ev.course].theme]===THEMES.links?.55:.2);S.rainFrom=ev.rain?0:S.rainPlan?Math.floor(Math.random()*Math.max(1,settings.holes-1)):99;S.weather=S.rainPlan&&S.rainFrom===0?'rain':'clear';S.skyMix=null;S.xpRound=0;S.streak=0;S.inZone=false;S.powerLeft=3;S.powerArmed=false;if(ev.scramble)S.duelP=null;
  await loading(`${S.course.name} wird vorbereitet …`);
  setSky(S.course.theme,ev.time);AU.birds=THEMES[S.course.theme].birds;
  S.windKmh=0;newWind();await buildHole(S.holes[0]);S.state='menu';orbitT=0;
  hideAll();await introScreen(ev);
  for(S.hi=0;S.hi<S.holes.length;S.hi++){await playHole(S.holes[S.hi]);if(S.mp&&S.mp.over)break}
- await (S.mp?finishMatch():finishRound());
+ await (S.mp?finishMatch():S.sk?finishSkins():finishRound());
 }
-function newWind(){const T=THEMES[S.course.theme];const k=Math.round(lerp(T.wind[0],T.wind[1],Math.random()));const a=Math.random()*Math.PI*2;S.windKmh=k;S.wind.set(Math.sin(a),0,Math.cos(a)).multiplyScalar(k/3.6);U_WIND.value.set(S.wind.x,S.wind.z)}
+function newWind(){const T=THEMES[S.course.theme];const WR=(S.ev&&S.ev.wind)||T.wind;const k=Math.round(lerp(WR[0],WR[1],Math.random()));const a=Math.random()*Math.PI*2;S.windKmh=k;S.wind.set(Math.sin(a),0,Math.cos(a)).multiplyScalar(k/3.6);U_WIND.value.set(S.wind.x,S.wind.z)}
 function playHole(idx){return new Promise(async res=>{
  S.resolve=res;updateWeatherAndSky();if(!S.hole||S.hole.idx!==idx||S.hole.course!==S.course){await loading(`Loch ${idx+1} …`);newWind();await buildHole(idx)}else if(S.hi>0||S.playoff){newWind()}
  hideAll();$('#hud').hidden=false;S.strokes=0;S.putts=0;S.lie='tee';TURF.clear();S.lastShot=null;S.fir=false;S.gir=false;S.xpHole=0;chooseChallenge();AU.setMurmur(S.ev&&S.ev.crowd?.035:0);S.ball.set(0,S.hole.H(0,0)+.02,0);S.prev.copy(S.ball);S.topView=false;computePressure();S.duelOnGreen=false;setDuelMark(null);if(S.duelP&&!S.playoff){const P=S.duelP;let sk=P.skill;const hl=S.holes.length-S.hi-1;if((P.rival||P.star)&&hl<=4){const gap=P.tot-S.you.tot;if(gap>=0&&gap<=2)sk+=.14;else if(gap<0)sk-=.03}S.duelD=aiDelta(S.course.par[idx],sk)}else S.duelD=null;if(S.mp&&S.duelP){const par=S.course.par[idx],rem=S.holes.length-S.hi;S.duelD=aiDelta(par,S.duelP.skill+(S.mp.up>0&&rem<=2?.03:0));if(S.mp.mate){S.mp.mateD=aiDelta(par,S.mp.mate.skill);S.mp.opp2D=aiDelta(par,S.mp.opp2.skill)}}
@@ -2717,11 +2882,11 @@ async function holeOut(pickup){
  setTimeout(()=>showHoleSummary(nm),1500);
  if(d<0||S.strokes===1)S.golferCheer=T0;
  if(!S.playoff&&S.RL){S.RL.holes.push({n:h.idx+1,par,st:S.strokes,d,chip:!pickup&&!S.tapIn&&!!S.shot&&!S.shot.putt&&S.strokes>1,putt:(S.shot&&S.shot.putt&&!pickup)?Math.hypot(S.prev.x-h.pin_x,S.prev.z-h.pin_z):0});S.RL.putts+=S.putts||0;if(S.gir)S.RL.gir++;if(par>3){S.RL.firN++;if(S.fir)S.RL.fir++}if(S.weather==='rain')S.RL.rain=true}
- if(!S.playoff){S.scores[h.idx]=S.strokes;S.you.tot+=d;S.you.today+=d;S.you.hist.push(S.strokes)}
- setTimeout(()=>{callout(nm,`${S.strokes} ${S.strokes===1?'Schlag':'Schläge'} · ${S.playoff?'Stechen':S.mp?(S.mp.mate?'Vierball':'Matchplay'):'Total '+fmtPar(S.you.tot)}`);if(d<0){AU.crowd(d<=-2?1:.7);S.cheerT=T0}else if(d===0)AU.crowd(.3);},350);
+ if(!S.playoff){const dd=S.ev.scramble?scrambleHole(par,d):d;S.scores[h.idx]=S.strokes;S.you.tot+=dd;S.you.today+=dd;S.you.hist.push(S.strokes)}
+ setTimeout(()=>{callout(nm,`${S.strokes} ${S.strokes===1?'Schlag':'Schläge'} · ${S.playoff?'Stechen':S.mp?(S.mp.mate?'Vierball':'Matchplay'):S.sk?'Skins':'Total '+fmtPar(S.you.tot)}`);if(d<0){AU.crowd(d<=-2?1:.7);S.cheerT=T0}else if(d===0)AU.crowd(.3);},350);
  if(S.playoff){await sleep(2800);S.resolve&&S.resolve(S.strokes);return}
- const holesLeft=S.holes.length-S.hi-1;const msgs=simulateAI(h.idx,holesLeft);setDuelMark(null);(S.mp?matchHole(par):duelReveal(par));if(S.RL){const ld=ranked().find(p=>!p.you);const gap=S.you.tot-(ld?ld.tot:0);S.RL.trailMax=Math.max(S.RL.trailMax,gap);if(gap<0)S.RL.ledAt=true}
- await sleep(1700);renderMiniLb();const p=posOf(S.you);ticker(S.mp?[S.mp.msg]:[`${save.name}: ${nm} auf der ${h.idx+1} – ${p.s}. Platz bei ${fmtPar(S.you.tot)}.`,...msgs]);
+ const holesLeft=S.holes.length-S.hi-1;const msgs=simulateAI(h.idx,holesLeft);setDuelMark(null);(S.mp?matchHole(par):S.sk?skinsHole(par):duelReveal(par));if(S.RL){const ld=ranked().find(p=>!p.you);const gap=S.you.tot-(ld?ld.tot:0);S.RL.trailMax=Math.max(S.RL.trailMax,gap);if(gap<0)S.RL.ledAt=true}
+ await sleep(1700);renderMiniLb();const p=posOf(S.you);ticker(S.mp?[S.mp.msg]:S.sk?[S.sk.msg]:[`${save.name}: ${nm} auf der ${h.idx+1} – ${p.s}. Platz bei ${fmtPar(S.you.tot)}.`,...msgs]);
  await sleep(1500);S.resolve&&S.resolve()}
 
 async function finishRound(){
@@ -2910,7 +3075,7 @@ $('#bCont').onclick=()=>{AU.init();renderHub()};
 document.querySelectorAll('#camps button').forEach(b=>b.onclick=()=>{AU.init();setCampaign(+b.dataset.c);showTitle()});
 $('#bToTitle').onclick=showTitle;if(/Electron/.test(navigator.userAgent))for(const id of ['#bExit','#bExit2']){const b=$(id);b.hidden=false;b.onclick=()=>window.close()}
 $('#bReset').onclick=e=>{const b=e.currentTarget;if(b.dataset.arm){try{localStorage.removeItem(SKEY_CUR)}catch(err){}save=null;showTitle()}else{b.dataset.arm='1';b.textContent='Wirklich löschen? Nochmals klicken'}};
-async function boot(){if(!settings.c23){settings.camp=3;settings.c23=true}if(!settings.c25){settings.camp=4;settings.c25=true}setCampaign(settings.camp||4);
+async function boot(){if(!settings.c23){settings.camp=3;settings.c23=true}if(!settings.c25){settings.camp=4;settings.c25=true}if(!settings.c26){settings.camp=5;settings.c26=true}setCampaign(settings.camp||5);
  await loading('Platz wird gemäht …');await loadAssets();
  const ev=save?EVENTS[curIdx()]:(EVENTS.find(e=>e.key==='crans')||EVENTS[0]);S.ev=ev;S.evIdx=EVENTS.indexOf(ev);S.course=COURSES[ev.course];S.time=ev.time;
  setSky(S.course.theme,ev.time);S.windKmh=6;S.wind.set(.8,0,1.2);await buildHole(save?17:6);golfer.g.visible=false;ballMesh.visible=false;aimRing.visible=false;puttLine.visible=false;

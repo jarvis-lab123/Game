@@ -62,6 +62,12 @@ Kapitel 1–2 sind die *Matchplay-Edition* (Matchplay-WM in Crans-Montana und An
 Kapitel 3–4 die *Ryder-Cup-Edition* in Rom: Vierball mit Mila oder Kai, dann das Sonntags-Einzel, das den Cup entscheidet.
 Loch für Loch zählt (2 UP, Dormie, 3&2, Extraloch), Entscheidungen verändern Partner, Startposition und Dialoge.
 
+**Neu in Version 26 – Die Weltreise (Grand Slam 5):** rund zwei Stunden Story auf den Spuren eines Tagebuchs von 1974.
+13 neue Plätze auf sechs Kontinenten (Lavaux, Island, Leopard Creek, Marrakech, Fuji, Halong-Bucht, Bali, Cape Kidnappers,
+Tasmanien, Patagonien, Hawaii, Arosa, Aletschgletscher) mit acht neuen Landschaften (Weinberge, Vulkan, Savanne, Oase,
+Kirschblüten, Karstfelsen, Anden, Lava). Neue Spielformen: Skins Game, Scramble mit Partnerin, Sturm, Monsun und ein
+Matchplay-Finale auf dem Gletscher. Fünf Entscheidungen verändern Dialoge, Fähigkeiten und den Epilog.
+
 **Installieren** (nachdem GitHub Pages wie oben eingerichtet ist):
 
 1. Auf dem Handy `https://jarvis-lab123.github.io/Game/alpine/` öffnen.
