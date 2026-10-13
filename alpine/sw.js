@@ -1,5 +1,5 @@
 // Offline-Cache: nach dem ersten Start läuft Alpine Grand Slam ohne Internet.
-const CACHE = 'ags-v24-1';
+const CACHE = 'ags-v28-1';
 const FILES = [
   './',
   'index.html',

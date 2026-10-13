@@ -634,7 +634,7 @@ html,body{overscroll-behavior:none;-webkit-touch-callout:none;-webkit-tap-highli
    <button class="btn small" id="bExit" type="button" hidden style="margin:0 0 12px">Spiel beenden</button>
    <details class="optsw"><summary>Einstellungen</summary>
    <div class="opts">
-    <div class="field"><label class="cap" for="selQ">Grafik</label><select id="selQ"><option value="low">Schnell</option><option value="high">Hoch</option><option value="ultra">Ultra</option></select></div>
+    <div class="field"><label class="cap" for="selQ">Grafik</label><select id="selQ"><option value="low">Schnell</option><option value="mobile">Handy (scharf)</option><option value="high">Hoch</option><option value="ultra">Ultra</option></select></div>
     <div class="field"><label class="cap" for="selH">Runde</label><select id="selH"><option value="3">Finish · 3 Löcher</option><option value="9">Back Nine · 9</option><option value="18">Voll · 18</option></select></div>
     <div class="field"><label class="cap" for="selU">Distanz</label><select id="selU"><option value="yd">Yards</option><option value="m">Meter</option></select></div>
     <div class="field"><label class="cap" for="selSw">Schwung</label><select id="selSw"><option value="drag">Ziehen (Maus/Finger)</option><option value="click">3-Klick-Leiste</option></select></div>
@@ -749,7 +749,7 @@ html,body{overscroll-behavior:none;-webkit-touch-callout:none;-webkit-tap-highli
    <button class="btn" id="bPScore" type="button">Scorecard (Tab)</button>
    <button class="btn" id="bPReplay" type="button">Replay letzter Schlag (R)</button>
    <button class="btn" id="bPHelp" type="button">Hilfe &amp; Steuerung (H)</button>
-   <div class="rowf"><div class="field"><label class="cap" for="selQ2">Grafik</label><select id="selQ2"><option value="low">Schnell</option><option value="high">Hoch</option><option value="ultra">Ultra</option></select></div><div class="field"><label class="cap" for="selSw2">Schwung</label><select id="selSw2"><option value="drag">Ziehen</option><option value="click">3-Klick</option></select></div><div class="field"><label class="cap" for="selS2">Ton</label><select id="selS2"><option value="1">An</option><option value="0">Aus</option></select></div></div>
+   <div class="rowf"><div class="field"><label class="cap" for="selQ2">Grafik</label><select id="selQ2"><option value="low">Schnell</option><option value="mobile">Handy (scharf)</option><option value="high">Hoch</option><option value="ultra">Ultra</option></select></div><div class="field"><label class="cap" for="selSw2">Schwung</label><select id="selSw2"><option value="drag">Ziehen</option><option value="click">3-Klick</option></select></div><div class="field"><label class="cap" for="selS2">Ton</label><select id="selS2"><option value="1">An</option><option value="0">Aus</option></select></div></div>
    <button class="btn" id="bQuit" type="button">Turnier aufgeben</button>
    <button class="btn" id="bExit2" type="button" hidden>Spiel beenden</button>
   </div>
@@ -1707,7 +1707,7 @@ function saveJSON(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
 let save=loadJSON(SKEY);
 if(save&&save.v!==1)save=null;
 if(save&&save.cur==null){const OLD=['kandern','ragaz','samedan','crans','qschool','wentworth','masters','pga','usopen','open'];const pg=save.prog||0;save.cur=OLD[Math.min(pg,9)];if(pg>=10)save.done=true;save.path=save.path||[];save.news=save.news||[];save.persona=save.persona||{h:0,b:0,f:0};save.fans=save.fans||0;save.flags=save.flags||{};if(pg>3)save.flags.pro=true}
-const settings=Object.assign({swing:'drag',quality:(matchMedia('(pointer:coarse)').matches?'low':'high'),holes:18,sound:false,units:'m',voice:true},loadJSON(SETKEY)||{});if(!settings.m14){settings.units='m';settings.m14=true;saveJSON(SETKEY,settings)}if(!settings.snd17){settings.sound=false;settings.snd17=true;saveJSON(SETKEY,settings)}if(!settings.s17){settings.holes=18;settings.swing='drag';settings.s17=true;saveJSON(SETKEY,settings)}
+const settings=Object.assign({swing:'drag',quality:(matchMedia('(pointer:coarse)').matches?'mobile':'high'),holes:18,sound:false,units:'m',voice:true},loadJSON(SETKEY)||{});if(!settings.g28){if(matchMedia('(pointer:coarse)').matches&&settings.quality==='low')settings.quality='mobile';settings.g28=true;saveJSON(SETKEY,settings)}if(!settings.m14){settings.units='m';settings.m14=true;saveJSON(SETKEY,settings)}if(!settings.snd17){settings.sound=false;settings.snd17=true;saveJSON(SETKEY,settings)}if(!settings.s17){settings.holes=18;settings.swing='drag';settings.s17=true;saveJSON(SETKEY,settings)}
 function writeSave(){if(save)saveJSON(SKEY_CUR,save)}
 function writeSettings(){saveJSON(SETKEY,settings)}
 let CAMP=1,SKEY_CUR=SKEY;
@@ -1734,7 +1734,8 @@ function pendingDecide(){if(!save||!save.pending)return null;const e=EVENTS.find
    Renderer, scene, post
    ========================================================= */
 const QUAL={
- low:{dpr:1,shadow:1024,grass:0,grassR:0,trees:1300,bloom:false,msaa:0,cell:3,tex:1400},
+ low:{dpr:1.5,shadow:1024,grass:0,grassR:0,trees:1300,bloom:false,msaa:0,cell:3,tex:1400},
+ mobile:{dpr:2,shadow:2048,grass:9000,grassR:20,trees:1700,bloom:true,msaa:2,cell:2.2,tex:2048},
  high:{dpr:1.25,shadow:2048,grass:24000,grassR:28,trees:2000,bloom:true,msaa:4,cell:2,tex:2048},
  ultra:{dpr:2,shadow:4096,grass:70000,grassR:38,trees:4300,bloom:true,msaa:4,cell:1.6,tex:2048,ao:true}
 };
@@ -3339,7 +3340,7 @@ let last=performance.now();
 let fpsAcc=0,fpsN=0,dynScale=1;
 function applyDyn(){const d=Math.min(devicePixelRatio||1,QS.dpr)*dynScale;renderer.setPixelRatio(d);composer.setPixelRatio(d);composer.setSize(innerWidth,innerHeight)}
 function loop(now){requestAnimationFrame(loop);const dt=Math.min(.05,(now-last)/1000);last=now;
- if(dt>0&&dt<.2){fpsAcc+=dt;fpsN++;if(fpsAcc>2){const fps=fpsN/fpsAcc;fpsAcc=0;fpsN=0;if(fps<42&&dynScale>.55){dynScale=Math.max(.55,dynScale-.12);applyDyn()}else if(fps>57&&dynScale<1){dynScale=Math.min(1,dynScale+.06);applyDyn()}}}if(S.state!=='paused'&&S.state!=='card')update(dt);else{camera.position.copy(S.camPos);camera.lookAt(S.camLook)}composer.render();if(S.snapReq){S.snapReq=false;try{S.snap=renderer.domElement.toDataURL('image/jpeg',.82)}catch(e){S.snap=null}}}
+ if(dt>0&&dt<.2){fpsAcc+=dt;fpsN++;if(fpsAcc>2){const fps=fpsN/fpsAcc;fpsAcc=0;fpsN=0;if(fps<42&&dynScale>(QS===QUAL.mobile?.75:.55)){dynScale=Math.max(QS===QUAL.mobile?.75:.55,dynScale-.12);applyDyn()}else if(fps>57&&dynScale<1){dynScale=Math.min(1,dynScale+.06);applyDyn()}}}if(S.state!=='paused'&&S.state!=='card')update(dt);else{camera.position.copy(S.camPos);camera.lookAt(S.camLook)}composer.render();if(S.snapReq){S.snapReq=false;try{S.snap=renderer.domElement.toDataURL('image/jpeg',.82)}catch(e){S.snap=null}}}
 
 /* =========================================================
    Boot
