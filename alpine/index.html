@@ -3191,7 +3191,7 @@ async function finishRound(){
  const R={ev,ok,won,pos:p.s,n:p.n,tot:S.you.tot,today:S.you.today,prize,amNow,rivalPos:riv?posOf(riv).s:null,rivalName:riv?riv.name:null,onPath};
  save.fans=(save.fans||0)+Math.round((won?1500:ok?500:150)*((ev.lv||0)+1));if(CAMP===3){const r=save.rel=save.rel||{family:50,caddie:50,fans:50,tour:50};r.fans=clamp(r.fans+(won?8:ok?3:-3),0,100);r.tour=clamp(r.tour+(won?5:ok?2:-2),0,100);r.caddie=clamp(r.caddie+(ok?3:-1),0,100)}
  let retry=!ok;
- if(onPath){(save.path=save.path||[]).push({k:ev.key,ok,won,pos:won?'Sieg':p.s+'.'});const before=save.cur;advance(ev,ok,won);retry=!ok&&save.cur===before&&!save.pending}
+ if(onPath){(save.path=save.path||[]).push({k:ev.key,ok,won,pos:won?'Sieg':p.s+'.'});const before=save.cur;advance(ev,ok,won);retry=!ok&&save.cur===before&&!save.pending&&!save.done}
  R.next=(save.done||save.pending)?null:EVENTS[curIdx()];S.round=R;
  writeSave();
  $('#hud').hidden=true;$('#pressure').style.boxShadow='none';gradePass.uniforms.uPulse.value=0;
