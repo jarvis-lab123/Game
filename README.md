@@ -68,6 +68,13 @@ Tasmanien, Patagonien, Hawaii, Arosa, Aletschgletscher) mit acht neuen Landschaf
 Kirschblüten, Karstfelsen, Anden, Lava). Neue Spielformen: Skins Game, Scramble mit Partnerin, Sturm, Monsun und ein
 Matchplay-Finale auf dem Gletscher. Fünf Entscheidungen verändern Dialoge, Fähigkeiten und den Epilog.
 
+**Neu in Version 27 – Die Krone (Grand Slam 6, das grosse Finale):** rund fünf Stunden Story, in der alle bisherigen
+Geschichten zusammenlaufen. Die Alpine Crown von 1926 soll eingeschmolzen werden – nur wer die Legenden-Saison besteht,
+kann sie retten. 28 Turniere in 9 Kapiteln auf 9 neuen Plätzen (Kandersteg, Gleneagles, Valderrama, Royal County Down,
+Yas Links, Jeju, Thimphu, Ushuaia, Jungfraujoch), 9 Spielformen (Zählspiel, Matchplay, Skins, Scramble, Vierball,
+Stableford, Closest to the Pin, Longest Drive, Putting-Duell) und 9 Erfolge mit dauerhaften Boni. Mentoren aus allen
+Teilen kehren zurück: Leon Walter, Jannik, Mila, Valentin, Lena, Sepp, Kai, Nora, Tyler, Rafael, Noa, Hana Kim und mehr.
+
 **Installieren** (nachdem GitHub Pages wie oben eingerichtet ist):
 
 1. Auf dem Handy `https://jarvis-lab123.github.io/Game/alpine/` öffnen.
