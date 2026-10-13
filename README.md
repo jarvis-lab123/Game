@@ -87,3 +87,9 @@ Teilen kehren zurück: Leon Walter, Jannik, Mila, Valentin, Lena, Sepp, Kai, Nor
 | `alpine/manifest.webmanifest`, `alpine/sw.js` | App-Installation (Querformat, Vollbild) und Offline-Cache |
 | `alpine/vendor/three/` | Three.js 0.169 (nur die benutzten Module, MIT-Lizenz) |
 | `alpine/fonts/` | Saira Condensed, Libre Franklin, Caveat (SIL Open Font License) |
+
+## Android-App (ohne Store, ohne Hosting)
+
+`android/build.sh` baut `android/AlpineGrandSlam.apk`: eine Vollbild-App im Querformat, die das Spiel komplett offline aus der App lädt.
+Benötigt nur Ubuntu-Pakete: `apt-get install aapt apksigner zipalign dalvik-exchange android-sdk-platform-23 default-jdk`.
+Die Datei `android/grandslam.keystore` signiert alle Versionen gleich, damit Updates über die alte App installiert werden können (der Spielstand bleibt erhalten).
