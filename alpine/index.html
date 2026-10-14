@@ -558,13 +558,37 @@ html,body{overscroll-behavior:none;-webkit-touch-callout:none;-webkit-tap-highli
  #hud #lowerThird{bottom:calc(110px + env(safe-area-inset-bottom,0px))}
 }
 @media (orientation:landscape) and (max-height:400px){#hud{zoom:.68}#hud #dragUi{zoom:1.4706}}
+
+/* ---------- v29 Mobile-Game-HUD ---------- */
+@media (orientation:landscape) and (max-height:540px){
+ #hud #holeCard{border-radius:999px!important;align-items:center;padding-right:18px;background:rgba(8,18,13,.62)}
+ #hud #holeCard .n{width:52px;height:52px;min-width:52px;border-radius:50%;margin:6px;padding:0;font-size:26px}
+ #hud #holeCard .m{padding:4px 2px}#hud #holeCard .s,#hud #holeCard .chal{display:none}
+ #hud #holeCard .t{font-size:19px}#hud #holeCard .st{font-size:14px;margin-top:3px}
+ #hud #shotPanel:not(.adv){top:auto!important;bottom:calc(12px + env(safe-area-inset-bottom,0px))!important;left:14px!important;width:auto!important;max-height:none;overflow:visible;display:flex;align-items:center;gap:8px;padding:7px!important;border-radius:999px!important;background:rgba(8,18,13,.62)!important}
+ #hud #shotPanel:not(.adv) #spLie,#hud #shotPanel:not(.adv) .grid,#hud #shotPanel:not(.adv) #spCC,#hud #shotPanel:not(.adv) #shotTypes{display:none!important}
+ #hud #shotPanel:not(.adv) .clubrow{gap:8px}
+ #hud #shotPanel .cbtn{width:54px;height:54px;border-radius:50%;font-size:18px;background:rgba(255,255,255,.14);border:2px solid rgba(255,255,255,.35)}
+ #hud #shotPanel:not(.adv) .cpick{font-size:26px!important;min-width:150px;text-align:center}
+ #hud #shotPanel:not(.adv) #bMore{width:54px;height:54px;border-radius:50%;margin:0;padding:0;border:2px solid rgba(255,255,255,.35);background:rgba(255,255,255,.14);font-size:0;display:grid;place-items:center}
+ #hud #shotPanel:not(.adv) #bMore::before{content:'⋯';font:800 30px/1 var(--body);color:#fff}
+ #hud #bMenu{font-size:0!important;width:58px;height:58px;padding:0;border-radius:50%!important;display:grid;place-items:center;background:rgba(8,18,13,.62);border:2px solid rgba(255,255,255,.35)}
+ #hud #bMenu::before{content:'❚❚';font:800 20px/1 var(--body);letter-spacing:-3px;color:#fff}
+ #hud #windBox{border-radius:999px!important;background:rgba(8,18,13,.62)}
+ #hud #miniLb{border-radius:18px!important}#hud #miniLb:not(.open) #lbTitle{display:none}#hud #miniLb:not(.open) .hd{justify-content:center}
+ #hud #comm{display:none!important}
+ #hud #distPill{border-radius:999px}
+ #hud #dragHint{opacity:.85}
+ .btn,.mbtn,.camps button,.ev,.as button,#choice .opts button{border-radius:14px!important}
+ .btn.primary{box-shadow:0 6px 18px rgba(216,35,42,.35)}
+}
 </style>
 
 <div id="rotate" role="alert"><svg viewBox="0 0 96 96" aria-hidden="true"><rect x="30" y="10" width="36" height="66" rx="7" fill="none" stroke="#dcb35c" stroke-width="4"/><circle cx="48" cy="68" r="3" fill="#dcb35c"/></svg><b>Handy drehen</b><span>Alpine Grand Slam spielst du im Querformat.</span></div>
 <div id="app">
  <canvas id="gl"></canvas>
  <div id="pressure" class="hud"></div>
- <div id="verTag" class="hud">Version 27</div>
+ <div id="verTag" class="hud">Version 29</div>
  <button id="bSnd" type="button" aria-label="Ton an"></button>
  <div id="replayTag" class="hud">▶ Replay · Klick zum Beenden</div>
 
@@ -920,7 +944,7 @@ Object.assign(THEMES,{
 });
 for(const t of Object.values(THEMES))t.c=Object.assign({},BASEC,t.c);
 function vivid(c,sat=1.32,li=1.12){const col=new THREE.Color().setRGB(c[0]/255,c[1]/255,c[2]/255);const hsl={};col.getHSL(hsl);col.setHSL(hsl.h,Math.min(1,hsl.s*sat),Math.min(.9,hsl.l*li));return[col.r*255,col.g*255,col.b*255]}
-for(const t of Object.values(THEMES)){for(const k in t.c)t.c[k]=vivid(vivid(t.c[k]),1.16,1.06);for(const k in t.tc)t.tc[k]=vivid(t.tc[k],1.45,1.14)}
+for(const t of Object.values(THEMES)){for(const k in t.c)t.c[k]=vivid(t.c[k],1.12,1.0);for(const k in t.tc)t.tc[k]=vivid(t.tc[k],1.22,1.04)}
 Object.assign(THEMES.mountain,{hero:['peak_massif','peak_matterhorn'],heroN:3,heroDist:3300,heroH:1250,chalets:true,gondola:true});
 Object.assign(THEMES.snow,{hero:['peak_massif'],heroN:3,heroDist:3300,heroH:1150,chalets:true,gondola:true});
 Object.assign(THEMES.alpine,{hero:['peak_massif'],heroN:2,heroDist:3500,heroH:1150,chalets:true});
@@ -1765,7 +1789,7 @@ const sunDir=new V3();
 const pmrem=new THREE.PMREMGenerator(renderer);
 let envRT=null;
 
-const GradeShader={uniforms:{tDiffuse:{value:null},uVig:{value:.55},uPulse:{value:0},uSat:{value:1.3}},
+const GradeShader={uniforms:{tDiffuse:{value:null},uVig:{value:.55},uPulse:{value:0},uSat:{value:1.06}},
  vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
  fragmentShader:'uniform sampler2D tDiffuse;uniform float uVig,uPulse,uSat;varying vec2 vUv;void main(){vec4 c=texture2D(tDiffuse,vUv);float l=dot(c.rgb,vec3(.2126,.7152,.0722));c.rgb=mix(vec3(l),c.rgb,uSat-uPulse*.35);vec2 d=vUv-.5;float v=1.-dot(d,d)*(uVig+uPulse*1.6);c.rgb*=clamp(v,0.,1.);c.rgb*=mix(vec3(1.),vec3(1.08,.9,.88),uPulse*.6);gl_FragColor=c;}'};
 const RaysShader={uniforms:{tDiffuse:{value:null},uSun:{value:new THREE.Vector2(.5,.5)},uInt:{value:0}},
@@ -1773,7 +1797,7 @@ const RaysShader={uniforms:{tDiffuse:{value:null},uSun:{value:new THREE.Vector2(
  fragmentShader:'uniform sampler2D tDiffuse;uniform vec2 uSun;uniform float uInt;varying vec2 vUv;void main(){vec4 base=texture2D(tDiffuse,vUv);if(uInt<=.001){gl_FragColor=base;return;}vec2 d=(vUv-uSun)*(.9/24.);vec2 uv=vUv;float il=1.;vec3 acc=vec3(0.);for(int i=0;i<24;i++){uv-=d;vec3 c=texture2D(tDiffuse,clamp(uv,0.,1.)).rgb;float l=max(dot(c,vec3(.3,.5,.2))-1.1,0.);acc+=l*il*vec3(1.,.86,.62);il*=.965;}gl_FragColor=vec4(base.rgb+acc*(uInt/24.)*1.6,base.a);}'};
 const FinalShader={uniforms:{tDiffuse:{value:null},uTime:{value:0},uWarm:{value:0},uSun:{value:new THREE.Vector2(.5,.5)},uFlare:{value:0},uAspect:{value:1},uRes:{value:new THREE.Vector2(1280,720)}},
  vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
- fragmentShader:'uniform sampler2D tDiffuse;uniform float uTime,uWarm,uFlare,uAspect;uniform vec2 uSun,uRes;varying vec2 vUv;void main(){float b=smoothstep(.68,1.,vUv.y)*2.2+smoothstep(.15,0.,vUv.y)*1.;vec2 px=b/uRes;vec3 c=texture2D(tDiffuse,vUv).rgb*.28;c+=texture2D(tDiffuse,vUv+vec2(px.x,px.y*.5)).rgb*.18;c+=texture2D(tDiffuse,vUv-vec2(px.x,px.y*.5)).rgb*.18;c+=texture2D(tDiffuse,vUv+vec2(-px.x*.5,px.y)).rgb*.18;c+=texture2D(tDiffuse,vUv-vec2(-px.x*.5,px.y)).rgb*.18;float l=dot(c,vec3(.299,.587,.114));c=mix(vec3(l),c,1.14);c=mix(c,c*vec3(1.05,1.02,.94),uWarm*.4);c=mix(c,c*c*(3.-2.*c),.1);c=pow(max(c,0.),vec3(.95));if(uFlare>.001){float vis=smoothstep(.8,.97,dot(texture2D(tDiffuse,clamp(uSun,0.,1.)).rgb,vec3(.333)))*uFlare;if(vis>.001){vec2 ax=vec2(.5)-uSun;for(int k=0;k<5;k++){float g=float(k)*.42+.28;vec2 gp=uSun+ax*g*2.;float rr=length((vUv-gp)*vec2(uAspect,1.));float sz=.018+float(k)*.017;c+=vec3(1.,.78+.05*float(k),.5+.1*float(k))*smoothstep(sz,sz*.25,rr)*.05*vis;}float hr=length((vUv-uSun)*vec2(uAspect,1.));c+=vec3(1.,.9,.7)*exp(-hr*8.)*.2*vis;}}gl_FragColor=vec4(clamp(c,0.,1.),1.);}'};
+ fragmentShader:'uniform sampler2D tDiffuse;uniform float uTime,uWarm,uFlare,uAspect;uniform vec2 uSun,uRes;varying vec2 vUv;void main(){float b=smoothstep(.68,1.,vUv.y)*2.2+smoothstep(.15,0.,vUv.y)*1.;vec2 px=b/uRes;vec3 c=texture2D(tDiffuse,vUv).rgb*.28;c+=texture2D(tDiffuse,vUv+vec2(px.x,px.y*.5)).rgb*.18;c+=texture2D(tDiffuse,vUv-vec2(px.x,px.y*.5)).rgb*.18;c+=texture2D(tDiffuse,vUv+vec2(-px.x*.5,px.y)).rgb*.18;c+=texture2D(tDiffuse,vUv-vec2(-px.x*.5,px.y)).rgb*.18;float l=dot(c,vec3(.299,.587,.114));c=mix(vec3(l),c,1.04);c=mix(c,c*vec3(1.05,1.02,.94),uWarm*.4);c=mix(c,c*c*(3.-2.*c),.1);c=pow(max(c,0.),vec3(.95));if(uFlare>.001){float vis=smoothstep(.8,.97,dot(texture2D(tDiffuse,clamp(uSun,0.,1.)).rgb,vec3(.333)))*uFlare;if(vis>.001){vec2 ax=vec2(.5)-uSun;for(int k=0;k<5;k++){float g=float(k)*.42+.28;vec2 gp=uSun+ax*g*2.;float rr=length((vUv-gp)*vec2(uAspect,1.));float sz=.018+float(k)*.017;c+=vec3(1.,.78+.05*float(k),.5+.1*float(k))*smoothstep(sz,sz*.25,rr)*.05*vis;}float hr=length((vUv-uSun)*vec2(uAspect,1.));c+=vec3(1.,.9,.7)*exp(-hr*8.)*.2*vis;}}gl_FragColor=vec4(clamp(c,0.,1.),1.);}'};
 let composer,gradePass,bloomPass,raysPass=null,finalPass=null;
 function buildComposer(){
  const dpr=Math.min(devicePixelRatio||1,QS.dpr);
@@ -1807,7 +1831,7 @@ function setSky(theme,time){
  sunDir.setFromSphericalCoords(1,THREE.MathUtils.degToRad(90-tm.elev),THREE.MathUtils.degToRad(tm.az));
  const u=skyMat.uniforms;u.top.value.set(tm.top);u.mid.value.set(tm.mid);u.hor.value.set(tm.hor);u.sunCol.value.setRGB(...tm.sunc);u.sunD.value.copy(sunDir);
  if(theme==='links'&&time!=='golden'){u.top.value.lerp(new THREE.Color('#8fa4b8'),.4);u.mid.value.lerp(new THREE.Color('#c9d3dc'),.4)}
- sunL.color=col3(tm.sun);sunL.intensity=tm.int;hemi.color.set(tm.hs);hemi.groundColor.set(tm.hg);hemi.intensity=tm.hemi*2;renderer.toneMappingExposure=tm.exp;
+ sunL.color=col3(tm.sun);sunL.intensity=tm.int;hemi.color.set(tm.hs);hemi.groundColor.set(tm.hg);hemi.intensity=tm.hemi*2;renderer.toneMappingExposure=tm.exp*.84;
  scene.fog=new THREE.FogExp2(new THREE.Color(tm.fog),T.fog*.8*(S.weather==='rain'?2.4:1));
  const es=new THREE.Scene();const sm=new THREE.Mesh(new THREE.SphereGeometry(100,32,16),skyMat);es.add(sm);
  if(envRT)envRT.dispose();envRT=pmrem.fromScene(es,.04,.1,3000);scene.environment=envRT.texture;scene.environmentIntensity=.8;sm.geometry.dispose();
@@ -3378,7 +3402,7 @@ boot().catch(err=>{console.error(err);$('#ldText').textContent='Fehler beim Lade
  if(coarse){var T=function(q,h){var e=document.querySelector(q);if(e)e.innerHTML=h};
   T('#replayTag','▶ Replay · Tippen zum Beenden');T('#flyHint','Tippen: Überflug überspringen');
   T('#dialog .nx','Tippen – weiter');T('#cere .nx','Tippen – weiter');
-  T('#dragHint','<b>Schwung</b> Finger aufs Bild · <span>↓ ziehen = ausholen</span> · <span>↑ schieben = schlagen</span> · ↔ zielen')}
+  T('#dragHint','<b>Schwung</b> ↓ ziehen · ↑ schlagen · ↔ zielen')}
  document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('#bNew,#bCont,#bPlayNext,#bStart,#bResume'))full()},true);
  if('serviceWorker' in navigator&&location.protocol==='https:'&&document.querySelector('link[rel=manifest]'))
   addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})});
