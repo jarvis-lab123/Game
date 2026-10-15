@@ -614,13 +614,38 @@ html,body{overscroll-behavior:none;-webkit-touch-callout:none;-webkit-tap-highli
  #hub .hubw[data-tab="spieler"] .hubgrid{grid-template-columns:minmax(0,1fr) 240px!important}
  #hub .route{border-radius:0 16px 16px 0}#hub .press{grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
 }
+
+/* ---------- v31 Login & PGA-Stil ---------- */
+#login{background:radial-gradient(ellipse at 30% 40%,rgba(10,30,20,.35),rgba(3,8,6,.92) 70%);align-items:center;justify-content:center}
+.lgw{display:flex;flex-direction:column;align-items:center;gap:22px;width:min(560px,100%)}
+.lgbrand{display:flex;align-items:center;gap:12px;font:800 clamp(30px,6vw,52px)/1 var(--disp);letter-spacing:.06em;text-transform:uppercase;text-shadow:0 6px 30px rgba(0,0,0,.6)}
+.lgbrand .cross{width:34px;height:34px}.lgbrand .cross::before{width:18px;height:6px}.lgbrand .cross::after{width:6px;height:18px}
+.lgcard{display:flex;align-items:center;gap:22px;padding:22px 26px;border-radius:18px;width:100%;border-left:4px solid var(--gold);background:linear-gradient(100deg,rgba(6,14,10,.9),rgba(6,14,10,.65))}
+.lgav{width:84px;height:84px;flex:none;border-radius:50%;display:grid;place-items:center;font:800 34px var(--disp);background:var(--swiss);box-shadow:0 0 0 4px rgba(255,255,255,.18),0 10px 30px rgba(216,35,42,.35)}
+.lgf{display:flex;flex-direction:column;gap:10px;flex:1;min-width:0}
+.lgf input{font-size:18px;padding:12px 14px;border-radius:12px;width:100%}
+#bLogin{border-radius:999px!important;padding:14px 22px;font-size:17px;letter-spacing:.12em}
+.lgnote{font:500 12px var(--body);color:var(--muted)}
+@media (orientation:landscape) and (max-height:540px){
+ .lgw{gap:14px}.lgcard{padding:16px 20px}.lgav{width:64px;height:64px;font-size:26px}
+ #hub .hubw[data-tab="shop"]>.shop{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-content:start;padding:18px 22px;background:linear-gradient(100deg,rgba(6,14,10,.9),rgba(6,14,10,.62));border-left:4px solid var(--gold);border-radius:0 16px 16px 0}
+ #hub .shop>h3,#hub .shop>.money,#hub .shop>p{grid-column:1/-1;margin:0}
+ #hub .shop>h3{font-size:24px;letter-spacing:.08em}
+ #hub .shop>.money{justify-self:start;padding:6px 16px;border-radius:999px;background:rgba(220,179,92,.15);font-size:18px}
+ #hub .gear{border:1px solid rgba(255,255,255,.1);border-top:3px solid var(--gold);border-radius:12px;padding:12px 14px;background:rgba(255,255,255,.05);gap:10px}
+ #hub .gear b{font-size:15px}#hub .gear p{font-size:12px}#hub .gear .btn{border-radius:999px!important;white-space:nowrap}
+ #hub .hubgrid .side{border-left:4px solid var(--gold);border-radius:0 16px 16px 0;background:linear-gradient(100deg,rgba(6,14,10,.9),rgba(6,14,10,.62))}
+ #hub .route{background:linear-gradient(100deg,rgba(6,14,10,.9),rgba(6,14,10,.62));border-left:4px solid var(--gold)}
+ #hub .press .clip{transform:none!important;border-radius:10px}
+ #title .camps button.on{border-color:var(--gold)}
+}
 </style>
 
 <div id="rotate" role="alert"><svg viewBox="0 0 96 96" aria-hidden="true"><rect x="30" y="10" width="36" height="66" rx="7" fill="none" stroke="#dcb35c" stroke-width="4"/><circle cx="48" cy="68" r="3" fill="#dcb35c"/></svg><b>Handy drehen</b><span>Alpine Grand Slam spielst du im Querformat.</span></div>
 <div id="app">
  <canvas id="gl"></canvas>
  <div id="pressure" class="hud"></div>
- <div id="verTag" class="hud">Version 30</div>
+ <div id="verTag" class="hud">Version 31</div>
  <button id="bSnd" type="button" aria-label="Ton an"></button>
  <div id="replayTag" class="hud">▶ Replay · Klick zum Beenden</div>
 
@@ -811,6 +836,20 @@ html,body{overscroll-behavior:none;-webkit-touch-callout:none;-webkit-tap-highli
   </div>
  </div>
 
+ <div id="login" class="screen" hidden>
+  <div class="lgw">
+   <div class="lgbrand"><span class="cross" aria-hidden="true"></span><span>Alpine Grand Slam</span></div>
+   <div class="lgcard pnl">
+    <div class="lgav" id="lgAv">A</div>
+    <div class="lgf">
+     <div class="cap" id="lgHello">Willkommen zurück</div>
+     <input type="text" id="lgName" maxlength="22" autocomplete="nickname" placeholder="Dein Spielername">
+     <button class="btn primary" id="bLogin" type="button">Anmelden</button>
+     <div class="lgnote">Dein Profil und alle Spielstände bleiben auf diesem Gerät.</div>
+    </div>
+   </div>
+  </div>
+ </div>
  <div id="loading" class="screen"><div class="t">Alpine Grand Slam</div><div class="s" id="ldText">Platz wird gemäht …</div><div class="bar"><i></i></div></div>
 </div>
 
@@ -1791,7 +1830,7 @@ function pendingDecide(){if(!save||!save.pending)return null;const e=EVENTS.find
    ========================================================= */
 const QUAL={
  low:{dpr:1.5,shadow:1024,grass:0,grassR:0,trees:1300,bloom:false,msaa:0,cell:3,tex:1400},
- mobile:{dpr:2,shadow:2048,grass:9000,grassR:20,trees:1700,bloom:true,msaa:2,cell:2.2,tex:2048},
+ mobile:{dpr:1.7,shadow:1536,grass:4500,grassR:16,trees:1300,bloom:false,msaa:0,cell:2.6,tex:1800},
  high:{dpr:1.25,shadow:2048,grass:24000,grassR:28,trees:2000,bloom:true,msaa:4,cell:2,tex:2048},
  ultra:{dpr:2,shadow:4096,grass:70000,grassR:38,trees:4300,bloom:true,msaa:4,cell:1.6,tex:2048,ao:true}
 };
@@ -1832,6 +1871,7 @@ const FinalShader={uniforms:{tDiffuse:{value:null},uTime:{value:0},uWarm:{value:
  fragmentShader:'uniform sampler2D tDiffuse;uniform float uTime,uWarm,uFlare,uAspect;uniform vec2 uSun,uRes;varying vec2 vUv;void main(){float b=smoothstep(.68,1.,vUv.y)*2.2+smoothstep(.15,0.,vUv.y)*1.;vec2 px=b/uRes;vec3 c=texture2D(tDiffuse,vUv).rgb*.28;c+=texture2D(tDiffuse,vUv+vec2(px.x,px.y*.5)).rgb*.18;c+=texture2D(tDiffuse,vUv-vec2(px.x,px.y*.5)).rgb*.18;c+=texture2D(tDiffuse,vUv+vec2(-px.x*.5,px.y)).rgb*.18;c+=texture2D(tDiffuse,vUv-vec2(-px.x*.5,px.y)).rgb*.18;float l=dot(c,vec3(.299,.587,.114));c=mix(vec3(l),c,1.04);c=mix(c,c*vec3(1.05,1.02,.94),uWarm*.4);c=mix(c,c*c*(3.-2.*c),.1);c=pow(max(c,0.),vec3(.95));if(uFlare>.001){float vis=smoothstep(.8,.97,dot(texture2D(tDiffuse,clamp(uSun,0.,1.)).rgb,vec3(.333)))*uFlare;if(vis>.001){vec2 ax=vec2(.5)-uSun;for(int k=0;k<5;k++){float g=float(k)*.42+.28;vec2 gp=uSun+ax*g*2.;float rr=length((vUv-gp)*vec2(uAspect,1.));float sz=.018+float(k)*.017;c+=vec3(1.,.78+.05*float(k),.5+.1*float(k))*smoothstep(sz,sz*.25,rr)*.05*vis;}float hr=length((vUv-uSun)*vec2(uAspect,1.));c+=vec3(1.,.9,.7)*exp(-hr*8.)*.2*vis;}}gl_FragColor=vec4(clamp(c,0.,1.),1.);}'};
 let composer,gradePass,bloomPass,raysPass=null,finalPass=null;
 function buildComposer(){
+ {const st=(QS===QUAL.mobile||QS===QUAL.low)?THREE.PCFShadowMap:THREE.PCFSoftShadowMap;if(renderer.shadowMap.type!==st){renderer.shadowMap.type=st;renderer.shadowMap.needsUpdate=true}}
  const dpr=Math.min(devicePixelRatio||1,QS.dpr);
  renderer.setPixelRatio(dpr);renderer.setSize(innerWidth,innerHeight,false);
  if(composer){composer.renderTarget1.dispose();composer.renderTarget2.dispose()}
@@ -2752,7 +2792,7 @@ function computePressure(){if(S.ct){S.pressure=0;return}if(S.sk){S.pressure=S.ho
 /* =========================================================
    UI helpers
    ========================================================= */
-const screens=['title','hub','dialog','intro','results','scorecard','pause','loading','help','interview','news','chap','cere','choice'];
+const screens=['login','title','hub','dialog','intro','results','scorecard','pause','loading','help','interview','news','chap','cere','choice'];
 function hideAll(){for(const s of screens)$('#'+s).hidden=true}
 function toast(html,ms=2600){const t=$('#toast');t.innerHTML=html;t.style.opacity=1;clearTimeout(t._t);t._t=setTimeout(()=>t.style.opacity=0,ms)}
 function callout(big,small=''){const c=$('#callout');c.classList.remove('go');void c.offsetWidth;c.innerHTML=`${esc(big)}${small?`<small>${esc(small)}</small>`:''}`;c.classList.add('go')}
@@ -3396,13 +3436,16 @@ let last=performance.now();
 let fpsAcc=0,fpsN=0,dynScale=1;
 function applyDyn(){const d=Math.min(devicePixelRatio||1,QS.dpr)*dynScale;renderer.setPixelRatio(d);composer.setPixelRatio(d);composer.setSize(innerWidth,innerHeight)}
 function loop(now){requestAnimationFrame(loop);const dt=Math.min(.05,(now-last)/1000);last=now;
- if(dt>0&&dt<.2){fpsAcc+=dt;fpsN++;if(fpsAcc>2){const fps=fpsN/fpsAcc;fpsAcc=0;fpsN=0;if(fps<42&&dynScale>(QS===QUAL.mobile?.75:.55)){dynScale=Math.max(QS===QUAL.mobile?.75:.55,dynScale-.12);applyDyn()}else if(fps>57&&dynScale<1){dynScale=Math.min(1,dynScale+.06);applyDyn()}}}if(S.state!=='paused'&&S.state!=='card')update(dt);else{camera.position.copy(S.camPos);camera.lookAt(S.camLook)}composer.render();if(S.snapReq){S.snapReq=false;try{S.snap=renderer.domElement.toDataURL('image/jpeg',.82)}catch(e){S.snap=null}}}
+ if(dt>0&&dt<.2){fpsAcc+=dt;fpsN++;if(fpsAcc>2){const fps=fpsN/fpsAcc;fpsAcc=0;fpsN=0;if(fps<45&&dynScale>(QS===QUAL.mobile?.7:.55)){dynScale=Math.max(QS===QUAL.mobile?.7:.55,dynScale-.1);applyDyn()}else if(fps>57&&dynScale<1){dynScale=Math.min(1,dynScale+.06);applyDyn()}}}if(S.state!=='paused'&&S.state!=='card')update(dt);else{camera.position.copy(S.camPos);camera.lookAt(S.camLook)}composer.render();if(S.snapReq){S.snapReq=false;try{S.snap=renderer.domElement.toDataURL('image/jpeg',.82)}catch(e){S.snap=null}}}
 
 /* =========================================================
    Boot
    ========================================================= */
+function showLogin(){hideAll();const el=$('#login');el.hidden=false;$('#hud').hidden=true;S.state='menu';const P=loadJSON('ags-profile');const nm=$('#lgName');nm.value=(P&&P.name)||(save&&save.name)||'';
+ const upd=()=>{const n=nm.value.trim();$('#lgAv').textContent=n?initials(n):'?';$('#bLogin').textContent=P&&n===P.name?'Weiter als '+n:n?'Anmelden als '+n:'Anmelden'};nm.oninput=upd;upd();$('#lgHello').textContent=P?'Willkommen zurück':'Spielerprofil erstellen';
+ $('#bLogin').onclick=()=>{AU.init();const n=nm.value.trim().slice(0,22)||'Spieler';saveJSON('ags-profile',{name:n,since:(P&&P.since)||Date.now()});$('#inName').value=n;el.hidden=true;showTitle()}}
 function showTitle(){hideAll();$('#title').hidden=false;$('#hud').hidden=true;S.state='menu';
- $('#bCont').hidden=!save;if(save){const nx=EVENTS[curIdx()];$('#contMeta').textContent=`${save.name} · Als Nächstes: ${nx.name}`}$('#selQ').value=settings.quality;$('#selH').value=String(settings.holes);$('#selS').value=settings.sound?'1':'0';$('#selU').value=settings.units;$('#selV').value=settings.voice?'1':'0';$('#selSw').value=settings.swing||'drag';if(save)$('#inName').value=save.name}
+ $('#bCont').hidden=!save;if(save){const nx=EVENTS[curIdx()];$('#contMeta').textContent=`${save.name} · Als Nächstes: ${nx.name}`}$('#selQ').value=settings.quality;$('#selH').value=String(settings.holes);$('#selS').value=settings.sound?'1':'0';$('#selU').value=settings.units;$('#selV').value=settings.voice?'1':'0';$('#selSw').value=settings.swing||'drag';if(save)$('#inName').value=save.name;else{const P=loadJSON('ags-profile');if(P&&P.name)$('#inName').value=P.name}}
 $('#selU').onchange=e=>{settings.units=e.target.value;writeSettings()};$('#selV').onchange=e=>{settings.voice=e.target.value==='1';writeSettings()};
 $('#selQ').onchange=e=>applyQuality(e.target.value);$('#selH').onchange=e=>{settings.holes=+e.target.value;writeSettings()};$('#selS').onchange=e=>{settings.sound=e.target.value==='1';writeSettings();AU.on(settings.sound);sndIcon()};
 $('#bNew').onclick=()=>{AU.init();const nm=($('#inName').value||'').trim().slice(0,22)||'Arthur';save={v:1,name:nm,prog:0,cur:CAMPS[CAMP].first,rel:{family:55,caddie:50,fans:40,tour:50},path:[],news:[],persona:{h:0,b:0,f:0},fans:0,flags:{},res:{},majors:{},extra:0};writeSave();playEvent(0)};
@@ -3415,7 +3458,7 @@ async function boot(){if(!settings.c23){settings.camp=3;settings.c23=true}if(!se
  const ev=save?EVENTS[curIdx()]:(EVENTS.find(e=>e.key==='crans')||EVENTS[0]);S.ev=ev;S.evIdx=EVENTS.indexOf(ev);S.course=COURSES[ev.course];S.time=ev.time;
  setSky(S.course.theme,ev.time);S.windKmh=6;S.wind.set(.8,0,1.2);await buildHole(save?17:6);golfer.g.visible=false;ballMesh.visible=false;aimRing.visible=false;puttLine.visible=false;
  const G=S.hole.green;S.camPos.set(G.x+80,S.hole.H(G.x,G.z)+40,G.z+80);S.camLook.set(G.x,S.hole.H(G.x,G.z),G.z);
- S.state='menu';requestAnimationFrame(loop);showTitle()}
+ S.state='menu';requestAnimationFrame(loop);showLogin()}
 boot().catch(err=>{console.error(err);$('#ldText').textContent='Fehler beim Laden: '+err.message});
 </script>
 
