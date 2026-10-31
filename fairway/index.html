@@ -316,6 +316,38 @@ table.sc + table.sc{margin-top:-6px}
 .sclegend{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;font-size:11.5px;font-weight:700;color:var(--soft);margin:2px 0 14px}
 .sclegend>span{display:inline-flex;align-items:center;gap:5px}.sclegend .ss{width:17px;height:17px;font-size:9.5px;border-width:1.5px}
 .sclegend .ss.eagle,.sclegend .ss.dbl{box-shadow:0 0 0 1.5px #17251d,0 0 0 3px currentColor}
+
+/* ---------- Scorekarte (Papier-Look) ---------- */
+.paper{background:#f7f4ec;color:#1d2a22;border-radius:18px;overflow:hidden;margin:4px 0 16px;box-shadow:0 10px 28px rgba(0,0,0,.35),0 0 0 1px rgba(255,255,255,.06);text-align:center}
+.ph{display:flex;align-items:baseline;justify-content:space-between;gap:10px;background:linear-gradient(135deg,#2a7148,#1d4f33);color:#fff;padding:11px 14px}
+.ph b{font-size:13px;font-weight:900;letter-spacing:1.2px;text-transform:uppercase}
+.ph span{font-size:11.5px;font-weight:700;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pbody{padding:8px 8px 4px}
+.pn{display:grid;grid-template-columns:30px repeat(9,1fr) 34px;align-items:center}
+.pn+.pn{margin-top:8px;padding-top:8px;border-top:1.5px dashed #ddd6c3}
+.pn i{font-style:normal;display:grid;place-items:center}
+.pn .rh{height:22px;font-size:11px;font-weight:900;color:#6c7a70;background:#ebe6d8}
+.pn .rh:nth-child(2){border-radius:8px 0 0 8px}.pn .rh.tt{border-radius:0 8px 8px 0;background:#1f5a39;color:#fff;font-size:10px;letter-spacing:.5px}
+.pn .lb{font-size:9.5px;font-weight:800;color:#9aa49c;text-transform:uppercase;letter-spacing:.3px;background:none!important;justify-items:start;padding-left:2px}
+.pn .rp{height:20px;font-size:11.5px;font-weight:700;color:#8d978f}.pn .rp.tt{color:#1f5a39;font-weight:900}
+.pn .rs{height:34px}.pn .rs.tt b{font-size:17px;font-weight:900;color:#1f5a39}
+.sy{display:inline-grid;place-items:center;width:25px;height:25px;font-size:14px;font-weight:900;line-height:1;color:#1d2a22}
+.sy.no{color:#c9c2b0}
+.sy.birdie{background:#2f9a5c;color:#fff;border-radius:50%}
+.sy.eagle,.sy.ace{background:#2d74c9;color:#fff;border-radius:50%;box-shadow:0 0 0 2px #f7f4ec,0 0 0 3.5px #2d74c9}
+.sy.ace{background:#e0a91f;box-shadow:0 0 0 2px #f7f4ec,0 0 0 3.5px #e0a91f}
+.sy.bogey{border:1.8px solid #c48a4b;color:#8a5a26;border-radius:5px}
+.sy.dbl{background:#c9553a;color:#fff;border-radius:5px}
+.pf{display:grid;grid-template-columns:1fr 1fr 1.4fr;gap:8px;padding:6px 10px 12px}
+.pf.two{grid-template-columns:1fr 1.4fr}
+.pf>div{background:#ebe6d8;border-radius:12px;padding:7px 4px 6px}
+.pf small{display:block;font-size:10px;font-weight:900;color:#7c887f;text-transform:uppercase;letter-spacing:.8px}
+.pf b{font-size:22px;font-weight:900;line-height:1.1}
+.pf .all{background:#1f5a39;color:#fff;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+.pf .all small{width:100%;color:rgba(255,255,255,.7)}.pf .all b{font-size:26px}.pf .all em{font-style:normal;font-weight:900;font-size:15px;color:#9be07a}
+.pl{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;padding:0 8px 12px;font-size:10.5px;font-weight:800;color:#7c887f}
+.pl>span{display:inline-flex;align-items:center;gap:4px}.pl .sy{width:16px;height:16px;font-size:9px}
+.pl .sy.eagle{box-shadow:0 0 0 1.5px #f7f4ec,0 0 0 2.5px #2d74c9}.pl .sy.bogey{border-width:1.3px}
 #rot{position:fixed;inset:0;background:var(--bg);display:none;place-items:center;text-align:center;font-weight:800;font-size:18px;padding:30px;z-index:9}
 @media (orientation:landscape) and (max-height:500px){#rot{display:grid}}
 </style>

@@ -1295,29 +1295,31 @@ function scoreName(s, par) { if (s === 1) return 'Hole-in-One!'; const d = s - p
 function sqClass(s, par) { const d = s - par; return d <= -2 ? 's-e' : d === -1 ? 's-b' : d === 0 ? 's-p' : d === 1 ? 's-o' : 's-d'; }
 function scoreSym(s, par) {
   const d = s - par, cls = s === 1 ? 'ace' : d <= -2 ? 'eagle' : d === -1 ? 'birdie' : d === 0 ? 'par' : d === 1 ? 'bogey' : 'dbl';
-  return `<span class="ss ${cls}">${s}</span>`;
+  return `<span class="sy ${cls}">${s}</span>`;
 }
-function nineHtml(a, b, lab) {
+function paperNine(a, b, lab) {
   const hs = round.holes.slice(a, b), sc = round.scores.slice(a, b), pt = hs.reduce((x, h) => x + h.par, 0), done = sc.filter(x => x != null);
-  const cols = hs.length + 1;
-  return `<div class="nine" style="grid-template-columns:repeat(${cols},1fr)">
-    ${hs.map((_, i) => `<i class="hn">${a + i + 1}</i>`).join('')}<i class="hn t">${lab}</i>
-    ${hs.map(h => `<i class="hp">${h.par}</i>`).join('')}<i class="hp t">${pt}</i>
-    ${hs.map((h, i) => sc[i] == null ? '<i class="hv">·</i>' : `<i class="hv">${scoreSym(sc[i], h.par)}</i>`).join('')}<i class="hv t"><b>${done.length ? done.reduce((x, y) => x + y, 0) : '–'}</b></i>
+  return `<div class="pn">
+    <i class="lb rh">Loch</i>${hs.map((_, i) => `<i class="rh">${a + i + 1}</i>`).join('')}<i class="rh tt">${lab}</i>
+    <i class="lb rp">Par</i>${hs.map(h => `<i class="rp">${h.par}</i>`).join('')}<i class="rp tt">${pt}</i>
+    <i class="lb rs">Du</i>${hs.map((h, i) => `<i class="rs">${sc[i] == null ? '<span class="sy no">·</span>' : scoreSym(sc[i], h.par)}</i>`).join('')}<i class="rs tt"><b>${done.length ? done.reduce((x, y) => x + y, 0) : '–'}</b></i>
   </div>`;
 }
-const SC_LEGEND = '<div class="sclegend"><span><span class="ss eagle">3</span>Eagle</span><span><span class="ss birdie">3</span>Birdie</span><span><span class="ss bogey">5</span>Bogey</span><span><span class="ss dbl">6</span>Doppel+</span></div>';
+const SC_LEGEND = '';
 function cardHtml() {
-  if (round.mode !== 'match' || round.holes.length <= 9) {
-    const n = round.holes.length;
-    return `<div class="scard">${n > 9 ? nineHtml(0, 9, 'OUT') + nineHtml(9, n, 'IN') : nineHtml(0, n, 'Σ')}</div>`;
-  }
-  if (round.holes.length > 9 && round.mode !== 'match') return cardPart(0, 9, 'Out') + cardPart(9, 18, 'In');
-  const hs = round.holes;
-  const cell = (i) => { const s = round.scores[i]; return s == null ? '<td>·</td>' : `<td><span class="sq ${sqClass(s, hs[i].par)}">${s}</span></td>`; };
-  return `<table class="sc"><tr><td>Loch</td>${hs.map((_, i) => `<td>${i + 1}</td>`).join('')}</tr>
-    <tr><td>Par</td>${hs.map(h => `<td>${h.par}</td>`).join('')}</tr>
-    <tr><td>Du</td>${hs.map((_, i) => cell(i)).join('')}</tr></table>`;
+  const n = round.holes.length, sc = round.scores, played = sc.filter(x => x != null).length;
+  const sum = (x, y) => sc.slice(x, y).reduce((t, v) => t + (v || 0), 0), par = (x, y) => round.holes.slice(x, y).reduce((t, h) => t + h.par, 0);
+  const tot = sum(0, n), toPar = sc.reduce((t, v, i) => t + (v == null ? 0 : v - round.holes[i].par), 0);
+  const date = new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  const nines = n > 9 ? paperNine(0, 9, 'OUT') + paperNine(9, n, 'IN') : paperNine(0, n, 'Σ');
+  const foot = n > 9
+    ? `<div class="pf"><div><small>Out</small><b>${sum(0, 9) || '–'}</b></div><div><small>In</small><b>${sum(9, n) || '–'}</b></div><div class="all"><small>Gesamt</small><b>${played ? tot : '–'}</b><em>${played ? fmtD(toPar) : ''}</em></div></div>`
+    : `<div class="pf two"><div><small>Par</small><b>${par(0, n)}</b></div><div class="all"><small>Gesamt</small><b>${played ? tot : '–'}</b><em>${played ? fmtD(toPar) : ''}</em></div></div>`;
+  return `<div class="paper">
+    <div class="ph"><b>Scorekarte</b><span>${round.label} · ${date}</span></div>
+    <div class="pbody">${nines}</div>${foot}
+    <div class="pl"><span><span class="sy eagle">2</span>Eagle</span><span><span class="sy birdie">3</span>Birdie</span><span><span class="sy par">4</span>Par</span><span><span class="sy bogey">5</span>Bogey</span><span><span class="sy dbl">6</span>Doppel+</span></div>
+  </div>`;
 }
 function cardPart(a, b, lab) {
   const hs = round.holes.slice(a, b), sc = round.scores.slice(a, b), done = sc.filter(x => x != null).length;
@@ -1358,7 +1360,7 @@ function finishRound() {
       <div class="fin-tx"><b>${head}</b><span>${fmtD(d)} · ${tot} Schläge · Par ${par}</span>${extra ? `<em>${extra}</em>` : ''}</div></div></div>
     ${roundStatsHtml(rinfo)}
     ${round.field ? `<div class="fsec">Leaderboard</div>${boardHtml(round.holes.length, false)}` : ''}
-    <div class="fsec">Scorekarte</div>${cardHtml()}${SC_LEGEND}
+    ${cardHtml()}
     <div class="chips"><span class="chip" data-count="${cash}" data-pre="+" data-suf=" $"></span><span class="chip xp" data-count="${xp}" data-pre="+" data-suf=" XP"></span>${ups ? `<span class="chip lv">Level ${save.lvl}! +${ups} Skillpunkt${ups > 1 ? 'e' : ''}</span>` : ''}</div>
     <div class="btns">${btns}</div>`);
 }
@@ -1684,7 +1686,7 @@ function renderHome() {
     <button class="card wide" data-go="stats"><span>📊</span><div><b>Statistiken & Handicap</b><small>HCP ${fmtH(hcpIndex())} · Fairways ${pct(save.st.fir, save.st.firN)} · GIR ${pct(save.st.gir, save.st.girN)} · ${avg(save.st.putts, save.st.holes / 9)} Putts</small></div><em>›</em></button>
     <div class="card stat"><div><b>${save.rounds}</b><span>Runden</span></div><div><b>${save.birdies}</b><span>Birdies</span></div><div><b>${money(save.earnings)}</b><span>Preisgeld</span></div></div>
     <p class="help">Ziel antippen · Schläger, Draw/Fade, Spin wählen · „Schlagen“<br>1. Tipp stoppt die pendelnde Linie · 2. Tipp stoppt die Kraft<br>Auf dem Grün: goldener Ring = 1 Putt, weisser Ring = 2, sonst 3</p>
-    <p class="ver">Fairway · Version 1.3</p>
+    <p class="ver">Fairway · Version 1.4</p>
   </div>`;
 }
 function renderCareer() {

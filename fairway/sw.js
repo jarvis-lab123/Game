@@ -1,5 +1,5 @@
 // Offline-Cache für Fairway
-const CACHE = 'fairway-v9';
+const CACHE = 'fairway-v10';
 const FILES = ['./', 'index.html', 'game.js', 'manifest.webmanifest', 'fonts/fonts.css', 'fonts/outfit.woff2',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/maskable-512.png', 'icons/apple-touch-icon.png', 'icons/favicon-64.png', 'icons/icon-1024.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES))); self.skipWaiting(); });

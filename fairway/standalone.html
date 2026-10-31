@@ -304,6 +304,38 @@ table.sc + table.sc{margin-top:-6px}
 .sclegend{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;font-size:11.5px;font-weight:700;color:var(--soft);margin:2px 0 14px}
 .sclegend>span{display:inline-flex;align-items:center;gap:5px}.sclegend .ss{width:17px;height:17px;font-size:9.5px;border-width:1.5px}
 .sclegend .ss.eagle,.sclegend .ss.dbl{box-shadow:0 0 0 1.5px #17251d,0 0 0 3px currentColor}
+
+/* ---------- Scorekarte (Papier-Look) ---------- */
+.paper{background:#f7f4ec;color:#1d2a22;border-radius:18px;overflow:hidden;margin:4px 0 16px;box-shadow:0 10px 28px rgba(0,0,0,.35),0 0 0 1px rgba(255,255,255,.06);text-align:center}
+.ph{display:flex;align-items:baseline;justify-content:space-between;gap:10px;background:linear-gradient(135deg,#2a7148,#1d4f33);color:#fff;padding:11px 14px}
+.ph b{font-size:13px;font-weight:900;letter-spacing:1.2px;text-transform:uppercase}
+.ph span{font-size:11.5px;font-weight:700;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pbody{padding:8px 8px 4px}
+.pn{display:grid;grid-template-columns:30px repeat(9,1fr) 34px;align-items:center}
+.pn+.pn{margin-top:8px;padding-top:8px;border-top:1.5px dashed #ddd6c3}
+.pn i{font-style:normal;display:grid;place-items:center}
+.pn .rh{height:22px;font-size:11px;font-weight:900;color:#6c7a70;background:#ebe6d8}
+.pn .rh:nth-child(2){border-radius:8px 0 0 8px}.pn .rh.tt{border-radius:0 8px 8px 0;background:#1f5a39;color:#fff;font-size:10px;letter-spacing:.5px}
+.pn .lb{font-size:9.5px;font-weight:800;color:#9aa49c;text-transform:uppercase;letter-spacing:.3px;background:none!important;justify-items:start;padding-left:2px}
+.pn .rp{height:20px;font-size:11.5px;font-weight:700;color:#8d978f}.pn .rp.tt{color:#1f5a39;font-weight:900}
+.pn .rs{height:34px}.pn .rs.tt b{font-size:17px;font-weight:900;color:#1f5a39}
+.sy{display:inline-grid;place-items:center;width:25px;height:25px;font-size:14px;font-weight:900;line-height:1;color:#1d2a22}
+.sy.no{color:#c9c2b0}
+.sy.birdie{background:#2f9a5c;color:#fff;border-radius:50%}
+.sy.eagle,.sy.ace{background:#2d74c9;color:#fff;border-radius:50%;box-shadow:0 0 0 2px #f7f4ec,0 0 0 3.5px #2d74c9}
+.sy.ace{background:#e0a91f;box-shadow:0 0 0 2px #f7f4ec,0 0 0 3.5px #e0a91f}
+.sy.bogey{border:1.8px solid #c48a4b;color:#8a5a26;border-radius:5px}
+.sy.dbl{background:#c9553a;color:#fff;border-radius:5px}
+.pf{display:grid;grid-template-columns:1fr 1fr 1.4fr;gap:8px;padding:6px 10px 12px}
+.pf.two{grid-template-columns:1fr 1.4fr}
+.pf>div{background:#ebe6d8;border-radius:12px;padding:7px 4px 6px}
+.pf small{display:block;font-size:10px;font-weight:900;color:#7c887f;text-transform:uppercase;letter-spacing:.8px}
+.pf b{font-size:22px;font-weight:900;line-height:1.1}
+.pf .all{background:#1f5a39;color:#fff;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+.pf .all small{width:100%;color:rgba(255,255,255,.7)}.pf .all b{font-size:26px}.pf .all em{font-style:normal;font-weight:900;font-size:15px;color:#9be07a}
+.pl{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;padding:0 8px 12px;font-size:10.5px;font-weight:800;color:#7c887f}
+.pl>span{display:inline-flex;align-items:center;gap:4px}.pl .sy{width:16px;height:16px;font-size:9px}
+.pl .sy.eagle{box-shadow:0 0 0 1.5px #f7f4ec,0 0 0 2.5px #2d74c9}.pl .sy.bogey{border-width:1.3px}
 #rot{position:fixed;inset:0;background:var(--bg);display:none;place-items:center;text-align:center;font-weight:800;font-size:18px;padding:30px;z-index:9}
 @media (orientation:landscape) and (max-height:500px){#rot{display:grid}}
 </style>
@@ -1650,29 +1682,31 @@ function scoreName(s, par) { if (s === 1) return 'Hole-in-One!'; const d = s - p
 function sqClass(s, par) { const d = s - par; return d <= -2 ? 's-e' : d === -1 ? 's-b' : d === 0 ? 's-p' : d === 1 ? 's-o' : 's-d'; }
 function scoreSym(s, par) {
   const d = s - par, cls = s === 1 ? 'ace' : d <= -2 ? 'eagle' : d === -1 ? 'birdie' : d === 0 ? 'par' : d === 1 ? 'bogey' : 'dbl';
-  return `<span class="ss ${cls}">${s}</span>`;
+  return `<span class="sy ${cls}">${s}</span>`;
 }
-function nineHtml(a, b, lab) {
+function paperNine(a, b, lab) {
   const hs = round.holes.slice(a, b), sc = round.scores.slice(a, b), pt = hs.reduce((x, h) => x + h.par, 0), done = sc.filter(x => x != null);
-  const cols = hs.length + 1;
-  return `<div class="nine" style="grid-template-columns:repeat(${cols},1fr)">
-    ${hs.map((_, i) => `<i class="hn">${a + i + 1}</i>`).join('')}<i class="hn t">${lab}</i>
-    ${hs.map(h => `<i class="hp">${h.par}</i>`).join('')}<i class="hp t">${pt}</i>
-    ${hs.map((h, i) => sc[i] == null ? '<i class="hv">·</i>' : `<i class="hv">${scoreSym(sc[i], h.par)}</i>`).join('')}<i class="hv t"><b>${done.length ? done.reduce((x, y) => x + y, 0) : '–'}</b></i>
+  return `<div class="pn">
+    <i class="lb rh">Loch</i>${hs.map((_, i) => `<i class="rh">${a + i + 1}</i>`).join('')}<i class="rh tt">${lab}</i>
+    <i class="lb rp">Par</i>${hs.map(h => `<i class="rp">${h.par}</i>`).join('')}<i class="rp tt">${pt}</i>
+    <i class="lb rs">Du</i>${hs.map((h, i) => `<i class="rs">${sc[i] == null ? '<span class="sy no">·</span>' : scoreSym(sc[i], h.par)}</i>`).join('')}<i class="rs tt"><b>${done.length ? done.reduce((x, y) => x + y, 0) : '–'}</b></i>
   </div>`;
 }
-const SC_LEGEND = '<div class="sclegend"><span><span class="ss eagle">3</span>Eagle</span><span><span class="ss birdie">3</span>Birdie</span><span><span class="ss bogey">5</span>Bogey</span><span><span class="ss dbl">6</span>Doppel+</span></div>';
+const SC_LEGEND = '';
 function cardHtml() {
-  if (round.mode !== 'match' || round.holes.length <= 9) {
-    const n = round.holes.length;
-    return `<div class="scard">${n > 9 ? nineHtml(0, 9, 'OUT') + nineHtml(9, n, 'IN') : nineHtml(0, n, 'Σ')}</div>`;
-  }
-  if (round.holes.length > 9 && round.mode !== 'match') return cardPart(0, 9, 'Out') + cardPart(9, 18, 'In');
-  const hs = round.holes;
-  const cell = (i) => { const s = round.scores[i]; return s == null ? '<td>·</td>' : `<td><span class="sq ${sqClass(s, hs[i].par)}">${s}</span></td>`; };
-  return `<table class="sc"><tr><td>Loch</td>${hs.map((_, i) => `<td>${i + 1}</td>`).join('')}</tr>
-    <tr><td>Par</td>${hs.map(h => `<td>${h.par}</td>`).join('')}</tr>
-    <tr><td>Du</td>${hs.map((_, i) => cell(i)).join('')}</tr></table>`;
+  const n = round.holes.length, sc = round.scores, played = sc.filter(x => x != null).length;
+  const sum = (x, y) => sc.slice(x, y).reduce((t, v) => t + (v || 0), 0), par = (x, y) => round.holes.slice(x, y).reduce((t, h) => t + h.par, 0);
+  const tot = sum(0, n), toPar = sc.reduce((t, v, i) => t + (v == null ? 0 : v - round.holes[i].par), 0);
+  const date = new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  const nines = n > 9 ? paperNine(0, 9, 'OUT') + paperNine(9, n, 'IN') : paperNine(0, n, 'Σ');
+  const foot = n > 9
+    ? `<div class="pf"><div><small>Out</small><b>${sum(0, 9) || '–'}</b></div><div><small>In</small><b>${sum(9, n) || '–'}</b></div><div class="all"><small>Gesamt</small><b>${played ? tot : '–'}</b><em>${played ? fmtD(toPar) : ''}</em></div></div>`
+    : `<div class="pf two"><div><small>Par</small><b>${par(0, n)}</b></div><div class="all"><small>Gesamt</small><b>${played ? tot : '–'}</b><em>${played ? fmtD(toPar) : ''}</em></div></div>`;
+  return `<div class="paper">
+    <div class="ph"><b>Scorekarte</b><span>${round.label} · ${date}</span></div>
+    <div class="pbody">${nines}</div>${foot}
+    <div class="pl"><span><span class="sy eagle">2</span>Eagle</span><span><span class="sy birdie">3</span>Birdie</span><span><span class="sy par">4</span>Par</span><span><span class="sy bogey">5</span>Bogey</span><span><span class="sy dbl">6</span>Doppel+</span></div>
+  </div>`;
 }
 function cardPart(a, b, lab) {
   const hs = round.holes.slice(a, b), sc = round.scores.slice(a, b), done = sc.filter(x => x != null).length;
@@ -1713,7 +1747,7 @@ function finishRound() {
       <div class="fin-tx"><b>${head}</b><span>${fmtD(d)} · ${tot} Schläge · Par ${par}</span>${extra ? `<em>${extra}</em>` : ''}</div></div></div>
     ${roundStatsHtml(rinfo)}
     ${round.field ? `<div class="fsec">Leaderboard</div>${boardHtml(round.holes.length, false)}` : ''}
-    <div class="fsec">Scorekarte</div>${cardHtml()}${SC_LEGEND}
+    ${cardHtml()}
     <div class="chips"><span class="chip" data-count="${cash}" data-pre="+" data-suf=" $"></span><span class="chip xp" data-count="${xp}" data-pre="+" data-suf=" XP"></span>${ups ? `<span class="chip lv">Level ${save.lvl}! +${ups} Skillpunkt${ups > 1 ? 'e' : ''}</span>` : ''}</div>
     <div class="btns">${btns}</div>`);
 }
@@ -2039,7 +2073,7 @@ function renderHome() {
     <button class="card wide" data-go="stats"><span>📊</span><div><b>Statistiken & Handicap</b><small>HCP ${fmtH(hcpIndex())} · Fairways ${pct(save.st.fir, save.st.firN)} · GIR ${pct(save.st.gir, save.st.girN)} · ${avg(save.st.putts, save.st.holes / 9)} Putts</small></div><em>›</em></button>
     <div class="card stat"><div><b>${save.rounds}</b><span>Runden</span></div><div><b>${save.birdies}</b><span>Birdies</span></div><div><b>${money(save.earnings)}</b><span>Preisgeld</span></div></div>
     <p class="help">Ziel antippen · Schläger, Draw/Fade, Spin wählen · „Schlagen“<br>1. Tipp stoppt die pendelnde Linie · 2. Tipp stoppt die Kraft<br>Auf dem Grün: goldener Ring = 1 Putt, weisser Ring = 2, sonst 3</p>
-    <p class="ver">Fairway · Version 1.3</p>
+    <p class="ver">Fairway · Version 1.4</p>
   </div>`;
 }
 function renderCareer() {
