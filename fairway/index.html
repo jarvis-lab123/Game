@@ -266,6 +266,26 @@ button:active{transform:scale(.96)}
 @keyframes scrIn{from{opacity:0}}
 #toast{transition:opacity .25s ease,transform .3s cubic-bezier(.2,.9,.3,1)!important}
 #hud,#panel{transition:opacity .25s ease}
+
+/* ---------- Plätze & Themen ---------- */
+.hero.th-links,.resume.th-links{background:linear-gradient(135deg,#2f6f7d 0%,#1d4650 100%)}
+.hero.th-desert,.resume.th-desert{background:linear-gradient(135deg,#a8662f 0%,#6e3e1c 100%)}
+.hero.th-alpine,.resume.th-alpine{background:linear-gradient(135deg,#35607e 0%,#1f3a50 100%)}
+.hero.th-tropic,.resume.th-tropic{background:linear-gradient(135deg,#1f8f86 0%,#145a55 100%)}
+.hero.th-autumn,.resume.th-autumn{background:linear-gradient(135deg,#a8552a 0%,#6a3418 100%)}
+.resume{border:0;position:relative;overflow:hidden;background:linear-gradient(135deg,#2f7d4f,#1f5a39)}
+.resume .k,.hero .k{opacity:.8;font-weight:800;font-size:12px;letter-spacing:.8px;text-transform:uppercase}
+.resume .t{font-size:22px;font-weight:900;margin:4px 0}.resume .s{font-weight:700;opacity:.9;margin-bottom:12px;font-size:13.5px}
+.resume .row .btn.g{background:rgba(255,255,255,.14);color:#fff}
+.course{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:14px 16px;margin-bottom:8px;position:relative;overflow:hidden}
+.course:before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:#4fb576}
+.course.th-links:before{background:#4aa3c4}.course.th-desert:before{background:#e09a4a}.course.th-alpine:before{background:#7fb0d8}.course.th-tropic:before{background:#3fd0c0}.course.th-autumn:before{background:#e0782e}
+.course .cc{flex:1;min-width:0}.course b{display:block;font-size:15.5px}.course small{display:block;color:var(--soft);font-size:12px;font-weight:700;margin-top:2px}
+.stars{color:#f2c14e;font-size:12px;letter-spacing:-1px;white-space:nowrap}.stars i{font-style:normal;color:#33493a}
+.rnd{background:linear-gradient(135deg,#2c3f5a,#1c2b22)}
+.ev .no.th-links{background:#1f4650}.ev .no.th-desert{background:#5a3a1f}.ev .no.th-alpine{background:#1f3a50}.ev .no.th-tropic{background:#16504a}.ev .no.th-autumn{background:#5a2f18}
+table.sc td.tot{color:#f2c14e;font-weight:900}
+table.sc + table.sc{margin-top:-6px}
 #rot{position:fixed;inset:0;background:var(--bg);display:none;place-items:center;text-align:center;font-weight:800;font-size:18px;padding:30px;z-index:9}
 @media (orientation:landscape) and (max-height:500px){#rot{display:grid}}
 </style>
@@ -309,6 +329,7 @@ button:active{transform:scale(.96)}
 <div id="shop" class="screen hidden"></div>
 <div id="cup" class="screen hidden"></div>
 <div id="stats" class="screen hidden"></div>
+<div id="courses" class="screen hidden"></div>
 <div id="ov" class="ov hidden"><div class="card" id="ovCard"></div></div>
 <div id="ios" class="hidden"><div class="iosc"><b>Fairway als App installieren</b><span>Tippe unten auf <svg class="sh" viewBox="0 0 24 24" width="17" height="17"><path d="M12 3v12M7.5 7.5 12 3l4.5 4.5" fill="none" stroke="#1a73e8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 11H6.5A1.5 1.5 0 0 0 5 12.5v7A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5v-7a1.5 1.5 0 0 0-1.5-1.5H16" fill="none" stroke="#1a73e8" stroke-width="2.2" stroke-linecap="round"/></svg> <em>Teilen</em> und dann auf <em>„Zum Home-Bildschirm“</em>. Danach startet Fairway im Vollbild – wie eine echte App, auch offline.</span><button id="iosX">Später</button></div></div>
 <div id="rot">Bitte dreh dein Handy ins Hochformat 📱</div>

@@ -109,16 +109,20 @@ Schlichtes 2D-Minigolf im Ordner `plopp/`. Ein Finger: zurückziehen, zielen, lo
 
 ---
 
-# 🏌️ Fairway – Golf-Karriere (Handy, Hochformat) · Version 1.0
+# 🏌️ Fairway – Golf-Karriere (Handy, Hochformat) · Version 1.2
 
 2D-Golf von oben im Low-Poly-Stil im Ordner `fairway/`: Ballflug mit Höhe, Wind, Wetter, Bäume, Bunker, Wasser, Aus und Putt-Ringe auf geneigten Grüns.
 
+**Plätze & Landschaften:** 14 Plätze (Par 72, je 18 Löcher) in 6 Landschaften – Parkland, Links (Meer, Dünen, Stechginster, viel Wind), Wüste (Kakteen, Waste Areas, Hitze), Alpen (Kiefern, Felsen, bis ±34 m Höhenunterschied), Tropen (Palmen, türkises Meer) und Herbstwald.
+Lochlängen von 100 m (Par 3) bis 570 m (Par 5), bergauf/bergab mit „spielt wie“-Distanz und Höhenlinien.
+**Wetter:** sonnig, bewölkt, windig, Sturm (mit Böen), Regen, Nebel, Hitze, Abendsonne – je nach Landschaft unterschiedlich häufig.
+
 **Spielmodi**
-- **Karriere:** Amateur Tour → Challenge Tour → World Tour, je 4 Turniere gegen 11 Gegner mit Live-Leaderboard und Preisgeld. Finale: das Major „The Crown“.
+- **Karriere:** Amateur Tour → Challenge Tour → World Tour, je 4 Turniere über 18 Löcher (Runde wird gespeichert und lässt sich fortsetzen) gegen 11 Gegner mit Live-Leaderboard und Preisgeld. Finale: das Major „The Crown“.
 - **Matchplay Cup:** 1 gegen 1, Loch für Loch, K.-o.-Turnierbaum mit 8 Spielern (Viertelfinale, Halbfinale, Finale, Stechen bei Gleichstand). Bronze, Silber und Gold Cup.
 - **Closest to the Pin:** 5 Bälle auf ein Par 3, Medaillen nach Abstand zur Fahne.
 - **Longest Drive:** 5 Drives, nur das Fairway zählt.
-- **Freies Spiel:** zufälliger 9-Loch-Platz.
+- **Plätze / Freies Spiel:** jeden Platz mit 9 oder 18 Löchern spielen.
 
 **Fortschritt:** XP und Level mit Skillpunkten (Kraft, Präzision, Spin, Putten, Nerven), Ausrüstung (Driver, Hölzer, Eisen, Wedges, Putter in je 5 Modellen).
 
