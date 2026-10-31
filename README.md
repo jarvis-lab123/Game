@@ -106,3 +106,18 @@ Schlichtes 2D-Minigolf im Ordner `plopp/`. Ein Finger: zurückziehen, zielen, lo
   Mit Münzen freischalten und bis Stufe 3 verbessern (mehr Ladungen pro Loch, stärkerer Effekt). Beim Tagesloch hat jeder alle Fähigkeiten 1×.
 
 **Installieren:** `https://jarvis-lab123.github.io/Game/plopp/` auf dem Handy öffnen → „Zum Home-Bildschirm“ (iPhone) bzw. „App installieren“ (Android). Läuft danach offline.
+
+---
+
+# 🏌️ Fairway – Tägliches Golf (Handy, Hochformat)
+
+Richtiges 2D-Golf von oben im Ordner `fairway/`: Ballflug mit Höhe, Wind, Bäume, Bunker, Wasser, Aus, echtes Putten auf geneigten Grüns.
+
+- **Tagesrunde:** jeden Tag ein neuer 9-Loch-Platz (Par 36), für alle gleich und mit gleicher Ausrüstung. Nur die erste Runde zählt; Serie 🔥 und Scorecard zum Teilen.
+- **Karriere:** 6 Turniere von der Clubmeisterschaft bis zum Major, jedes mit Zielscore und Preisgeld.
+- **Training:** zufälliger Platz mit deinen Werten.
+- **Pro-Shop:** Kraft, Präzision, Spin (Back-/Topspin, ab Stufe 3 zieht der Ball zurück) und Putten (Puttlinie mit Gefälle).
+- **Steuerung:** Ziel antippen → Schläger, Draw/Fade, Spin wählen → „Schlagen“ → 1. Tipp Kraft, 2. Tipp Genauigkeit. Auf dem Grün: zurückziehen und loslassen.
+
+Installieren: `https://jarvis-lab123.github.io/Game/fairway/` öffnen → „Zum Home-Bildschirm“.
+`fairway/standalone.html` ist dieselbe App als Einzeldatei (für das Claude-Artefakt).
