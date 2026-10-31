@@ -30,9 +30,11 @@ const safeBot = () => _sb ?? (_sb = safeVal('env(safe-area-inset-bottom,0px)'));
 const KEY = 'fairway_v2';
 const defSave = () => ({ money: 0, earnings: 0, xp: 0, lvl: 1, sp: 1, at: { kraft: 0, praez: 0, spin: 0, putt: 0, nerven: 0 },
   gear: { driver: 0, woods: 0, irons: 0, wedges: 0, putter: 0 }, owned: { driver: [0], woods: [0], irons: [0], wedges: [0], putter: [0] },
-  results: {}, tourOpen: 0, wins: 0, muted: false, rounds: 0, birdies: 0, eagles: 0, hio: 0, best: null });
+  results: {}, tourOpen: 0, wins: 0, muted: false, rounds: 0, birdies: 0, eagles: 0, hio: 0, best: null,
+  st: newSt(), hist: [], hcpHist: [] });
+function newSt() { return { holes: 0, firN: 0, fir: 0, girN: 0, gir: 0, putts: 0, p1: 0, p3: 0, scrN: 0, scr: 0, sandN: 0, sandS: 0, chip: 0, pen: 0, drives: 0, driveSum: 0, driveMax: 0, proxN: 0, proxSum: 0, swings: 0, perfect: 0, par3: [0, 0], par4: [0, 0], par5: [0, 0], dist: { e: 0, b: 0, p: 0, bo: 0, d: 0 }, rounds9: 0, sum9: 0 }; }
 let save = defSave();
-try { const s = JSON.parse(localStorage.getItem(KEY)); if (s) { const d = defSave(); save = Object.assign(d, s); save.at = Object.assign(d.at, s.at || {}); save.gear = Object.assign(d.gear, s.gear || {}); save.owned = Object.assign(d.owned, s.owned || {}); } } catch (e) {}
+try { const s = JSON.parse(localStorage.getItem(KEY)); if (s) { const d = defSave(); save = Object.assign(d, s); save.at = Object.assign(d.at, s.at || {}); save.gear = Object.assign(d.gear, s.gear || {}); save.owned = Object.assign(d.owned, s.owned || {}); save.st = Object.assign(newSt(), s.st || {}); } } catch (e) {}
 const persist = () => { try { localStorage.setItem(KEY, JSON.stringify(save)); } catch (e) {} };
 
 // ---------------- Sound ----------------
@@ -65,7 +67,13 @@ const Snd = {
   good() { [660, 880, 1320].forEach((f, i) => this.tone(f, .16, 'triangle', .15, 0, i * .09)); },
   coin() { [990, 1480].forEach((f, i) => this.tone(f, .12, 'triangle', .13, 0, i * .08)); },
 };
-const buzz = ms => { try { navigator.vibrate && navigator.vibrate(ms); } catch (e) {} };
+const buzz = ms => {
+  try {
+    const H = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Haptics;
+    if (H) { const m = Array.isArray(ms) ? 40 : ms; H.impact({ style: m >= 30 ? 'HEAVY' : m >= 15 ? 'MEDIUM' : 'LIGHT' }); return; }
+    navigator.vibrate && navigator.vibrate(ms);
+  } catch (e) {}
+};
 
 // ---------------- Geometrie ----------------
 function inPoly(x, y, p) { let ins = false; for (let i = 0, j = p.length - 1; i < p.length; j = i++) { const xi = p[i][0], yi = p[i][1], xj = p[j][0], yj = p[j][1]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) ins = !ins; } return ins; }
@@ -387,8 +395,10 @@ function startRound(m, opts = {}) {
   if (m === 'tour') round.field = genField(round.t, seed, round.holes);
   enterPlay(); startHole(0);
 }
+let hs = {};
 function startHole(i) {
   hi = i; hole = round.holes[i];
+  hs = { teeDone: false, fir: null, gir: false, putts: 0, pen: 0, sand: false, chip: false, drive: null, prox: null, swings: 0, perfect: 0, teeClub: null };
   ball = { x: hole.tee[0], y: hole.tee[1], z: 0, vx: 0, vy: 0 };
   strokes = 0; shape = 0; spin = 0; overview = false; parts = []; trail = [];
   lie = 'tee'; cam.s = 0;
@@ -427,6 +437,7 @@ function autoPutt() {
   overview = false;
   const [r1, r2] = puttRings(), [px, py] = hole.pin, d = hyp(ball.x - px, ball.y - py);
   const n = d <= r1 ? 1 : d <= r2 ? 2 : 3;
+  hs.putts = n; hs.gir = strokes <= hole.par - 2; if (hs.prox == null) hs.prox = d;
   // Wegpunkte: jeder Putt landet im nächstinneren Ring
   const dx = (ball.x - px) / (d || 1), dy = (ball.y - py) / (d || 1), pts = [];
   const side = () => (Math.random() - .5) * 1.4;
@@ -481,6 +492,7 @@ function hitBall() {
   const dist = Math.max(1, hyp(target[0] - S[0], target[1] - S[1]));
   let p = swing.p, a = clamp(swing.a, -1.3, 1.3);
   const perfect = Math.abs(a) <= perfZone();
+  hs.swings++; if (perfect) hs.perfect++; if (lie === 'sand') hs.sand = true; if (strokes === 0) hs.teeClub = c.id;
   if (perfect) a = 0;
   const over = Math.max(0, p - 1);
   let carryAct = carry(c) * (p <= 1 ? p : 1 + over * .45);
@@ -551,12 +563,14 @@ function penaltyWater(f) {
   const [sx, sy] = f.S; let x = ball.x, y = ball.y; const dx = sx - x, dy = sy - y, l = hyp(dx, dy) || 1;
   for (let k = 0; k < l; k += 1) { x = ball.x + dx / l * k; y = ball.y + dy / l * k; const li = lieAt(hole, x, y); if (li !== 'water' && li !== 'ob') { x += dx / l * 2.5; y += dy / l * 2.5; break; } }
   if (round.mini) { toast('Wasser', 'Ball verloren', 1100); later(1100, () => miniShotDone(true)); return; }
+  teeEval(true); hs.pen++;
   toast('Wasser', 'Strafschlag · Drop', 1200);
   later(1100, () => { ball.x = x; ball.y = y; afterStop(); });
 }
 function penaltyOB(f) {
   buzz(40); state = 'wait'; strokes++;
   if (round.mini) { toast('Aus!', 'Ball verloren', 1100); later(1100, () => miniShotDone(true)); return; }
+  teeEval(true); hs.pen++;
   toast('Aus!', 'Strafschlag · nochmal von vorne', 1300);
   later(1200, () => { ball.x = f.origin[0]; ball.y = f.origin[1]; afterStop(); });
 }
@@ -588,16 +602,24 @@ function rollStep(h) {
   for (const t of hole.trees) { const tx = ball.x - t.x, ty = ball.y - t.y, td = hyp(tx, ty); if (td < t.r * .6) { ball.x = t.x + tx / td * t.r * .6; ball.y = t.y + ty / td * t.r * .6; const vn = (ball.vx * tx + ball.vy * ty) / td; if (vn < 0) { ball.vx -= 1.4 * vn * tx / td; ball.vy -= 1.4 * vn * ty / td; } } }
   if (hyp(ball.vx, ball.vy) < .04) { ball.vx = ball.vy = 0; afterStop(); }
 }
+function teeEval(pen) {
+  if (hs.teeDone || round.mini) return; hs.teeDone = true;
+  const l = lieAt(hole, ball.x, ball.y);
+  if (hole.par >= 4) hs.fir = !pen && ['fairway', 'fringe', 'green'].includes(l);
+  if (!pen && hs.teeClub === 'D') hs.drive = Math.round(hyp(ball.x - hole.tee[0], ball.y - hole.tee[1]));
+}
 function afterStop() {
   if (state === 'holed') return;
   state = 'wait';
   if (round.mini) { miniShotDone(false); return; }
+  teeEval(false);
   const max = hole.par + 4;
   if (strokes >= max) { toast('Aufgehoben', 'Max. ' + max + ' Schläge', 1200); later(1100, () => holeDone(max)); return; }
   setupShot();
 }
 
 function holed() {
+  if (state !== 'autoputt' && strokes > 1) { hs.chip = true; if (!round.mini) toast('Chip-in!', null, 1200); }
   state = 'holed'; ball.vx = ball.vy = 0; stateT = 0;
   Snd.plop(); buzz([20, 40, 30]);
   const d = strokes - hole.par;
@@ -1062,6 +1084,7 @@ $('#menuBtn').onclick = () => showOv(`<div class="big" style="font-size:28px">Ru
 function holeDone(score) {
   state = 'wait';
   round.scores[hi] = score; updHud();
+  recordHole(score);
   if (round.mode === 'match') { matchHoleDone(score); return; }
   const d = score - hole.par;
   if (d === -1) save.birdies++; if (d <= -2) save.eagles++; if (score === 1) save.hio++;
@@ -1090,6 +1113,7 @@ function finishRound() {
   let xp = round.scores.reduce((a, s, i) => a + xpFor(s, round.holes[i].par), 0), cash = 0, head = '', extra = '';
   save.rounds++;
   if (save.best == null || d < save.best) save.best = d;
+  const rinfo = recordRound();
   if (round.mode === 'tour') {
     const { t, e } = round, rows = board(9), me = rows.find(r => r.you), place = me.place;
     const purse = TOURS[t].purse[e];
@@ -1111,9 +1135,103 @@ function finishRound() {
     : `<button class="btn" data-a="again">Neuer Platz</button><button class="btn g" data-a="home">Zum Menü</button>`;
   showOv(`<div class="sub" style="margin:0">${round.label} ${WXI[round.wx]}</div><div class="big">${head}</div>
     <div class="sub">${fmtD(d)} (${tot})${extra ? ' · ' + extra : ''}</div>
-    ${round.field ? boardHtml(9, true) : ''}${cardHtml()}
+    ${roundStatsHtml(rinfo)}${round.field ? boardHtml(9, true) : ''}${cardHtml()}
     <div class="chips"><span class="chip" data-count="${cash}" data-pre="+" data-suf=" $"></span><span class="chip xp" data-count="${xp}" data-pre="+" data-suf=" XP"></span>${ups ? `<span class="chip lv">Level ${save.lvl}! +${ups} Skillpunkt${ups > 1 ? 'e' : ''}</span>` : ''}</div>
     <div class="btns">${btns}</div>`);
+}
+
+
+// ---------------- Statistik & Handicap ----------------
+function recordHole(score) {
+  if (round.mini) return;
+  const S = save.st, d = score - hole.par;
+  round.hs = round.hs || []; round.hs[hi] = { ...hs, score, par: hole.par };
+  S.holes++; S.swings += hs.swings; S.perfect += hs.perfect; S.pen += hs.pen;
+  if (hole.par >= 4) { S.firN++; if (hs.fir) S.fir++; }
+  S.girN++; if (hs.gir) S.gir++;
+  S.putts += hs.putts; if (hs.putts === 1) S.p1++; if (hs.putts >= 3) S.p3++;
+  if (!hs.gir) { S.scrN++; if (d <= 0) S.scr++; }
+  if (hs.sand) { S.sandN++; if (d <= 0) S.sandS++; }
+  if (hs.chip) S.chip++;
+  if (hs.drive != null) { S.drives++; S.driveSum += hs.drive; S.driveMax = Math.max(S.driveMax, hs.drive); }
+  if (hs.prox != null && hs.prox > .05) { S.proxN++; S.proxSum += hs.prox; }
+  const k = 'par' + hole.par; S[k][0]++; S[k][1] += score;
+  const dk = d <= -2 ? 'e' : d === -1 ? 'b' : d === 0 ? 'p' : d === 1 ? 'bo' : 'd'; S.dist[dk]++;
+}
+// Course Rating für 9 Löcher: Par + Schwierigkeit + Wetter
+function courseRating(holes, wx) { const dAvg = holes.reduce((a, h) => a + h.diff, 0) / holes.length; return holes.reduce((a, h) => a + h.par, 0) + .2 + dAvg * 1.4 + (wx === 'windig' ? .4 : wx === 'regen' ? .5 : 0); }
+// Handicap-Index nach WHS-Tabelle (beste X der letzten 20 Differenzen)
+function hcpIndex(list = save.hist) {
+  const ds = list.slice(-20).map(r => r.diff), n = ds.length; if (n < 3) return null;
+  const tab = { 3: [1, -2], 4: [1, -1], 5: [1, 0], 6: [2, -1], 7: [2, 0], 8: [2, 0], 9: [3, 0], 10: [3, 0], 11: [3, 0], 12: [4, 0], 13: [4, 0], 14: [4, 0], 15: [5, 0], 16: [5, 0], 17: [6, 0], 18: [6, 0], 19: [7, 0], 20: [8, 0] };
+  const [k, adj] = tab[n], best = ds.slice().sort((a, b) => a - b).slice(0, k);
+  return clamp(Math.round((best.reduce((a, b) => a + b, 0) / k + adj) * 10) / 10, -5, 54);
+}
+const fmtH = v => v == null ? '–' : (v < 0 ? '+' + (-v).toFixed(1) : v.toFixed(1)).replace('.', ',');
+function recordRound() {
+  if (round.scores.length < 9) return null;
+  const tot = round.scores.slice(0, 9).reduce((a, b) => a + b, 0), par = round.holes.slice(0, 9).reduce((a, h) => a + h.par, 0);
+  const cr = courseRating(round.holes.slice(0, 9), round.wx), diff = Math.round((tot - cr) * 2 * 10) / 10;
+  const H = round.hs || [], fir = H.filter(h => h && h.par >= 4), rec = {
+    t: Date.now(), l: round.label, wx: round.wx, s: tot, p: par, cr: Math.round(cr * 10) / 10, diff,
+    fir: fir.filter(h => h.fir).length, firN: fir.length, gir: H.filter(h => h && h.gir).length, putts: H.reduce((a, h) => a + (h ? h.putts : 0), 0)
+  };
+  const before = hcpIndex();
+  save.hist.push(rec); if (save.hist.length > 60) save.hist.shift();
+  const after = hcpIndex();
+  if (after != null) { save.hcpHist.push(after); if (save.hcpHist.length > 40) save.hcpHist.shift(); }
+  save.st.rounds9++; save.st.sum9 += tot - par;
+  return { rec, before, after };
+}
+function roundStatsHtml(info) {
+  if (!info) return '';
+  const { rec, before, after } = info, ch = before != null && after != null ? after - before : null;
+  return `<div class="rstat"><div><b>${rec.fir}/${rec.firN}</b><small>Fairways</small></div><div><b>${rec.gir}/9</b><small>Grüns (GIR)</small></div><div><b>${rec.putts}</b><small>Putts</small></div></div>
+    <div class="hcpline">HCP-Differenz <b>${fmtH(rec.diff)}</b> · Handicap <b>${fmtH(after)}</b>${ch ? ` <span class="${ch < 0 ? 'dn' : 'up'}">${ch < 0 ? '▼' : '▲'} ${Math.abs(ch).toFixed(1).replace('.', ',')}</span>` : after == null ? ` <span>(noch ${3 - save.hist.length} Runde${3 - save.hist.length === 1 ? '' : 'n'})</span>` : ''}</div>`;
+}
+const pct = (a, b) => b ? Math.round(a / b * 100) + ' %' : '–';
+const avg = (a, b, d = 1) => b ? (a / b).toFixed(d).replace('.', ',') : '–';
+function sparkline(vals) {
+  if (vals.length < 2) return '<div class="nochart">Spiele mindestens 4 gewertete Runden für den Verlauf</div>';
+  const w = 320, h = 90, mn = Math.min(...vals) - 1, mx = Math.max(...vals) + 1;
+  const pts = vals.map((v, i) => [i / (vals.length - 1) * (w - 16) + 8, 8 + (v - mn) / (mx - mn) * (h - 24)]);
+  const d = pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
+  const area = d + ` L ${pts[pts.length - 1][0]} ${h} L ${pts[0][0]} ${h} Z`;
+  const last = pts[pts.length - 1];
+  return `<svg viewBox="0 0 ${w} ${h}" class="spark"><defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5cc685" stop-opacity=".35"/><stop offset="1" stop-color="#5cc685" stop-opacity="0"/></linearGradient></defs>
+    <path d="${area}" fill="url(#sg)"/><path d="${d}" fill="none" stroke="#5cc685" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" class="sline"/>
+    <circle cx="${last[0]}" cy="${last[1]}" r="4.5" fill="#9be07a"/></svg><div class="spk"><span>↑ besser · ↓ schlechter</span><span>${vals.length} Werte</span></div>`;
+}
+function renderStats() {
+  const S = save.st, h = hcpIndex(), n = save.hist.length, prev = save.hcpHist.length > 1 ? save.hcpHist[save.hcpHist.length - 2] : null;
+  const dist = S.dist, dt = dist.e + dist.b + dist.p + dist.bo + dist.d || 1;
+  const bar = (k, lab, cl) => `<div class="drow"><span>${lab}</span><div class="dbar"><i class="${cl}" style="width:${dist[k] / dt * 100}%"></i></div><b>${dist[k]}</b></div>`;
+  const row = (lab, v, sub) => `<div class="srow"><span>${lab}${sub ? `<small>${sub}</small>` : ''}</span><b>${v}</b></div>`;
+  const recent = save.hist.slice(-8).reverse();
+  const ds = save.hist.slice(-20).map(r => r.diff).sort((a, b) => a - b);
+  const cut = n >= 3 ? ds[Math.min(ds.length, [0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 6, 6, 7, 8][Math.min(20, n)]) - 1] : null;
+  $('#stats').innerHTML = `<div class="wrap">${back('Statistiken')}
+    <div class="card hcpc"><div class="hl"><small>Handicap-Index</small><b>${fmtH(h)}</b>${h != null && prev != null && h !== prev ? `<span class="${h < prev ? 'dn' : 'up'}">${h < prev ? '▼' : '▲'} ${Math.abs(h - prev).toFixed(1).replace('.', ',')}</span>` : ''}
+      <em>${h == null ? 'Nach 3 gewerteten Runden (Karriere oder Freies Spiel) bekommst du dein Handicap.' : 'Aus den besten ' + [0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 6, 6, 7, 8][Math.min(20, n)] + ' von ' + Math.min(20, n) + ' Runden · 18-Loch-Wert'}</em></div>
+      ${sparkline(save.hcpHist.slice(-20))}</div>
+    <div class="sech">Übersicht</div>
+    <div class="card sgrid"><div><b>${save.rounds}</b><small>Runden</small></div><div><b>${S.holes}</b><small>Löcher</small></div><div><b>${save.wins}</b><small>Turniersiege</small></div>
+      <div><b>${save.cupWins || 0}</b><small>Cup-Siege</small></div><div><b>${save.best == null ? '–' : fmtD(save.best)}</b><small>Beste Runde</small></div><div><b>${S.rounds9 ? fmtD(Math.round(S.sum9 / S.rounds9 * 10) / 10).replace('.', ',') : '–'}</b><small>Ø Runde</small></div></div>
+    <div class="sech">Abschlag</div>
+    <div class="card">${row('Fairways getroffen', pct(S.fir, S.firN), S.fir + ' von ' + S.firN)}${row('Ø Drive', S.drives ? Math.round(S.driveSum / S.drives) + ' m' : '–')}${row('Längster Drive', S.driveMax ? S.driveMax + ' m' : '–')}${row('Perfekte Schwünge', pct(S.perfect, S.swings), S.perfect + ' von ' + S.swings)}</div>
+    <div class="sech">Annäherung</div>
+    <div class="card">${row('Grüns in Regulation', pct(S.gir, S.girN), S.gir + ' von ' + S.girN)}${row('Ø Abstand zur Fahne', S.proxN ? avg(S.proxSum, S.proxN) + ' m' : '–', 'beim Erreichen des Grüns')}${row('Strafschläge', S.pen, avg(S.pen, S.holes / 9) + ' pro Runde')}</div>
+    <div class="sech">Kurzes Spiel & Putten</div>
+    <div class="card">${row('Putts pro Runde', avg(S.putts, S.holes / 9), avg(S.putts, S.holes, 2) + ' pro Loch')}${row('1-Putts', pct(S.p1, S.holes))}${row('3-Putts', pct(S.p3, S.holes))}${row('Scrambling', pct(S.scr, S.scrN), 'Par oder besser ohne GIR')}${row('Sand Saves', pct(S.sandS, S.sandN), S.sandS + ' von ' + S.sandN)}${row('Chip-ins', S.chip)}</div>
+    <div class="sech">Scoring</div>
+    <div class="card">${row('Ø Par 3', S.par3[0] ? avg(S.par3[1], S.par3[0], 2) : '–')}${row('Ø Par 4', S.par4[0] ? avg(S.par4[1], S.par4[0], 2) : '–')}${row('Ø Par 5', S.par5[0] ? avg(S.par5[1], S.par5[0], 2) : '–')}${row('Hole-in-One', save.hio)}
+      <div class="dist">${bar('e', 'Eagle+', 'c-e')}${bar('b', 'Birdie', 'c-b')}${bar('p', 'Par', 'c-p')}${bar('bo', 'Bogey', 'c-o')}${bar('d', 'Doppel+', 'c-d')}</div></div>
+    <div class="sech">Rekorde</div>
+    <div class="card sgrid"><div><b>${save.records && save.records.ctp != null ? save.records.ctp.toFixed(1).replace('.', ',') + ' m' : '–'}</b><small>Closest to the Pin</small></div><div><b>${save.records && save.records.ld != null ? save.records.ld + ' m' : '–'}</b><small>Longest Drive</small></div><div><b>${money(save.earnings)}</b><small>Preisgeld</small></div></div>
+    <div class="sech">Letzte Runden</div>
+    ${recent.length ? `<div class="card rlist">${recent.map(r => `<div class="rr ${cut != null && r.diff <= cut ? 'cnt' : ''}"><div><b>${r.l}</b><small>${new Date(r.t).toLocaleDateString('de-DE')} · ${WXI[r.wx] || ''} · CR ${String(r.cr).replace('.', ',')} · FIR ${r.fir}/${r.firN} · GIR ${r.gir}/9 · ${r.putts} Putts</small></div><span>${fmtD(r.s - r.p)}<small>${fmtH(r.diff)}</small></span></div>`).join('')}</div><p class="help">Grün markiert = zählt fürs Handicap</p>` : '<p class="help">Noch keine gewerteten Runden</p>'}
+    <button class="btn g" id="resetStats" style="margin-top:8px">Statistik zurücksetzen</button>
+  </div>`;
 }
 
 // ---------------- Effekte im UI ----------------
@@ -1289,7 +1407,7 @@ $('#ov').addEventListener('click', e => {
 function enterPlay() { mode = 'play'; SCREENS.forEach(id => $('#' + id).classList.add('hidden')); hud.classList.remove('hidden'); panel.classList.remove('hidden'); }
 
 // ---------------- Menüs ----------------
-const SCREENS = ['home', 'career', 'player', 'shop', 'cup'];
+const SCREENS = ['home', 'career', 'player', 'shop', 'cup', 'stats'];
 const logo = `<svg viewBox="0 0 40 40"><polygon points="20,2 36,11 36,29 20,38 4,29 4,11" fill="#3b9a62"/><polygon points="20,2 36,11 20,20" fill="#4fb576"/><polygon points="4,29 20,20 20,38" fill="#2f7d4f"/><path d="M17 9v19" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/><path d="M17 9l9 3.5-9 3.5z" fill="#e8503a"/></svg>`;
 const moneyHtml = () => `<div class="coins">${money(save.money)}</div>`;
 const back = t => `<div class="top"><button class="pill ib" data-go="home">‹</button><h2>${t}</h2>${moneyHtml()}</div>`;
@@ -1297,14 +1415,14 @@ function showScreen(name) {
   mode = 'menu'; round = null; hole = null; timers = [];
   hud.classList.add('hidden'); panel.classList.add('hidden'); hideOv();
   SCREENS.forEach(id => $('#' + id).classList.toggle('hidden', id !== name));
-  ({ home: renderHome, career: renderCareer, player: renderPlayer, shop: renderShop, cup: renderCup })[name]();
+  ({ home: renderHome, career: renderCareer, player: renderPlayer, shop: renderShop, cup: renderCup, stats: renderStats })[name]();
   const el = $('#' + name); el.classList.remove('enter'); void el.offsetWidth; el.classList.add('enter'); el.scrollTop = 0;
 }
 function renderHome() {
   const [t, e] = nextEvent(), need = xpNeed(save.lvl);
   $('#home').innerHTML = `<div class="wrap">
     <div class="top"><div class="logo">${logo}<span>Fairway</span></div><div style="flex:1"></div>${moneyHtml()}<button class="pill ib" id="mute">${save.muted ? '🔇' : '🔊'}</button></div>
-    <div class="card prof"><div class="av">DU</div><div class="tx"><b>Level ${save.lvl}</b><span>${TOURS[Math.min(save.tourOpen, 2)].n} · ${save.wins} ${save.wins === 1 ? 'Sieg' : 'Siege'}</span>
+    <div class="card prof" data-go="stats"><div class="av">DU</div><div class="hcpb"><small>HCP</small><b>${fmtH(hcpIndex())}</b></div><div class="tx"><b>Level ${save.lvl}</b><span>${TOURS[Math.min(save.tourOpen, 2)].n} · ${save.wins} ${save.wins === 1 ? 'Sieg' : 'Siege'}</span>
       <div class="xpb"><i style="width:${Math.round(save.xp / need * 100)}%"></i></div><small>${save.xp} / ${need} XP${save.sp ? ` · <b class="spn">${save.sp} Skillpunkt${save.sp > 1 ? 'e' : ''}</b>` : ''}</small></div></div>
     <div class="card hero"><div class="k">${TOURS[t].n} · Turnier ${e + 1}/4</div><div class="t">${TOURS[t].ev[e]}</div>
       <div class="s">${WXI[evWx(t, e)]} ${evWx(t, e)} · Preisgeld ${money(TOURS[t].purse[e])} · 12 Spieler</div>
@@ -1322,9 +1440,10 @@ function renderHome() {
       <button class="card tile" data-go="player"><span>🏌️</span><b>Skills</b><small>${save.sp ? save.sp + (save.sp === 1 ? ' Punkt' : ' Punkte') + ' frei' : 'Werte ansehen'}</small>${save.sp ? '<i class="badge">' + save.sp + '</i>' : ''}</button>
       <button class="card tile" data-go="shop"><span>🛍️</span><b>Ausrüstung</b><small>Schläger kaufen</small></button>
     </div>
+    <button class="card wide" data-go="stats"><span>📊</span><div><b>Statistiken & Handicap</b><small>HCP ${fmtH(hcpIndex())} · Fairways ${pct(save.st.fir, save.st.firN)} · GIR ${pct(save.st.gir, save.st.girN)} · ${avg(save.st.putts, save.st.holes / 9)} Putts</small></div><em>›</em></button>
     <div class="card stat"><div><b>${save.rounds}</b><span>Runden</span></div><div><b>${save.birdies}</b><span>Birdies</span></div><div><b>${money(save.earnings)}</b><span>Preisgeld</span></div></div>
     <p class="help">Ziel antippen · Schläger, Draw/Fade, Spin wählen · „Schlagen“<br>1. Tipp stoppt die pendelnde Linie · 2. Tipp stoppt die Kraft<br>Auf dem Grün: goldener Ring = 1 Putt, weisser Ring = 2, sonst 3</p>
-    <p class="ver">Fairway · Version 1.0</p>
+    <p class="ver">Fairway · Version 1.1</p>
   </div>`;
 }
 function renderCareer() {
@@ -1341,7 +1460,7 @@ function renderCareer() {
 function renderPlayer() {
   const st = stats();
   $('#player').innerHTML = `<div class="wrap">${back('Spieler')}
-    <div class="card prof"><div class="av">DU</div><div class="tx"><b>Level ${save.lvl}</b><span>${save.sp} Skillpunkt${save.sp === 1 ? '' : 'e'} frei · pro Level +1 (alle 5 Level +2)</span></div></div>
+    <div class="card prof" data-go="stats"><div class="av">DU</div><div class="hcpb"><small>HCP</small><b>${fmtH(hcpIndex())}</b></div><div class="tx"><b>Level ${save.lvl}</b><span>${save.sp} Skillpunkt${save.sp === 1 ? '' : 'e'} frei · pro Level +1 (alle 5 Level +2)</span></div></div>
     ${ATTRS.map(a => { const L = save.at[a.id], can = save.sp > 0 && L < AMAX;
       return `<div class="card sk"><div class="ic">${a.ic}</div><div class="tx"><div class="skh"><b>${a.n}</b><em>${L}/${AMAX}</em></div><p>${a.d}</p>
         <div class="dots">${Array.from({ length: AMAX }, (_, i) => `<i class="${i < L ? 'f' : ''}"></i>`).join('')}</div></div>
@@ -1366,6 +1485,7 @@ document.addEventListener('click', e => {
   const q = sel => e.target.closest(sel);
   const g = q('[data-go]'), ev = q('[data-ev]'), b = q('[data-buy]'), eq = q('[data-equip]'), sk = q('[data-skill]');
   const cu = q('[data-cup]'), cc = q('[data-cupclose]');
+  if (q('#resetStats')) { if (q('#resetStats').dataset.ok) { save.st = newSt(); save.hist = []; save.hcpHist = []; persist(); renderStats(); } else { q('#resetStats').dataset.ok = 1; q('#resetStats').textContent = 'Wirklich zurücksetzen? Nochmal tippen'; } return; }
   if (cu) { Snd.init(); startCup(+cu.dataset.cup); return; }
   if (cc) { save.cup = null; persist(); showScreen('cup'); return; }
   if (g) { Snd.init(); Snd.tick(); const v = g.dataset.go; if (['free', 'ctp', 'ld', 'match'].includes(v)) startRound(v); else showScreen(v); }
@@ -1379,7 +1499,7 @@ document.addEventListener('click', e => {
 window.__fw = {
   get state() { return state; }, get ball() { return ball; }, get hole() { return hole; }, get strokes() { return strokes; }, get round() { return round; }, get lie() { return lie; }, get save() { return save; },
   get target() { return target; }, set target(v) { target = v; }, get club() { return clubI; }, set club(v) { clubI = v; },
-  startRound, genCourse, lieAt, board, update, autoClub, carry: c => carry(CLUBS[c]),
+  startRound, genCourse, lieAt, board, hcpIndex, renderStats, update, autoClub, carry: c => carry(CLUBS[c]),
   hit(p, a) { startSwing(); swing.p = p; swing.a = a; swing.ph = 'done'; hitBall(); },
   putt(dx, dy, v) { const l = hyp(dx, dy); doPutt({ dx: dx / l, dy: dy / l, v, p: 1 }); },
   run(maxT = 30) { for (let t = 0; t < maxT && !['aim', 'putt', 'wait', 'holed'].includes(state); t += 1 / 60) update(1 / 60); for (let i = 0; i < 200 && state === 'wait'; i++) { update(1 / 60); } },

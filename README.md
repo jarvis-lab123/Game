@@ -127,3 +127,10 @@ Schlichtes 2D-Minigolf im Ordner `plopp/`. Ein Finger: zurückziehen, zielen, lo
 **Veröffentlichen / Installieren:** `fairway/` ist eine fertige Web-App (PWA) mit Manifest, Offline-Cache, Schrift „Outfit“ (SIL OFL) und App-Icons (`icons/`, inkl. maskable und 1024 px für Stores).
 Nach GitHub Pages: `https://jarvis-lab123.github.io/Game/fairway/` öffnen → „Zum Home-Bildschirm“ bzw. „App installieren“.
 `fairway/standalone.html` ist dieselbe App als Einzeldatei (Schrift und Icon eingebettet).
+
+**Statistiken & Handicap:** Handicap-Index nach WHS-Logik (beste 8 der letzten 20 Runden, Course Rating je Platz und Wetter), Verlauf als Grafik, Fairways, GIR, Putts, 1-/3-Putts, Scrambling, Sand Saves, Chip-ins, Drive-Längen, Abstand zur Fahne, perfekte Schwünge, Score-Verteilung und die letzten Runden.
+
+## iOS-App
+
+`fairway-ios/` ist das fertige Xcode-Projekt (Capacitor) mit Icon, Splash, Haptik und Hochformat-Sperre.
+Bauen und Veröffentlichen auf einem Mac: siehe `fairway-ios/README.md`.

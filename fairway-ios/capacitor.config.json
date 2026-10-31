@@ -1,0 +1,14 @@
+{
+  "appId": "com.jarvislab.fairway",
+  "appName": "Fairway",
+  "webDir": "www",
+  "ios": {
+    "contentInset": "never",
+    "backgroundColor": "#111c16",
+    "scrollEnabled": false
+  },
+  "plugins": {
+    "SplashScreen": { "launchShowDuration": 600, "backgroundColor": "#111c16", "showSpinner": false },
+    "StatusBar": { "style": "DARK", "overlaysWebView": true }
+  }
+}

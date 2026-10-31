@@ -12,7 +12,8 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="format-detection" content="telephone=no">
 <meta name="apple-mobile-web-app-title" content="Fairway">
 <style>
 :root{--bg:#f2f0e8;--ink:#1f2a22;--soft:#7b8378;--card:#fff;--acc:#2f7d4f;--warn:#c8643b;--gold:#d9a521;
@@ -198,6 +199,41 @@ button:active{transform:scale(.96)}
 .champ,.nextm{text-align:center}.champ b{display:block;font-size:18px}.champ span,.nextm .sk{color:var(--soft);font-size:13px;font-weight:700}
 .nextm small{color:var(--soft);font-weight:800;text-transform:uppercase;font-size:11px;letter-spacing:.8px}
 .vsr{display:flex;align-items:center;justify-content:center;gap:12px;margin:6px 0}.vsr b{font-size:20px}.vsr span{color:#f2c14e;font-weight:900}
+
+/* ---------- Statistik ---------- */
+.prof{cursor:pointer}
+.hcpb{order:3;text-align:center;background:rgba(92,198,133,.12);border:1px solid rgba(92,198,133,.35);border-radius:14px;padding:6px 10px;flex:none}
+.hcpb small{display:block;font-size:10px;font-weight:900;color:#9be07a;letter-spacing:1px}.hcpb b{font-size:20px;font-weight:900}
+.hcpc .hl{display:grid;grid-template-columns:auto 1fr;align-items:baseline;column-gap:10px}
+.hcpc small{grid-column:1/3;font-size:12px;font-weight:800;color:var(--soft);text-transform:uppercase;letter-spacing:1px}
+.hcpc b{font-size:52px;font-weight:900;letter-spacing:-1.5px;line-height:1.05}
+.hcpc em{grid-column:1/3;font-style:normal;color:var(--soft);font-size:12.5px;font-weight:600;margin:2px 0 10px}
+.dn{color:#9be07a;font-weight:900}.up{color:#ef8a5b;font-weight:900}
+.spark{width:100%;height:90px;display:block}
+.sline{stroke-dasharray:1200;stroke-dashoffset:1200;animation:draw 1.4s ease forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.spk{display:flex;justify-content:space-between;font-size:11px;color:var(--soft);font-weight:700;margin-top:2px}
+.nochart{font-size:12.5px;color:var(--soft);font-weight:700;text-align:center;padding:16px 0 4px;border-top:1px dashed var(--line)}
+.sgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px 6px;text-align:center}
+.sgrid b{display:block;font-size:19px;font-weight:900}.sgrid small{font-size:11.5px;color:var(--soft);font-weight:700}
+.srow{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}
+.srow:last-child{border-bottom:0}.card>.srow:first-child{padding-top:0}
+.srow span{font-weight:700;font-size:14.5px}.srow small{display:block;font-size:11.5px;color:var(--soft);font-weight:600}
+.srow b{font-size:17px;font-weight:900}
+.dist{margin-top:10px;display:flex;flex-direction:column;gap:7px}
+.drow{display:grid;grid-template-columns:62px 1fr 34px;align-items:center;gap:8px;font-size:12.5px;font-weight:800}
+.drow span{color:var(--soft)}.drow b{text-align:right}
+.dbar{height:10px;background:#24362b;border-radius:5px;overflow:hidden}.dbar i{display:block;height:100%;border-radius:5px;animation:grow 1s cubic-bezier(.2,.9,.3,1) both;transform-origin:left}
+@keyframes grow{from{transform:scaleX(0)}}
+.c-e{background:#3d82d6}.c-b{background:#3a9a5f}.c-p{background:#9aa89c}.c-o{background:#d29a5c}.c-d{background:#c8643b}
+.rlist{padding:6px 14px}
+.rr{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}.rr:last-child{border-bottom:0}
+.rr div{flex:1;min-width:0}.rr div b{display:block;font-size:14px}.rr div small{display:block;font-size:11px;color:var(--soft);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rr>span{text-align:right;font-weight:900;font-size:16px}.rr>span small{display:block;font-size:11px;color:var(--soft)}
+.rr.cnt>span small{color:#9be07a}
+.rstat{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:4px 0 8px}
+.rstat div{background:rgba(255,255,255,.06);border-radius:12px;padding:8px 2px}.rstat b{display:block;font-size:18px}.rstat small{font-size:11px;color:var(--soft);font-weight:800}
+.hcpline{font-size:13px;font-weight:700;color:var(--soft);margin-bottom:12px}.hcpline b{color:var(--ink)}
 #rot{position:fixed;inset:0;background:var(--bg);display:none;place-items:center;text-align:center;font-weight:800;font-size:18px;padding:30px;z-index:9}
 @media (orientation:landscape) and (max-height:500px){#rot{display:grid}}
 </style>
@@ -239,6 +275,7 @@ button:active{transform:scale(.96)}
 <div id="player" class="screen hidden"></div>
 <div id="shop" class="screen hidden"></div>
 <div id="cup" class="screen hidden"></div>
+<div id="stats" class="screen hidden"></div>
 <div id="ov" class="ov hidden"><div class="card" id="ovCard"></div></div>
 <div id="rot">Bitte dreh dein Handy ins Hochformat 📱</div>
 
