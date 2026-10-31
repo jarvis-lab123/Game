@@ -10,9 +10,7 @@ let W = 0, H = 0, DPR = 1;
 function resize() {
   DPR = Math.min(3, window.devicePixelRatio || 1);
   W = innerWidth;
-  H = Math.max(innerHeight, document.documentElement.clientHeight || 0);
-  // iOS-Homescreen-App: innerHeight endet teils über der Home-Leiste – volle Bildschirmhöhe nutzen
-  if (navigator.standalone && screen.height > H && Math.abs(screen.width - W) < 2) H = screen.height;
+  H = innerHeight;
   cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
   cv.style.width = W + 'px'; cv.style.height = H + 'px';
   _st = _sb = null;
@@ -927,6 +925,7 @@ function drawTree(t) {
     return;
   }
   facet(t.x, t.y, pts, t.col || PAL.tree, t.k === 'rock' ? .38 : .32, t.top);
+  ctx.strokeStyle = 'rgba(10,30,15,.35)'; ctx.lineWidth = Math.max(.08, .8 / cam.s); poly(pts); ctx.stroke();
   if (t.k === 'gorse') { ctx.fillStyle = '#f2cf3a'; for (const [fx, fy] of t.fl) { ctx.beginPath(); ctx.arc(t.x + fx, t.y + fy, .35, 0, TAU); ctx.fill(); } }
 }
 function facet(cx, cy, pts, base, amt, top) {
@@ -977,6 +976,7 @@ function render() {
   if (hole.fw) {
     ctx.strokeStyle = PAL.cut; ctx.lineWidth = 4; poly(hole.fw.poly); ctx.stroke();
     ctx.fillStyle = PAL.fw; poly(hole.fw.poly); ctx.fill();
+    ctx.strokeStyle = 'rgba(30,70,30,.22)'; ctx.lineWidth = Math.max(.12, .9 / cam.s); poly(hole.fw.poly); ctx.stroke();
     ctx.save(); poly(hole.fw.poly); ctx.clip();
     ctx.fillStyle = PAL.fwL; const b = hole.box;
     for (let y = Math.floor(b[1] / 16) * 16; y < b[3]; y += 16) ctx.fillRect(b[0], y, b[2] - b[0], 8);
@@ -998,6 +998,7 @@ function render() {
   // Grün
   facet(hole.fringe.x, hole.fringe.y, ePts(hole.fringe, 14), PAL.fringe, .1);
   facet(hole.green.x, hole.green.y, ePts(hole.green, 14), PAL.green, .09, [hole.slope[0] * -3, hole.slope[1] * -3]);
+  ctx.strokeStyle = 'rgba(30,80,30,.3)'; ctx.lineWidth = Math.max(.08, .9 / cam.s); poly(ePts(hole.green, 14)); ctx.stroke();
   // Gefälle auf dem Grün
   drawSlope();
   drawRings();
@@ -1686,7 +1687,7 @@ function renderHome() {
     <button class="card wide" data-go="stats"><span>📊</span><div><b>Statistiken & Handicap</b><small>HCP ${fmtH(hcpIndex())} · Fairways ${pct(save.st.fir, save.st.firN)} · GIR ${pct(save.st.gir, save.st.girN)} · ${avg(save.st.putts, save.st.holes / 9)} Putts</small></div><em>›</em></button>
     <div class="card stat"><div><b>${save.rounds}</b><span>Runden</span></div><div><b>${save.birdies}</b><span>Birdies</span></div><div><b>${money(save.earnings)}</b><span>Preisgeld</span></div></div>
     <p class="help">Ziel antippen · Schläger, Draw/Fade, Spin wählen · „Schlagen“<br>1. Tipp stoppt die pendelnde Linie · 2. Tipp stoppt die Kraft<br>Auf dem Grün: goldener Ring = 1 Putt, weisser Ring = 2, sonst 3</p>
-    <p class="ver">Fairway · Version 1.4</p>
+    <p class="ver">Fairway · Version 1.5</p>
   </div>`;
 }
 function renderCareer() {
