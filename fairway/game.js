@@ -385,6 +385,7 @@ function startRound(m, opts = {}) {
   else if (m === 'ctp' || m === 'ld') {
     seed = (Math.random() * 1e9) | 0; wx = Math.random() < .5 ? 'sonnig' : 'windig'; const r = rng(seed);
     const h = m === 'ctp' ? genHole(r, 3, .55, wx, { water: Math.random() < .6 }) : genHole(r, 5, .45, wx, { straight: true, noWater: true });
+    h.wind.v = Math.min(h.wind.v, 22);
     round = { mini: { kind: m, shots: [], max: 5 } };
     Object.assign(round, { mode: m, label: m === 'ctp' ? 'Closest to the Pin' : 'Longest Drive', wx, holes: [h], scores: [] });
     enterPlay(); startHole(0); return;
@@ -785,7 +786,7 @@ function render() {
   ctx.strokeStyle = PAL.rough; ctx.lineWidth = OBW * 2;
   ctx.beginPath(); hole.C.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke();
   // Mähmuster im Rough
-  ctx.save(); ctx.beginPath(); hole.C.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.lineWidth = OBW * 2; ctx.strokeStyle = PAL.roughL; ctx.globalAlpha = .45; ctx.setLineDash([12, 12]); ctx.lineWidth = OBW * 2; ctx.lineCap = 'butt'; ctx.stroke(); ctx.restore();
+  ctx.save(); ctx.beginPath(); hole.C.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.lineWidth = OBW * 2; ctx.strokeStyle = PAL.roughL; ctx.globalAlpha = .22; ctx.setLineDash([12, 12]); ctx.lineWidth = OBW * 2; ctx.lineCap = 'butt'; ctx.stroke(); ctx.restore();
   ctx.lineCap = 'round';
   // Deko-Wald ausserhalb der Spielbahn
   ctx.fillStyle = 'rgba(15,40,20,.3)';
@@ -900,7 +901,7 @@ function drawSlope() {
   const g = hole.green, [sx, sy] = hole.slope, m = hyp(sx, sy); if (m < .05) return;
   const ux = sx / m, uy = sy / m;
   ctx.save(); ell(g); ctx.clip();
-  ctx.strokeStyle = 'rgba(40,90,40,' + (.08 + m * .12) + ')'; ctx.lineWidth = .14;
+  ctx.strokeStyle = 'rgba(40,90,40,' + (.05 + m * .08) + ')'; ctx.lineWidth = .14;
   const off = (time * m * 1.2) % 3;
   for (let i = -16; i <= 16; i += 3) for (let j = -16; j <= 16; j += 3) {
     const cx = g.x + i + ux * off, cy = g.y + j + uy * off;
@@ -920,7 +921,7 @@ function drawAim() {
   const px = 1 / cam.s, md = maxDev(), base = aimPath(0);
   // Fächer der möglichen Abweichung
   const A = aimPath(-md).L, B = aimPath(md).L;
-  ctx.fillStyle = 'rgba(255,255,255,.10)'; ctx.beginPath(); ctx.moveTo(ball.x, ball.y); ctx.lineTo(A[0], A[1]);
+  ctx.fillStyle = 'rgba(255,255,255,.07)'; ctx.beginPath(); ctx.moveTo(ball.x, ball.y); ctx.lineTo(A[0], A[1]);
   const steps = 12; for (let i = 1; i <= steps; i++) { const L = aimPath(-md + 2 * md * i / steps).L; ctx.lineTo(L[0], L[1]); } ctx.closePath(); ctx.fill();
   // Perfekt-Zone
   const pz = perfZone() * md, P1 = aimPath(-pz).L, P2 = aimPath(pz).L;
@@ -1387,24 +1388,38 @@ function renderCup() {
   $('#cup').innerHTML = `<div class="wrap">${back(CUPS[c.c].n)}<div class="bracket">${cols}</div>${action}</div>`;
 }
 
-function showOv(html) { $('#ovCard').innerHTML = html; $('#ov').classList.remove('hidden'); $('#ovCard').scrollTop = 0; countUp($('#ovCard')); }
-function hideOv() { $('#ov').classList.add('hidden'); }
+let ovT = 0;
+function showOv(html) { clearTimeout(ovT); const o = $('#ov'); o.classList.remove('closing'); $('#ovCard').innerHTML = html; o.classList.remove('hidden'); $('#ovCard').scrollTop = 0; countUp($('#ovCard')); }
+function hideOv() {
+  const o = $('#ov'); if (o.classList.contains('hidden')) return;
+  if (window.__fwNoFx) { o.classList.add('hidden'); return; }
+  o.classList.add('closing'); clearTimeout(ovT); ovT = setTimeout(() => { o.classList.add('hidden'); o.classList.remove('closing'); }, 230);
+}
+// Sanfte Blende zwischen Bildschirmen und Löchern
+let curT = 0;
+function curtain(fn) {
+  if (window.__fwNoFx) { fn(); return; }
+  const c = $('#curtain'); c.classList.add('on'); clearTimeout(curT);
+  curT = setTimeout(() => { fn(); requestAnimationFrame(() => requestAnimationFrame(() => c.classList.remove('on'))); }, 280);
+}
 $('#ov').addEventListener('click', e => {
   const b = e.target.closest('[data-a]'); if (!b) return; const a = b.dataset.a;
   hideOv();
   if (a === 'resume') return;
-  if (a === 'next') startHole(hi + 1);
-  else if (a === 'finish') finishRound();
-  else if (a === 'again') startRound(round.mode, round.mode === 'tour' ? { t: round.t, e: round.e } : {});
-  else if (a === 'career') showScreen('career');
-  else if (a === 'cup') showScreen('cup');
-  else if (a === 'mnext') startHole(hi + 1);
-  else if (a === 'mend') matchEnd();
-  else if (a === 'mini') startRound(round.mode);
-  else showScreen('home');
+  if (a === 'finish') { finishRound(); return; }
+  if (a === 'mend') { matchEnd(); return; }
+  const r = round;
+  curtain(() => {
+    if (a === 'next' || a === 'mnext') startHole(hi + 1);
+    else if (a === 'again') startRound(r.mode, r.mode === 'tour' ? { t: r.t, e: r.e } : {});
+    else if (a === 'career') showScreen('career');
+    else if (a === 'cup') showScreen('cup');
+    else if (a === 'mini') startRound(r.mode);
+    else showScreen('home');
+  });
 });
 
-function enterPlay() { mode = 'play'; SCREENS.forEach(id => $('#' + id).classList.add('hidden')); hud.classList.remove('hidden'); panel.classList.remove('hidden'); }
+function enterPlay() { mode = 'play'; $('#ios').classList.add('hidden'); SCREENS.forEach(id => $('#' + id).classList.add('hidden')); hud.classList.remove('hidden'); panel.classList.remove('hidden'); }
 
 // ---------------- Menüs ----------------
 const SCREENS = ['home', 'career', 'player', 'shop', 'cup', 'stats'];
@@ -1488,8 +1503,8 @@ document.addEventListener('click', e => {
   if (q('#resetStats')) { if (q('#resetStats').dataset.ok) { save.st = newSt(); save.hist = []; save.hcpHist = []; persist(); renderStats(); } else { q('#resetStats').dataset.ok = 1; q('#resetStats').textContent = 'Wirklich zurücksetzen? Nochmal tippen'; } return; }
   if (cu) { Snd.init(); startCup(+cu.dataset.cup); return; }
   if (cc) { save.cup = null; persist(); showScreen('cup'); return; }
-  if (g) { Snd.init(); Snd.tick(); const v = g.dataset.go; if (['free', 'ctp', 'ld', 'match'].includes(v)) startRound(v); else showScreen(v); }
-  else if (ev) { Snd.init(); const [t, n] = ev.dataset.ev.split('-').map(Number); startRound('tour', { t, e: n }); }
+  if (g) { Snd.init(); Snd.tick(); const v = g.dataset.go; if (['free', 'ctp', 'ld', 'match'].includes(v)) curtain(() => startRound(v)); else if (mode === 'play') curtain(() => showScreen(v)); else showScreen(v); }
+  else if (ev) { Snd.init(); const [t, n] = ev.dataset.ev.split('-').map(Number); curtain(() => startRound('tour', { t, e: n })); }
   else if (b) { const [slot, i] = b.dataset.buy.split('-'), m = GEAR[slot].m[+i]; if (save.money >= m.p) { save.money -= m.p; save.owned[slot].push(+i); save.gear[slot] = +i; persist(); Snd.coin(); buzz(20); renderShop(); } }
   else if (eq) { const [slot, i] = eq.dataset.equip.split('-'); save.gear[slot] = +i; persist(); Snd.tick(); renderShop(); }
   else if (sk) { const id = sk.dataset.skill; if (save.sp > 0 && save.at[id] < AMAX) { save.sp--; save.at[id]++; persist(); Snd.coin(); buzz(15); renderPlayer(); } }
@@ -1512,7 +1527,7 @@ window.__fw = {
   const standalone = navigator.standalone || matchMedia('(display-mode: standalone)').matches || window.Capacitor;
   let seen = 0; try { seen = +localStorage.getItem('fw_ios_hint') || 0; } catch (e) {}
   if (!ios || standalone || seen > 2 || location.protocol === 'file:' || window.self !== window.top) return;
-  setTimeout(() => $('#ios').classList.remove('hidden'), 1200);
+  setTimeout(() => { if (mode === 'menu' && !$('#home').classList.contains('hidden')) $('#ios').classList.remove('hidden'); }, 1200);
   $('#iosX').onclick = () => { $('#ios').classList.add('hidden'); try { localStorage.setItem('fw_ios_hint', seen + 1); } catch (e) {} };
 })();
 resize();
