@@ -276,7 +276,7 @@ function step(h) {
   if (effects.hop) {
     const e = effects.hop; e.t += h; const p = e.t / e.dur;
     ball.z = p >= 1 ? 0 : 4 * e.h * p * (1 - p);
-    if (p >= 1) { delete effects.hop; ball.vx *= .7; ball.vy *= .7; escapeSolid(); Snd.bounce(.4); puff(ball.x, ball.y, '#ffffff', 5); }
+    if (p >= 1) { delete effects.hop; ball.vx *= .5; ball.vy *= .5; escapeSolid(); Snd.bounce(.4); puff(ball.x, ball.y, '#ffffff', 5); }
   }
   if (effects.ghost) { effects.ghost.t -= h; if (effects.ghost.t <= 0 && !insideSolid(ball.x, ball.y)) delete effects.ghost; }
   let sp = hyp(ball.vx, ball.vy);
@@ -291,7 +291,7 @@ function step(h) {
     ball.vx += zn.acc[0] * h; ball.vy += zn.acc[1] * h;
     if (zn.ramp && sp > 45) {
       const dot = (ball.vx * zn.ramp.d[0] + ball.vy * zn.ramp.d[1]) / (sp || 1);
-      if (dot > .3) { startHop(clamp(sp / 150, .35, .95), 6 + sp / 25); Snd.power(); }
+      if (dot > .3) { startHop(clamp(58 / sp, .3, .7), 6 + sp / 30); Snd.power(); }
     }
   }
   if (effects.magnet && !air) {
