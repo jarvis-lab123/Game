@@ -1,14 +1,19 @@
 {
+  "id": "./",
   "name": "Fairway – Golf-Karriere",
   "short_name": "Fairway",
+  "description": "Golf-Karriere im Low-Poly-Stil: Touren, Matchplay-Cup, Closest to the Pin und Longest Drive.",
+  "lang": "de",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#111c16",
   "theme_color": "#111c16",
+  "categories": ["games", "sports"],
   "icons": [
-    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }

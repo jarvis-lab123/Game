@@ -109,16 +109,21 @@ Schlichtes 2D-Minigolf im Ordner `plopp/`. Ein Finger: zurückziehen, zielen, lo
 
 ---
 
-# 🏌️ Fairway – Golf-Karriere (Handy, Hochformat)
+# 🏌️ Fairway – Golf-Karriere (Handy, Hochformat) · Version 1.0
 
-2D-Golf von oben im Low-Poly-Stil im Ordner `fairway/`: Ballflug mit Höhe, Wind, Wetter, Bäume, Bunker, Wasser, Aus, Putt-Ringe auf geneigten Grüns.
+2D-Golf von oben im Low-Poly-Stil im Ordner `fairway/`: Ballflug mit Höhe, Wind, Wetter, Bäume, Bunker, Wasser, Aus und Putt-Ringe auf geneigten Grüns.
 
-- **Karriere:** Amateur Tour → Challenge Tour → World Tour, je 4 Turniere (9 Löcher) gegen 11 Gegner mit Live-Leaderboard und Preisgeld. Ein Sieg schaltet die nächste Tour frei; Finale ist das Major „The Crown“.
-- **Spieler:** XP und Level, pro Level Skillpunkte für Kraft, Präzision, Spin, Putten und Nerven.
-- **Ausrüstung:** Driver, Hölzer, Eisen, Wedges und Putter in je 5 Modellen.
-- **Wetter:** sonnig, windig (mehr Wind) oder Regen (weniger Ausrollen, langsamere Grüns).
-- **Steuerung:** Ziel antippen → Schläger, Draw/Fade, Spin wählen → „Schlagen“ → 1. Tipp stoppt die pendelnde Richtungslinie, 2. Tipp stoppt die Kraft.
-- **Grün:** Ringe um die Fahne – goldener Ring = 1 Putt, weisser Ring = 2 Putts, Rest des Grüns = 3 Putts. Die Putts werden automatisch gespielt; steile Grüns machen die Ringe kleiner, Putten-Skill und Putter grösser.
+**Spielmodi**
+- **Karriere:** Amateur Tour → Challenge Tour → World Tour, je 4 Turniere gegen 11 Gegner mit Live-Leaderboard und Preisgeld. Finale: das Major „The Crown“.
+- **Matchplay Cup:** 1 gegen 1, Loch für Loch, K.-o.-Turnierbaum mit 8 Spielern (Viertelfinale, Halbfinale, Finale, Stechen bei Gleichstand). Bronze, Silber und Gold Cup.
+- **Closest to the Pin:** 5 Bälle auf ein Par 3, Medaillen nach Abstand zur Fahne.
+- **Longest Drive:** 5 Drives, nur das Fairway zählt.
+- **Freies Spiel:** zufälliger 9-Loch-Platz.
 
-Installieren: `https://jarvis-lab123.github.io/Game/fairway/` öffnen → „Zum Home-Bildschirm“.
-`fairway/standalone.html` ist dieselbe App als Einzeldatei (für das Claude-Artefakt).
+**Fortschritt:** XP und Level mit Skillpunkten (Kraft, Präzision, Spin, Putten, Nerven), Ausrüstung (Driver, Hölzer, Eisen, Wedges, Putter in je 5 Modellen).
+
+**Steuerung:** Ziel antippen → Schläger, Draw/Fade, Spin wählen → „Schlagen“ → 1. Tipp stoppt die pendelnde Richtungslinie, 2. Tipp stoppt die Kraft. Auf dem Grün: goldener Ring = 1 Putt, weisser Ring = 2 Putts, Rest = 3 Putts (werden automatisch gespielt).
+
+**Veröffentlichen / Installieren:** `fairway/` ist eine fertige Web-App (PWA) mit Manifest, Offline-Cache, Schrift „Outfit“ (SIL OFL) und App-Icons (`icons/`, inkl. maskable und 1024 px für Stores).
+Nach GitHub Pages: `https://jarvis-lab123.github.io/Game/fairway/` öffnen → „Zum Home-Bildschirm“ bzw. „App installieren“.
+`fairway/standalone.html` ist dieselbe App als Einzeldatei (Schrift und Icon eingebettet).

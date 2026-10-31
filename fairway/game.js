@@ -152,12 +152,13 @@ function resample(pts, step) {
   return out;
 }
 
-function genHole(r, par, diff, wx = 'sonnig') {
+function genHole(r, par, diff, wx = 'sonnig', opt = {}) {
   const ri = (a, b) => a + r() * (b - a), sgn = () => r() < .5 ? -1 : 1;
   const len = par === 3 ? ri(118, 182) : par === 4 ? ri(300, 392) : ri(458, 528);
   let P;
   if (par === 3) P = [[0, 0], [ri(-6, 6), -len * .5], [ri(-22, 22), -len]];
   else if (par === 4) { const bend = r() < .75, t = ri(.56, .66), bx = bend ? sgn() * ri(22, 55) : ri(-8, 8); P = [[0, 0], [ri(-4, 4), -len * .3], [ri(-6, 6), -len * t], [bx, -len]]; }
+  else if (opt.straight) P = [[0, 0], [0, -len * .33], [ri(-3, 3), -len * .66], [ri(-5, 5), -len]];
   else { const b1 = sgn() * ri(15, 40), b2 = b1 + sgn() * ri(15, 45); P = [[0, 0], [0, -len * .25], [b1 * .2, -len * .48], [b1, -len * .7], [b2, -len]]; }
   // Mittellinie + 45 m Verlängerung hinter dem Grün
   let C = resample(catmull(P), 4);
@@ -212,7 +213,7 @@ function genHole(r, par, diff, wx = 'sonnig') {
     }
   }
   // Wasser
-  if (r() < .25 + diff * .55) {
+  if (!opt.noWater && (opt.water || r() < .25 + diff * .55)) {
     const kind = par === 3 ? 'front' : par === 4 ? (r() < .5 ? 'creek' : 'side') : (r() < .5 ? 'creek' : 'gside');
     if (kind === 'front') { const s = Lg - h.green.ry - ri(10, 16), p = at(s); h.water.push({ e: { x: p.x, y: p.y, rx: ri(15, 24), ry: ri(4.5, 7), a: p.ang + Math.PI / 2 } }); }
     else if (kind === 'creek') {
@@ -373,8 +374,16 @@ function maxRange() { const al = allowedClubs().filter(i => !CLUBS[i].putter); r
 function startRound(m, opts = {}) {
   let seed, diff, label, wx;
   if (m === 'tour') { const { t, e } = opts; seed = evSeed(t, e); diff = TOURS[t].d[e]; wx = evWx(t, e); label = TOURS[t].ev[e]; round = { t, e }; }
+  else if (m === 'ctp' || m === 'ld') {
+    seed = (Math.random() * 1e9) | 0; wx = Math.random() < .5 ? 'sonnig' : 'windig'; const r = rng(seed);
+    const h = m === 'ctp' ? genHole(r, 3, .55, wx, { water: Math.random() < .6 }) : genHole(r, 5, .45, wx, { straight: true, noWater: true });
+    round = { mini: { kind: m, shots: [], max: 5 } };
+    Object.assign(round, { mode: m, label: m === 'ctp' ? 'Closest to the Pin' : 'Longest Drive', wx, holes: [h], scores: [] });
+    enterPlay(); startHole(0); return;
+  }
+  else if (m === 'match') { seed = (Math.random() * 1e9) | 0; const c = save.cup; diff = .3 + .2 * CUPS[c.c].tier + .1 * c.r; wx = WXS[Math.floor(Math.random() * 4)]; const opp = c.players[cupOpp()]; label = CUPS[c.c].n; round = { opp, ms: 0 }; }
   else { seed = (Math.random() * 1e9) | 0; diff = .35 + Math.random() * .3; wx = WXS[Math.floor(Math.random() * 4)]; label = 'Freies Spiel'; round = {}; }
-  Object.assign(round, { mode: m, label, wx, holes: genCourse(seed, diff, wx), scores: [] });
+  Object.assign(round, { mode: m, label, wx, seed, holes: genCourse(seed, diff, wx), scores: [] });
   if (m === 'tour') round.field = genField(round.t, seed, round.holes);
   enterPlay(); startHole(0);
 }
@@ -386,7 +395,8 @@ function startHole(i) {
   setupShot();
   snapCam();
   const w = hole.wind;
-  toast('Loch ' + (i + 1), 'Par ' + hole.par + ' · ' + hole.len + ' m · ' + WXI[hole.wx] + (w.v ? ' ' + w.v + ' km/h' : ''), 1600);
+  if (round.mini) intro(round.label, (round.mini.kind === 'ctp' ? 'Par 3 · ' + hole.len + ' m · 5 Bälle' : '5 Drives · nur Fairway zählt'), WXI[hole.wx] + (w.v ? ' ' + w.v + ' km/h' : ''));
+  else intro(i >= 9 ? 'Stechen' : 'Loch ' + (i + 1), 'Par ' + hole.par + ' · ' + hole.len + ' m', WXI[hole.wx] + (w.v ? ' Wind ' + w.v + ' km/h' : ' windstill') + (round.mode === 'match' ? ' · ' + msText(round.ms) : ''));
 }
 function setupShot() {
   lie = lieAt(hole, ball.x, ball.y);
@@ -504,7 +514,7 @@ function updFlight(dt) {
     if (z < t.h && hyp(x - t.x, y - t.y) < t.r * .85) {
       const [px, py] = bez(f.S, f.Cp, f.L, Math.max(0, p - .02)), dx = x - px, dy = y - py, l = hyp(dx, dy) || 1;
       ball.x = x - dx / l * (t.r + 1.2); ball.y = y - dy / l * (t.r + 1.2); ball.z = 0;
-      Snd.tree(); buzz(25); toast('Baum!', null, 800); leafFx(t.x, t.y);
+      Snd.tree(); buzz(25); toast('Baum!', null, 800); leafFx(t.x, t.y); shake = .35;
       startRoll(-dx / l * 3, -dy / l * 3);
       return;
     }
@@ -519,7 +529,7 @@ function land() {
   if (hyp(ball.x - hole.pin[0], ball.y - hole.pin[1]) < CUP * 1.2 && l !== 'water') { holed(); return; }
   if (l === 'water') { penaltyWater(f); return; }
   if (l === 'ob') { penaltyOB(f); return; }
-  Snd.land(); puffFx(ball.x, ball.y, l === 'sand' ? '#efe0b0' : 'rgba(255,255,255,.8)', l === 'sand' ? 10 : 5);
+  Snd.land(); puffFx(ball.x, ball.y, l === 'sand' ? '#efe0b0' : 'rgba(255,255,255,.8)', l === 'sand' ? 10 : 5); parts.push({ ring: 1, x: ball.x, y: ball.y, r0: .3, grow: 2.5, life: .5, max: .5, c: 'rgba(255,255,255,.8)' });
   if (l === 'sand') Snd.sand();
   const [tx, ty] = [f.L[0] - f.Cp[0], f.L[1] - f.Cp[1]], tl = hyp(tx, ty) || 1;
   const sl = stats().spin;
@@ -540,11 +550,13 @@ function penaltyWater(f) {
   // Drop: entlang der Flugbahn zurück bis trocken
   const [sx, sy] = f.S; let x = ball.x, y = ball.y; const dx = sx - x, dy = sy - y, l = hyp(dx, dy) || 1;
   for (let k = 0; k < l; k += 1) { x = ball.x + dx / l * k; y = ball.y + dy / l * k; const li = lieAt(hole, x, y); if (li !== 'water' && li !== 'ob') { x += dx / l * 2.5; y += dy / l * 2.5; break; } }
+  if (round.mini) { toast('Wasser', 'Ball verloren', 1100); later(1100, () => miniShotDone(true)); return; }
   toast('Wasser', 'Strafschlag · Drop', 1200);
   later(1100, () => { ball.x = x; ball.y = y; afterStop(); });
 }
 function penaltyOB(f) {
   buzz(40); state = 'wait'; strokes++;
+  if (round.mini) { toast('Aus!', 'Ball verloren', 1100); later(1100, () => miniShotDone(true)); return; }
   toast('Aus!', 'Strafschlag · nochmal von vorne', 1300);
   later(1200, () => { ball.x = f.origin[0]; ball.y = f.origin[1]; afterStop(); });
 }
@@ -579,6 +591,7 @@ function rollStep(h) {
 function afterStop() {
   if (state === 'holed') return;
   state = 'wait';
+  if (round.mini) { miniShotDone(false); return; }
   const max = hole.par + 4;
   if (strokes >= max) { toast('Aufgehoben', 'Max. ' + max + ' Schläge', 1200); later(1100, () => holeDone(max)); return; }
   setupShot();
@@ -590,6 +603,7 @@ function holed() {
   const d = strokes - hole.par;
   if (d < 0 || strokes === 1) later(250, () => Snd.good());
   for (let i = 0; i < 30; i++) { const a = Math.random() * TAU, s = 1 + Math.random() * 5; parts.push({ x: hole.pin[0], y: hole.pin[1], vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 1.1, max: 1.1, c: ['#ffffff', '#ffd54f', '#ff8a65', '#81d4fa'][i % 4], r: .25 + Math.random() * .25 }); }
+  if (round.mini) { later(900, () => miniShotDone(false, true)); return; }
   later(1000, () => holeDone(strokes));
 }
 
@@ -676,7 +690,9 @@ function camGoal() {
 }
 function box(pts, pad, minW) { let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; for (const [x, y] of pts) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); } fitTo(x0 - pad, y0 - pad, x1 + pad, y1 + pad, minW); }
 function snapCam() { camGoal(); cam.x = camT.x; cam.y = camT.y; cam.s = camT.s; }
+let shake = 0;
 function updCam(dt) {
+  if (shake > 0) { shake = Math.max(0, shake - dt); cam.x += (Math.random() - .5) * shake * 4 / Math.max(1, cam.s / 3); cam.y += (Math.random() - .5) * shake * 4 / Math.max(1, cam.s / 3); }
   camGoal();
   if (!cam.s) { snapCam(); return; }
   const k = 1 - Math.exp(-dt * (state === 'flight' ? 3 : 4.5));
@@ -715,6 +731,7 @@ function splashFx(x, y) { for (let i = 0; i < 18; i++) { const a = Math.random()
 function leafFx(x, y) { for (let i = 0; i < 12; i++) { const a = Math.random() * TAU, s = 2 + Math.random() * 5; parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: .8, max: .8, c: i % 2 ? '#5f9e4d' : '#87c06a', r: .4 + Math.random() * .4 }); } }
 
 // ---------------- Rendering ----------------
+const FONTS = 'Outfit,-apple-system,Segoe UI,Roboto,sans-serif';
 const PAL = { deep: '#3f6f3c', cut: '#8cc46d', rough: '#79b062', roughL: '#82b86a', fw: '#9fd27a', fwL: '#a9d985', fringe: '#9dd078', green: '#b6e391', greenL: '#bee899', sand: '#f0e2b4', sandD: '#ddc98e', water: '#5ab4dc', waterD: '#4aa2cb', tree: '#3d8547', treeL: '#4f9354', treeS: 'rgba(20,50,25,.28)', tee: '#a9d985' };
 function ell(e, grow = 0) { ctx.beginPath(); ctx.ellipse(e.x, e.y, e.rx + grow, e.ry + grow, e.a, 0, TAU); }
 function poly(p) { ctx.beginPath(); ctx.moveTo(p[0][0], p[0][1]); for (let i = 1; i < p.length; i++) ctx.lineTo(p[i][0], p[i][1]); ctx.closePath(); }
@@ -833,6 +850,7 @@ function render() {
     ctx.stroke();
   }
   if (state === 'aim' || state === 'swing') drawTargetLabel();
+  drawRingLabels();
   if (state === 'swing') drawMeter();
   if (state === 'flight' || state === 'roll') drawFlightInfo();
 }
@@ -844,13 +862,16 @@ function drawRings() {
   ctx.fillStyle = 'rgba(255,214,92,.38)'; ctx.beginPath(); ctx.arc(x, y, r1, 0, TAU); ctx.fill();
   ctx.strokeStyle = 'rgba(255,214,92,.95)'; ctx.lineWidth = Math.max(.08, 1.5 * px); ctx.stroke();
   ctx.restore();
-  // Ring-Beschriftung
-  ctx.font = '900 ' + (11 * px) + 'px -apple-system,Segoe UI,Roboto,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  for (const [r, t, c] of [[r1, '1', '#ffd65c'], [r2, '2', 'rgba(255,255,255,.85)']]) {
-    const lx = x + r * .7071, ly = y + r * .7071;
-    if (!inE(lx, ly, hole.fringe)) continue;
-    ctx.fillStyle = 'rgba(17,28,22,.75)'; ctx.beginPath(); ctx.arc(lx, ly, 8 * px, 0, TAU); ctx.fill();
-    ctx.fillStyle = c; ctx.fillText(t, lx, ly + .5 * px);
+}
+function drawRingLabels() {
+  if (cam.s < 5 || round.mini) return;
+  const [r1, r2] = puttRings(), [x, y] = hole.pin;
+  ctx.font = '800 12px ' + FONTS; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  for (const [r, t, c] of [[r1, '1 PUTT', '#ffd65c'], [r2, '2 PUTTS', '#ffffff']]) {
+    const lx = x + r * .7071, ly = y + r * .7071; if (!inE(lx, ly, hole.fringe)) continue;
+    const [sx, sy] = toScreen(lx, ly), w = ctx.measureText(t).width + 14;
+    ctx.fillStyle = 'rgba(17,28,22,.82)'; rr(sx - w / 2, sy - 10, w, 20, 10); ctx.fill();
+    ctx.fillStyle = c; ctx.fillText(t, sx, sy + .5);
   }
 }
 function drawSlope() {
@@ -897,7 +918,7 @@ function drawAim() {
 }
 function drawTargetLabel() {
   const [x, y] = toScreen(target[0], target[1]), d = Math.round(hyp(target[0] - ball.x, target[1] - ball.y));
-  const t = d + ' m'; ctx.font = '800 13px -apple-system,Segoe UI,Roboto,sans-serif';
+  const t = d + ' m'; ctx.font = '800 13px Outfit,-apple-system,Segoe UI,Roboto,sans-serif';
   const w = ctx.measureText(t).width + 16, yy = y - 30;
   ctx.fillStyle = 'rgba(31,42,34,.85)'; rr(x - w / 2, yy - 12, w, 24, 12); ctx.fill();
   ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(t, x, yy + 1);
@@ -932,7 +953,7 @@ function drawPuttLabel() {
   const a = puttDragVec(); if (!a) return;
   const flat = a.v * a.v / (2 * decOf('green'));
   const [x, y] = toScreen(ball.x, ball.y);
-  ctx.font = '800 13px -apple-system,Segoe UI,Roboto,sans-serif'; const t = flat.toFixed(1) + ' m'; const w = ctx.measureText(t).width + 16;
+  ctx.font = '800 13px Outfit,-apple-system,Segoe UI,Roboto,sans-serif'; const t = flat.toFixed(1) + ' m'; const w = ctx.measureText(t).width + 16;
   ctx.fillStyle = 'rgba(31,42,34,.85)'; rr(x - w / 2, y + 22, w, 24, 12); ctx.fill(); ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(t, x, y + 35);
   // Kraftbalken am Finger
   ctx.strokeStyle = 'rgba(255,255,255,.6)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(putDrag.sx, putDrag.sy); ctx.lineTo(putDrag.x, putDrag.y); ctx.stroke();
@@ -940,7 +961,7 @@ function drawPuttLabel() {
 function drawMeter() {
   const sb = safeBot(), bw = Math.min(W - 48, 400), x0 = (W - bw) / 2, y0 = H - sb - 118;
   ctx.fillStyle = 'rgba(17,28,22,.9)'; rr(x0 - 16, y0 - 38, bw + 32, 112, 22); ctx.fill();
-  ctx.font = '800 12px -apple-system,Segoe UI,Roboto,sans-serif'; ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+  ctx.font = '800 12px Outfit,-apple-system,Segoe UI,Roboto,sans-serif'; ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
   const dir = swing.ph === 'dir';
   ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.fillText(dir ? '1 · RICHTUNG – tippen, wenn die Linie passt' : '2 · KRAFT – am Strich stoppen', x0, y0 - 20);
   if (swing.perfect && !dir) { ctx.textAlign = 'right'; ctx.fillStyle = '#ffe07a'; ctx.fillText('PERFEKT', x0 + bw, y0 - 20); }
@@ -964,7 +985,7 @@ function drawMeter() {
 function drawFlightInfo() {
   if (!flight) return;
   const d = Math.round(hyp(ball.x - flight.S[0], ball.y - flight.S[1]));
-  ctx.font = '900 15px -apple-system,Segoe UI,Roboto,sans-serif'; const t = d + ' m'; const w = ctx.measureText(t).width + 22;
+  ctx.font = '900 15px Outfit,-apple-system,Segoe UI,Roboto,sans-serif'; const t = d + ' m'; const w = ctx.measureText(t).width + 22;
   const y = H - safeBot() - 40;
   ctx.fillStyle = 'rgba(31,42,34,.8)'; rr(W / 2 - w / 2, y - 15, w, 30, 15); ctx.fill(); ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(t, W / 2, y + 1);
 }
@@ -977,14 +998,27 @@ const fmtD = d => d === 0 ? 'E' : d > 0 ? '+' + d : '−' + (-d);
 function totalDiff() { let d = 0; round.scores.forEach((s, i) => d += s - round.holes[i].par); return d; }
 function updHud() {
   if (!hole) return;
-  $('#hTitle').textContent = 'Loch ' + (hi + 1) + ' · Par ' + hole.par + ' · ' + hole.len + ' m';
+  if (round.mini) {
+    const m = round.mini, b = miniBest();
+    $('#hTitle').textContent = round.label;
+    $('#hSub').textContent = 'Ball ' + Math.min(m.max, m.shots.length + 1) + '/' + m.max + ' · ' + (m.kind === 'ctp' ? hyp(hole.pin[0] - ball.x, hole.pin[1] - ball.y).toFixed(0) + ' m zur Fahne' : 'Driver vom Abschlag');
+    setScore(b == null ? '–' : m.kind === 'ctp' ? b.toFixed(1).replace('.', ',') + ' m' : b + ' m', 'BESTES');
+    const w = hole.wind; $('#windT').textContent = WXI[hole.wx] + ' ' + w.v + ' km/h'; $('#wind i').style.transform = 'rotate(' + (w.a + Math.PI / 2) + 'rad)'; $('#wind i').style.opacity = w.v ? 1 : .2;
+    return;
+  }
+  $('#hTitle').textContent = (hi >= 9 ? 'Stechen' : 'Loch ' + (hi + 1)) + ' · Par ' + hole.par + ' · ' + hole.len + ' m';
   const dPin = hyp(hole.pin[0] - ball.x, hole.pin[1] - ball.y);
   $('#hSub').textContent = (state === 'autoputt' ? 'Grün · ' + (ap.n === 1 ? '1 Putt' : ap.n + ' Putts') : (strokes === 0 ? 'Abschlag' : LIE[lie].n) + ' · ' + (dPin < 30 ? dPin.toFixed(1) : Math.round(dPin)) + ' m zur Fahne');
-  $('#scoreT').textContent = fmtD(totalDiff());
-  $('#strokeT').textContent = 'SCHLAG ' + (strokes + 1);
+  if (round.mode === 'match') setScore(msText(round.ms), 'VS ' + round.opp.n.split(' ').pop().toUpperCase());
+  else setScore(fmtD(totalDiff()), 'SCHLAG ' + (strokes + 1));
   const w = hole.wind; $('#windT').textContent = WXI[hole.wx] + ' ' + w.v + ' km/h';
   $('#wind i').style.transform = 'rotate(' + (w.a + Math.PI / 2) + 'rad)';
   $('#wind i').style.opacity = w.v ? 1 : .2;
+}
+function setScore(v, sub) {
+  const el = $('#scoreT');
+  if (el.textContent !== v) { el.textContent = v; const p = $('#score'); p.classList.remove('pop'); void p.offsetWidth; p.classList.add('pop'); }
+  $('#strokeT').textContent = sub;
 }
 function updPanel() {
   if (!hole) return;
@@ -1028,9 +1062,11 @@ $('#menuBtn').onclick = () => showOv(`<div class="big" style="font-size:28px">Ru
 function holeDone(score) {
   state = 'wait';
   round.scores[hi] = score; updHud();
+  if (round.mode === 'match') { matchHoleDone(score); return; }
   const d = score - hole.par;
   if (d === -1) save.birdies++; if (d <= -2) save.eagles++; if (score === 1) save.hio++;
   persist();
+  if (d < 0) confetti(d <= -2 ? 70 : 35);
   const name = scoreName(score, hole.par);
   const last = hi === round.holes.length - 1;
   showOv(`<div class="big" style="color:${d < 0 ? 'var(--acc)' : d > 0 ? 'var(--warn)' : 'var(--ink)'}">${name}</div>
@@ -1067,6 +1103,7 @@ function finishRound() {
   } else { cash = round.scores.reduce((a, s, i) => a + xpFor(s, round.holes[i].par) * 3, 0); xp = Math.round(xp * .6); head = 'Runde beendet'; }
   save.money += cash; save.earnings += cash;
   const ups = addXp(xp); persist();
+  if (round.mode === 'tour' && board(9).find(r => r.you).place <= 3) confetti(board(9).find(r => r.you).place === 1 ? 120 : 50);
   later(300, () => Snd.coin());
   if (ups) later(700, () => Snd.good());
   const btns = round.mode === 'tour'
@@ -1075,10 +1112,164 @@ function finishRound() {
   showOv(`<div class="sub" style="margin:0">${round.label} ${WXI[round.wx]}</div><div class="big">${head}</div>
     <div class="sub">${fmtD(d)} (${tot})${extra ? ' · ' + extra : ''}</div>
     ${round.field ? boardHtml(9, true) : ''}${cardHtml()}
-    <div class="chips"><span class="chip">+${money(cash)}</span><span class="chip xp">+${xp} XP</span>${ups ? `<span class="chip lv">Level ${save.lvl}! +${ups} Skillpunkt${ups > 1 ? 'e' : ''}</span>` : ''}</div>
+    <div class="chips"><span class="chip" data-count="${cash}" data-pre="+" data-suf=" $"></span><span class="chip xp" data-count="${xp}" data-pre="+" data-suf=" XP"></span>${ups ? `<span class="chip lv">Level ${save.lvl}! +${ups} Skillpunkt${ups > 1 ? 'e' : ''}</span>` : ''}</div>
     <div class="btns">${btns}</div>`);
 }
-function showOv(html) { $('#ovCard').innerHTML = html; $('#ov').classList.remove('hidden'); $('#ovCard').scrollTop = 0; }
+
+// ---------------- Effekte im UI ----------------
+function intro(t, sub, sub2) {
+  const el = $('#intro'); el.innerHTML = `<b>${t}</b><span>${sub}</span>${sub2 ? `<small>${sub2}</small>` : ''}`;
+  el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+}
+function confetti(n = 60) {
+  const box = $('#confetti'), cols = ['#ffd65c', '#5cc685', '#ffffff', '#ef8a5b', '#7cc3ff'];
+  for (let i = 0; i < n; i++) {
+    const d = document.createElement('i');
+    d.style.cssText = `left:${Math.random() * 100}%;background:${cols[i % cols.length]};animation-delay:${Math.random() * .4}s;animation-duration:${1.6 + Math.random() * 1.4}s;--dx:${(Math.random() - .5) * 160}px;--r:${Math.random() * 720 - 360}deg;width:${6 + Math.random() * 6}px;height:${8 + Math.random() * 8}px`;
+    box.appendChild(d); setTimeout(() => d.remove(), 3500);
+  }
+}
+function countUp(root) {
+  root.querySelectorAll('[data-count]').forEach(el => {
+    const end = +el.dataset.count, pre = el.dataset.pre || '', suf = el.dataset.suf || '', t0 = performance.now(), dur = 900;
+    const fmt = v => pre + Math.round(v).toLocaleString('de-DE') + suf;
+    const step = now => { const u = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - u, 3); el.textContent = fmt(end * e); if (u < 1) requestAnimationFrame(step); };
+    el.textContent = fmt(0); requestAnimationFrame(step);
+  });
+}
+
+// ---------------- Challenges: Closest to the Pin / Longest Drive ----------------
+const MEDALS = { ctp: [2.5, 5, 9], ld: [262, 246, 232] };
+const MREW = [[700, 90], [350, 60], [160, 35], [40, 12]];
+function miniBest() { const v = round.mini.shots.filter(x => x != null); if (!v.length) return null; return round.mini.kind === 'ctp' ? Math.min(...v) : Math.max(...v); }
+function miniShotDone(miss, holedIn) {
+  const m = round.mini; let v = null, txt;
+  if (m.kind === 'ctp') { v = miss ? null : holedIn ? 0 : hyp(ball.x - hole.pin[0], ball.y - hole.pin[1]); txt = v == null ? 'Daneben' : holedIn ? 'Hole-in-One!' : v.toFixed(1).replace('.', ',') + ' m'; if (holedIn) { save.hio++; confetti(80); } }
+  else { const l = lieAt(hole, ball.x, ball.y); v = miss || !['fairway', 'fringe', 'green'].includes(l) ? null : Math.round(hyp(ball.x - hole.tee[0], ball.y - hole.tee[1])); txt = v == null ? (miss ? 'Daneben' : 'Nicht auf dem Fairway') : v + ' m'; }
+  m.shots.push(v); state = 'wait';
+  const best = miniBest(); const isBest = v != null && v === best;
+  toast(txt, (isBest ? 'Neue Bestmarke · ' : '') + 'Ball ' + m.shots.length + '/' + m.max, 1400);
+  updHud();
+  later(1600, () => {
+    if (m.shots.length >= m.max) { miniFinish(); return; }
+    ball = { x: hole.tee[0], y: hole.tee[1], z: 0, vx: 0, vy: 0 }; strokes = 0; trail = []; flight = null; setupShot(); updHud();
+  });
+}
+function miniFinish() {
+  state = 'wait';
+  const m = round.mini, k = m.kind, best = miniBest(), th = MEDALS[k];
+  const medal = best == null ? 3 : k === 'ctp' ? (best <= th[0] ? 0 : best <= th[1] ? 1 : best <= th[2] ? 2 : 3) : (best >= th[0] ? 0 : best >= th[1] ? 1 : best >= th[2] ? 2 : 3);
+  const [cash, xp] = MREW[medal];
+  save.records = save.records || {};
+  const rec = save.records[k], newRec = best != null && (rec == null || (k === 'ctp' ? best < rec : best > rec));
+  if (newRec) save.records[k] = best;
+  save.money += cash; save.earnings += cash; const ups = addXp(xp); save.rounds++; persist();
+  if (medal === 0) confetti(90);
+  later(300, () => Snd.coin());
+  const fmtV = v => v == null ? '–' : k === 'ctp' ? v.toFixed(1).replace('.', ',') + ' m' : v + ' m';
+  const mi = ['🥇', '🥈', '🥉', '🎯'][medal], mn = ['Gold', 'Silber', 'Bronze', 'Keine Medaille'][medal];
+  showOv(`<div class="sub" style="margin:0">${round.label} ${WXI[round.wx]}</div><div class="medal">${mi}</div><div class="big">${mn}</div>
+    <div class="sub">Bestes: ${fmtV(best)}${newRec ? ' · Neuer Rekord!' : rec != null ? ' · Rekord ' + fmtV(rec) : ''}</div>
+    <div class="shots">${m.shots.map((v, i) => `<div class="${v === best && v != null ? 'b' : ''}"><small>Ball ${i + 1}</small><b>${fmtV(v)}</b></div>`).join('')}</div>
+    <div class="hint2">${k === 'ctp' ? 'Gold ≤ 2,5 m · Silber ≤ 5 m · Bronze ≤ 9 m' : 'Gold ≥ 262 m · Silber ≥ 246 m · Bronze ≥ 232 m'}</div>
+    <div class="chips"><span class="chip" data-count="${cash}" data-pre="+" data-suf=" $"></span><span class="chip xp" data-count="${xp}" data-pre="+" data-suf=" XP"></span>${ups ? `<span class="chip lv">Level ${save.lvl}!</span>` : ''}</div>
+    <div class="btns"><button class="btn" data-a="mini">Nochmal</button><button class="btn g" data-a="home">Zum Menü</button></div>`);
+}
+
+// ---------------- Matchplay Cup (1 gegen 1, K.-o.-Baum) ----------------
+const CUPS = [
+  { n: 'Bronze Matchplay', tier: 0, prize: [150, 450, 900, 2200], need: 0 },
+  { n: 'Silber Matchplay', tier: 1, prize: [700, 1800, 3600, 8000], need: 1 },
+  { n: 'Gold Matchplay', tier: 2, prize: [2500, 6000, 12000, 28000], need: 2 },
+];
+const RNDN = ['Viertelfinale', 'Halbfinale', 'Finale'];
+const msText = ms => ms > 0 ? ms + ' UP' : ms < 0 ? -ms + ' DN' : 'AS';
+function startCup(c) {
+  const t = CUPS[c].tier, [lo, hi2] = TOURS[t].skill, names = NAMES_F.slice().sort(() => Math.random() - .5);
+  const players = [{ n: 'Du', you: true, sk: 0 }].concat(names.slice(0, 7).map(n => ({ n, sk: lo + (hi2 - lo) * Math.random() })));
+  // gesetzt: Du gegen einen zufälligen Gegner, Rest gemischt
+  const order = [0, 1, 2, 3, 4, 5, 6, 7];
+  const rounds = [[[0, 1], [2, 3], [4, 5], [6, 7]].map(([a, b]) => ({ a: order[a], b: order[b], w: null, res: '' }))];
+  save.cup = { c, players, rounds, r: 0, out: false, done: false };
+  persist(); showScreen('cup');
+}
+function cupMyMatch() { const c = save.cup; return c.rounds[c.r].find(m => m.a === 0 || m.b === 0); }
+function cupOpp() { const m = cupMyMatch(); return m.a === 0 ? m.b : m.a; }
+function simOpp(h, sk) { const g = (Math.random() + Math.random() + Math.random() - 1.5) * 1.5; let d = Math.round(sk + (h.diff - .5) * .3 + g * .72); d = clamp(d, h.par === 5 ? -2 : -1, 3); return h.par + d; }
+function matchHoleDone(score) {
+  const o = simOpp(hole, round.opp.sk); round.oSc = round.oSc || []; round.oSc[hi] = o;
+  const res = score < o ? 1 : score > o ? -1 : 0; round.ms += res;
+  const n = hi + 1, rem = Math.max(0, 9 - n), decided = Math.abs(round.ms) > rem || (n >= 9 && round.ms !== 0);
+  if (res > 0) { Snd.good(); confetti(25); }
+  const head = res > 0 ? 'Loch gewonnen!' : res < 0 ? 'Loch verloren' : 'Loch geteilt';
+  const opp = round.opp.n;
+  let btn;
+  if (decided) btn = `<button class="btn" data-a="mend">Match beenden</button>`;
+  else if (n >= 9) { round.holes.push(genHole(rng(round.seed + n * 131), [4, 3, 4, 5][n % 4], round.holes[0].diff, round.wx)); btn = `<button class="btn" data-a="mnext">Stechen – Extraloch →</button>`; }
+  else btn = `<button class="btn" data-a="mnext">Loch ${n + 1} →</button>`;
+  showOv(`<div class="big" style="color:${res > 0 ? 'var(--acc)' : res < 0 ? 'var(--warn)' : 'var(--ink)'}">${head}</div>
+    <div class="vs"><div class="${res > 0 ? 'w' : ''}"><small>Du</small><b>${score}</b><em>${scoreName(score, hole.par)}</em></div><span>Loch ${n > 9 ? 'X' : n}</span><div class="${res < 0 ? 'w' : ''}"><small>${opp}</small><b>${o}</b><em>${scoreName(o, hole.par)}</em></div></div>
+    <div class="mstat">${decided ? (round.ms > 0 ? 'Du gewinnst ' : opp + ' gewinnt ') + matchResult() : 'Stand: ' + msText(round.ms) + (rem ? ' · noch ' + rem + ' Löcher' : '')}</div>
+    ${matchCard()}<div class="btns">${btn}</div>`);
+}
+function matchResult() { const n = round.scores.length, rem = Math.max(0, 9 - n), a = Math.abs(round.ms); return n > 9 ? 'am ' + n + '. Loch' : rem ? a + '&' + rem : a + ' UP'; }
+function matchCard() {
+  const hs = round.scores.map((s, i) => { const o = round.oSc[i], r = s < o ? 'w' : s > o ? 'l' : 'h'; return `<i class="${r}">${i >= 9 ? 'X' : i + 1}</i>`; }).join('');
+  return `<div class="mcard">${hs}</div>`;
+}
+function simMatch(m, P) {
+  const a = P[m.a], b = P[m.b], pa = 1 / (1 + Math.exp((a.sk - b.sk) * 7));
+  m.w = Math.random() < pa ? m.a : m.b;
+  const mg = 1 + Math.floor(Math.random() * 4), rest = Math.max(0, Math.min(mg - 1, 1 + Math.floor(Math.random() * 3)));
+  m.res = rest ? mg + '&' + rest : mg + ' UP';
+}
+function nextRound(c) {
+  const prev = c.rounds[c.r], nr = [];
+  for (let i = 0; i < prev.length; i += 2) nr.push({ a: prev[i].w, b: prev[i + 1].w, w: null, res: '' });
+  c.rounds.push(nr); c.r++;
+}
+function matchEnd() {
+  const c = save.cup, m = cupMyMatch(), won = round.ms > 0;
+  m.w = won ? 0 : cupOpp(); m.res = matchResult();
+  c.rounds[c.r].forEach(x => { if (x !== m) simMatch(x, c.players); });
+  let xp = 40 + (won ? 60 : 0) * (CUPS[c.c].tier + 1), cash = 0, msg;
+  if (!won) {
+    c.out = true; cash = CUPS[c.c].prize[c.r];
+    while (c.rounds[c.r].length > 1) { nextRound(c); c.rounds[c.r].forEach(x => simMatch(x, c.players)); }
+    msg = 'Aus im ' + RNDN[c.r_out = c.rounds.findIndex(r => r.includes(m))] + '. Preisgeld ' + money(cash);
+  } else if (c.r === 2) { c.done = true; cash = CUPS[c.c].prize[3]; save.cupWins = (save.cupWins || 0) + 1; msg = '🏆 Cup gewonnen! Preisgeld ' + money(cash); }
+  else { nextRound(c); msg = 'Weiter ins ' + RNDN[c.r] + '!'; }
+  if (c.out || c.done) { c.cash = cash; save.money += cash; save.earnings += cash; }
+  const ups = addXp(xp); save.rounds++; persist();
+  if (won) { confetti(c.done ? 120 : 60); Snd.good(); }
+  showOv(`<div class="sub" style="margin:0">${CUPS[c.c].n} · ${RNDN[c.out ? c.rounds.findIndex(r => r.includes(m)) : won && !c.done ? c.r - 1 : c.r]}</div>
+    <div class="big" style="color:${won ? 'var(--acc)' : 'var(--warn)'}">${won ? 'Sieg ' + m.res : 'Niederlage'}</div>
+    <div class="sub">${won ? 'gegen ' : 'gegen '}${round.opp.n}${won ? '' : ' · ' + m.res}</div>${matchCard()}
+    <div class="sub">${msg}</div>
+    <div class="chips">${cash ? `<span class="chip" data-count="${cash}" data-pre="+" data-suf=" $"></span>` : ''}<span class="chip xp" data-count="${xp}" data-pre="+" data-suf=" XP"></span>${ups ? `<span class="chip lv">Level ${save.lvl}!</span>` : ''}</div>
+    <div class="btns"><button class="btn" data-a="cup">Zum Turnierbaum</button></div>`);
+}
+function renderCup() {
+  const c = save.cup;
+  if (!c) {
+    $('#cup').innerHTML = `<div class="wrap">${back('Matchplay Cup')}
+      <p class="help" style="text-align:left;margin:0 4px 14px">1 gegen 1, Loch für Loch. Wer ein Loch mit weniger Schlägen spielt, gewinnt es. Acht Spieler, K.-o.-System: Viertelfinale, Halbfinale, Finale.</p>
+      ${CUPS.map((C, i) => { const lock = save.tourOpen < C.need; return `<div class="card ev ${lock ? 'lock' : ''}"><div class="no">${['🥉', '🥈', '🥇'][i]}</div><div class="tx"><b>${C.n}</b><span>${lock ? '🔒 Schalte die ' + TOURS[C.need].n + ' frei' : 'Siegprämie ' + money(C.prize[3])}</span></div><button class="sbtn ${lock ? 'dis' : ''}" data-cup="${i}" ${lock ? 'disabled' : ''}>Start</button></div>`; }).join('')}
+    </div>`;
+    return;
+  }
+  const P = c.players, nm = i => i == null ? '?' : P[i].n, col = (ms, ri) => `<div class="bcol"><h4>${RNDN[ri]}</h4>${ms.map(m => `<div class="bm ${m.a === 0 || m.b === 0 ? 'mine' : ''}">
+      <div class="${m.w === m.a ? 'w' : m.w != null ? 'l' : ''}">${nm(m.a)}</div><div class="${m.w === m.b ? 'w' : m.w != null ? 'l' : ''}">${nm(m.b)}</div>${m.res ? `<small>${m.res}</small>` : ''}</div>`).join('')}</div>`;
+  const cols = [0, 1, 2].map(ri => c.rounds[ri] ? col(c.rounds[ri], ri) : col(Array.from({ length: [4, 2, 1][ri] }, () => ({ a: null, b: null, w: null })), ri)).join('');
+  const champ = c.rounds[2] && c.rounds[2][0].w != null ? P[c.rounds[2][0].w].n : null;
+  let action;
+  if (c.done) action = `<div class="card champ"><div class="medal">🏆</div><b>Du bist Cup-Sieger!</b><span>${money(c.cash)} Preisgeld</span></div><button class="btn" data-cupclose="1">Cup abschliessen</button>`;
+  else if (c.out) action = `<div class="card champ"><b>${champ ? champ + ' gewinnt den Cup' : 'Ausgeschieden'}</b><span>Dein Preisgeld: ${money(c.cash || 0)}</span></div><button class="btn" data-cupclose="1">Cup abschliessen</button>`;
+  else { const o = P[cupOpp()]; action = `<div class="card nextm"><small>${RNDN[c.r]}</small><div class="vsr"><b>Du</b><span>vs</span><b>${o.n}</b></div><span class="sk">Gegnerstärke ${'★'.repeat(o.sk < -.1 ? 3 : o.sk < .2 ? 2 : 1)}</span></div><button class="btn" data-go="match">Match starten</button>`; }
+  $('#cup').innerHTML = `<div class="wrap">${back(CUPS[c.c].n)}<div class="bracket">${cols}</div>${action}</div>`;
+}
+
+function showOv(html) { $('#ovCard').innerHTML = html; $('#ov').classList.remove('hidden'); $('#ovCard').scrollTop = 0; countUp($('#ovCard')); }
 function hideOv() { $('#ov').classList.add('hidden'); }
 $('#ov').addEventListener('click', e => {
   const b = e.target.closest('[data-a]'); if (!b) return; const a = b.dataset.a;
@@ -1088,13 +1279,17 @@ $('#ov').addEventListener('click', e => {
   else if (a === 'finish') finishRound();
   else if (a === 'again') startRound(round.mode, round.mode === 'tour' ? { t: round.t, e: round.e } : {});
   else if (a === 'career') showScreen('career');
+  else if (a === 'cup') showScreen('cup');
+  else if (a === 'mnext') startHole(hi + 1);
+  else if (a === 'mend') matchEnd();
+  else if (a === 'mini') startRound(round.mode);
   else showScreen('home');
 });
 
 function enterPlay() { mode = 'play'; SCREENS.forEach(id => $('#' + id).classList.add('hidden')); hud.classList.remove('hidden'); panel.classList.remove('hidden'); }
 
 // ---------------- Menüs ----------------
-const SCREENS = ['home', 'career', 'player', 'shop'];
+const SCREENS = ['home', 'career', 'player', 'shop', 'cup'];
 const logo = `<svg viewBox="0 0 40 40"><polygon points="20,2 36,11 36,29 20,38 4,29 4,11" fill="#3b9a62"/><polygon points="20,2 36,11 20,20" fill="#4fb576"/><polygon points="4,29 20,20 20,38" fill="#2f7d4f"/><path d="M17 9v19" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/><path d="M17 9l9 3.5-9 3.5z" fill="#e8503a"/></svg>`;
 const moneyHtml = () => `<div class="coins">${money(save.money)}</div>`;
 const back = t => `<div class="top"><button class="pill ib" data-go="home">‹</button><h2>${t}</h2>${moneyHtml()}</div>`;
@@ -1102,7 +1297,8 @@ function showScreen(name) {
   mode = 'menu'; round = null; hole = null; timers = [];
   hud.classList.add('hidden'); panel.classList.add('hidden'); hideOv();
   SCREENS.forEach(id => $('#' + id).classList.toggle('hidden', id !== name));
-  ({ home: renderHome, career: renderCareer, player: renderPlayer, shop: renderShop })[name]();
+  ({ home: renderHome, career: renderCareer, player: renderPlayer, shop: renderShop, cup: renderCup })[name]();
+  const el = $('#' + name); el.classList.remove('enter'); void el.offsetWidth; el.classList.add('enter'); el.scrollTop = 0;
 }
 function renderHome() {
   const [t, e] = nextEvent(), need = xpNeed(save.lvl);
@@ -1113,14 +1309,22 @@ function renderHome() {
     <div class="card hero"><div class="k">${TOURS[t].n} · Turnier ${e + 1}/4</div><div class="t">${TOURS[t].ev[e]}</div>
       <div class="s">${WXI[evWx(t, e)]} ${evWx(t, e)} · Preisgeld ${money(TOURS[t].purse[e])} · 12 Spieler</div>
       <button class="btn w" data-ev="${t}-${e}">Antreten</button></div>
+    <div class="sech">Spielmodi</div>
     <div class="grid2">
-      <button class="card tile" data-go="career"><span>🏆</span><b>Karriere</b><small>3 Touren · 12 Turniere</small></button>
-      <button class="card tile" data-go="player"><span>🏌️</span><b>Spieler</b><small>${save.sp ? save.sp + (save.sp === 1 ? ' Punkt' : ' Punkte') + ' frei' : 'Skills ansehen'}</small></button>
+      <button class="card tile t1" data-go="career"><span>🏆</span><b>Karriere</b><small>3 Touren · 12 Turniere</small></button>
+      <button class="card tile t2" data-go="cup"><span>⚔️</span><b>Matchplay Cup</b><small>${save.cup && !save.cup.out && !save.cup.done ? RNDN[save.cup.r] + ' läuft' : '1 gegen 1 · K.-o.'}</small></button>
+      <button class="card tile t3" data-go="ctp"><span>🎯</span><b>Closest to the Pin</b><small>Rekord ${save.records && save.records.ctp != null ? save.records.ctp.toFixed(1).replace('.', ',') + ' m' : '–'}</small></button>
+      <button class="card tile t4" data-go="ld"><span>💥</span><b>Longest Drive</b><small>Rekord ${save.records && save.records.ld != null ? save.records.ld + ' m' : '–'}</small></button>
+    </div>
+    <button class="card wide" data-go="free"><span>🌤️</span><div><b>Freies Spiel</b><small>Zufälliger 9-Loch-Platz, zufälliges Wetter</small></div><em>›</em></button>
+    <div class="sech">Dein Spieler</div>
+    <div class="grid2">
+      <button class="card tile" data-go="player"><span>🏌️</span><b>Skills</b><small>${save.sp ? save.sp + (save.sp === 1 ? ' Punkt' : ' Punkte') + ' frei' : 'Werte ansehen'}</small>${save.sp ? '<i class="badge">' + save.sp + '</i>' : ''}</button>
       <button class="card tile" data-go="shop"><span>🛍️</span><b>Ausrüstung</b><small>Schläger kaufen</small></button>
-      <button class="card tile" data-go="free"><span>🌤️</span><b>Freies Spiel</b><small>Zufälliger Platz</small></button>
     </div>
     <div class="card stat"><div><b>${save.rounds}</b><span>Runden</span></div><div><b>${save.birdies}</b><span>Birdies</span></div><div><b>${money(save.earnings)}</b><span>Preisgeld</span></div></div>
     <p class="help">Ziel antippen · Schläger, Draw/Fade, Spin wählen · „Schlagen“<br>1. Tipp stoppt die pendelnde Linie · 2. Tipp stoppt die Kraft<br>Auf dem Grün: goldener Ring = 1 Putt, weisser Ring = 2, sonst 3</p>
+    <p class="ver">Fairway · Version 1.0</p>
   </div>`;
 }
 function renderCareer() {
@@ -1161,7 +1365,10 @@ document.addEventListener('click', e => {
   if (e.target.closest('#mute')) { save.muted = !save.muted; persist(); renderHome(); return; }
   const q = sel => e.target.closest(sel);
   const g = q('[data-go]'), ev = q('[data-ev]'), b = q('[data-buy]'), eq = q('[data-equip]'), sk = q('[data-skill]');
-  if (g) { Snd.init(); const v = g.dataset.go; if (v === 'free') startRound('free'); else showScreen(v); }
+  const cu = q('[data-cup]'), cc = q('[data-cupclose]');
+  if (cu) { Snd.init(); startCup(+cu.dataset.cup); return; }
+  if (cc) { save.cup = null; persist(); showScreen('cup'); return; }
+  if (g) { Snd.init(); Snd.tick(); const v = g.dataset.go; if (['free', 'ctp', 'ld', 'match'].includes(v)) startRound(v); else showScreen(v); }
   else if (ev) { Snd.init(); const [t, n] = ev.dataset.ev.split('-').map(Number); startRound('tour', { t, e: n }); }
   else if (b) { const [slot, i] = b.dataset.buy.split('-'), m = GEAR[slot].m[+i]; if (save.money >= m.p) { save.money -= m.p; save.owned[slot].push(+i); save.gear[slot] = +i; persist(); Snd.coin(); buzz(20); renderShop(); } }
   else if (eq) { const [slot, i] = eq.dataset.equip.split('-'); save.gear[slot] = +i; persist(); Snd.tick(); renderShop(); }
