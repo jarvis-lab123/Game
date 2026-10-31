@@ -9,12 +9,17 @@ const cv = $('#c'), ctx = cv.getContext('2d');
 let W = 0, H = 0, DPR = 1;
 function resize() {
   DPR = Math.min(3, window.devicePixelRatio || 1);
-  W = innerWidth; H = innerHeight;
+  W = innerWidth;
+  H = Math.max(innerHeight, document.documentElement.clientHeight || 0);
+  // iOS-Homescreen-App: innerHeight endet teils über der Home-Leiste – volle Bildschirmhöhe nutzen
+  if (navigator.standalone && screen.height > H && Math.abs(screen.width - W) < 2) H = screen.height;
   cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
   cv.style.width = W + 'px'; cv.style.height = H + 'px';
   _st = _sb = null;
 }
 addEventListener('resize', resize);
+addEventListener('orientationchange', () => setTimeout(resize, 300));
+if (window.visualViewport) visualViewport.addEventListener('resize', resize);
 
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
@@ -622,10 +627,13 @@ function hitBall() {
   const perfect = Math.abs(a) <= perfZone();
   hs.swings++; if (perfect) hs.perfect++; if (lie === 'sand') hs.sand = true; if (strokes === 0) hs.teeClub = c.id;
   if (perfect) a = 0;
-  const over = Math.max(0, p - 1);
-  let carryAct = carry(c) * (p <= 1 ? p : 1 + over * .45);
+  // Überschwung: bis 3 % über Maximum harmlos, darüber wird es riskant (Glück + gute Linie helfen)
+  const over = Math.max(0, p - 1), hard = Math.max(0, over - .03);
+  let carryAct = carry(c) * (p <= 1 ? p : 1 + over * .55);
+  let ovErr = 0;
+  if (hard > 0) { const luck = (Math.random() + Math.random() + Math.random() - 1.5) / 1.5; ovErr = luck * hard * 120 * (perfect ? .45 : 1) + (perfect ? 0 : Math.sign(a || luck) * hard * 25); }
   if (spin) carryAct *= spin < 0 ? .98 : .97;
-  let errDeg = a * maxDev(c) + (over ? Math.sign(a || (Math.random() - .5)) * over * 25 : 0);
+  let errDeg = a * maxDev(c) + ovErr;
   if (shape && !perfect) errDeg *= 1.1;
   const dx = (target[0] - S[0]) / dist, dy = (target[1] - S[1]) / dist;
   const [rx, ry] = rot(dx, dy, errDeg * Math.PI / 180);
@@ -640,7 +648,7 @@ function hitBall() {
   state = 'flight'; ffwd = false; trail = [];
   Snd.swing(p); buzz(15);
   const msg = perfect ? 'Perfekt!' : Math.abs(a) < .35 ? (a > 0 ? 'Leicht rechts' : 'Leicht links') : Math.abs(a) < .8 ? (a > 0 ? 'Push' : 'Pull') : (a > 0 ? 'Slice!' : 'Hook!');
-  toast(msg, over > .02 ? 'Überschwung' : null, 900);
+  toast(hard > 0 ? (Math.abs(ovErr) < 2 ? 'Überschwung – sauber!' : 'Überschwung!') : msg, hard > 0 ? msg : over > 0 ? 'Volle Kraft' : null, 1000);
   updHud(); updPanel();
 }
 
@@ -1179,9 +1187,10 @@ function drawMeter() {
   } else {
     const full = bw / 1.1, pv = swing.ph === 'power' ? swingVal() : swing.p;
     ctx.fillStyle = 'rgba(255,255,255,.1)'; rr(x0, y0, bw, 22, 11); ctx.fill();
-    ctx.fillStyle = 'rgba(232,80,58,.25)'; ctx.fillRect(x0 + full, y0, bw - full, 22);
+    ctx.fillStyle = 'rgba(242,193,78,.3)'; ctx.fillRect(x0 + full, y0, full * .03, 22);
+    ctx.fillStyle = 'rgba(232,80,58,.28)'; ctx.fillRect(x0 + full * 1.03, y0, bw - full * 1.03, 22);
     const g = ctx.createLinearGradient(x0, 0, x0 + full, 0); g.addColorStop(0, '#2f7d4f'); g.addColorStop(1, '#7fd88f');
-    ctx.fillStyle = pv > 1 ? '#e8503a' : g; rr(x0, y0, Math.max(22, Math.min(bw, pv * full)), 22, 11); ctx.fill();
+    ctx.fillStyle = pv > 1.03 ? '#e8503a' : pv > 1 ? '#f2c14e' : g; rr(x0, y0, Math.max(22, Math.min(bw, pv * full)), 22, 11); ctx.fill();
     ctx.fillStyle = '#fff'; rr(x0 + swing.pt * full - 2, y0 - 6, 4, 34, 2); ctx.fill();
     ctx.textAlign = 'center'; ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.fillText(Math.round(hyp(target[0] - ball.x, target[1] - ball.y)) + ' m', x0 + swing.pt * full, y0 + 40);
   }
@@ -1284,7 +1293,25 @@ function holeDone(score) {
 const NAMES = { '-3': 'Albatros', '-2': 'Eagle', '-1': 'Birdie', '0': 'Par', '1': 'Bogey', '2': 'Doppel-Bogey', '3': 'Triple-Bogey' };
 function scoreName(s, par) { if (s === 1) return 'Hole-in-One!'; const d = s - par; return NAMES[d] || (d > 0 ? '+' + d : String(d)); }
 function sqClass(s, par) { const d = s - par; return d <= -2 ? 's-e' : d === -1 ? 's-b' : d === 0 ? 's-p' : d === 1 ? 's-o' : 's-d'; }
+function scoreSym(s, par) {
+  const d = s - par, cls = s === 1 ? 'ace' : d <= -2 ? 'eagle' : d === -1 ? 'birdie' : d === 0 ? 'par' : d === 1 ? 'bogey' : 'dbl';
+  return `<span class="ss ${cls}">${s}</span>`;
+}
+function nineHtml(a, b, lab) {
+  const hs = round.holes.slice(a, b), sc = round.scores.slice(a, b), pt = hs.reduce((x, h) => x + h.par, 0), done = sc.filter(x => x != null);
+  const cols = hs.length + 1;
+  return `<div class="nine" style="grid-template-columns:repeat(${cols},1fr)">
+    ${hs.map((_, i) => `<i class="hn">${a + i + 1}</i>`).join('')}<i class="hn t">${lab}</i>
+    ${hs.map(h => `<i class="hp">${h.par}</i>`).join('')}<i class="hp t">${pt}</i>
+    ${hs.map((h, i) => sc[i] == null ? '<i class="hv">·</i>' : `<i class="hv">${scoreSym(sc[i], h.par)}</i>`).join('')}<i class="hv t"><b>${done.length ? done.reduce((x, y) => x + y, 0) : '–'}</b></i>
+  </div>`;
+}
+const SC_LEGEND = '<div class="sclegend"><span><span class="ss eagle">3</span>Eagle</span><span><span class="ss birdie">3</span>Birdie</span><span><span class="ss bogey">5</span>Bogey</span><span><span class="ss dbl">6</span>Doppel+</span></div>';
 function cardHtml() {
+  if (round.mode !== 'match' || round.holes.length <= 9) {
+    const n = round.holes.length;
+    return `<div class="scard">${n > 9 ? nineHtml(0, 9, 'OUT') + nineHtml(9, n, 'IN') : nineHtml(0, n, 'Σ')}</div>`;
+  }
   if (round.holes.length > 9 && round.mode !== 'match') return cardPart(0, 9, 'Out') + cardPart(9, 18, 'In');
   const hs = round.holes;
   const cell = (i) => { const s = round.scores[i]; return s == null ? '<td>·</td>' : `<td><span class="sq ${sqClass(s, hs[i].par)}">${s}</span></td>`; };
@@ -1314,7 +1341,7 @@ function finishRound() {
     const key = t + '-' + e, prev = save.results[key];
     if (!prev || place < prev.place) save.results[key] = { place, d };
     if (place === 1) { save.wins++; if (save.tourOpen < t + 1 && t + 1 < TOURS.length) { save.tourOpen = t + 1; extra = '🔓 ' + TOURS[t + 1].n + ' freigeschaltet!'; } }
-    head = place === 1 ? '🏆 Turniersieg!' : me.pos + '. Platz';
+    head = place === 1 ? 'Turniersieg!' : (me.pos[0] === 'T' ? 'Geteilter ' : '') + place + '. Platz';
     if (place === 1 && t === 2 && e === 3) extra = '👑 Du hast das Major gewonnen!';
   } else { delete save.cur; cash = round.scores.reduce((a, s, i) => a + xpFor(s, round.holes[i].par) * 3, 0); xp = Math.round(xp * .6); head = 'Runde beendet'; }
   save.money += cash; save.earnings += cash;
@@ -1325,9 +1352,13 @@ function finishRound() {
   const btns = round.mode === 'tour'
     ? `<button class="btn" data-a="career">Weiter zur Karriere</button><button class="btn g" data-a="again">Turnier wiederholen</button>`
     : `<button class="btn" data-a="again">Nochmal spielen</button><button class="btn g" data-a="home">Zum Menü</button>`;
-  showOv(`<div class="sub" style="margin:0">${round.label} ${WXI[round.wx]}</div><div class="big">${head}</div>
-    <div class="sub">${fmtD(d)} (${tot})${extra ? ' · ' + extra : ''}</div>
-    ${roundStatsHtml(rinfo)}${round.field ? boardHtml(9, true) : ''}${cardHtml()}
+  const place = round.field ? board(round.holes.length).find(r => r.you) : null;
+  showOv(`<div class="fin th-${round.th}"><div class="fin-k">${THEMES[round.th] ? THEMES[round.th].ic : ''} ${round.label} · ${round.holes.length} Loch · ${WXI[round.wx]} ${wxN(round.wx)}</div>
+      <div class="fin-row"><div class="fin-big">${place ? (place.place === 1 ? '🏆' : place.place + '.') : fmtD(d)}</div>
+      <div class="fin-tx"><b>${head}</b><span>${fmtD(d)} · ${tot} Schläge · Par ${par}</span>${extra ? `<em>${extra}</em>` : ''}</div></div></div>
+    ${roundStatsHtml(rinfo)}
+    ${round.field ? `<div class="fsec">Leaderboard</div>${boardHtml(round.holes.length, false)}` : ''}
+    <div class="fsec">Scorekarte</div>${cardHtml()}${SC_LEGEND}
     <div class="chips"><span class="chip" data-count="${cash}" data-pre="+" data-suf=" $"></span><span class="chip xp" data-count="${xp}" data-pre="+" data-suf=" XP"></span>${ups ? `<span class="chip lv">Level ${save.lvl}! +${ups} Skillpunkt${ups > 1 ? 'e' : ''}</span>` : ''}</div>
     <div class="btns">${btns}</div>`);
 }
@@ -1378,8 +1409,8 @@ function recordRound() {
 function roundStatsHtml(info) {
   if (!info) return '';
   const { rec, before, after } = info, ch = before != null && after != null ? after - before : null;
-  return `<div class="rstat"><div><b>${rec.fir}/${rec.firN}</b><small>Fairways</small></div><div><b>${rec.gir}/${rec.n}</b><small>Grüns (GIR)</small></div><div><b>${rec.putts}</b><small>Putts</small></div></div>
-    <div class="hcpline">HCP-Differenz <b>${fmtH(rec.diff)}</b> · Handicap <b>${fmtH(after)}</b>${ch ? ` <span class="${ch < 0 ? 'dn' : 'up'}">${ch < 0 ? '▼' : '▲'} ${Math.abs(ch).toFixed(1).replace('.', ',')}</span>` : after == null ? ` <span>(noch ${3 - save.hist.length} Runde${3 - save.hist.length === 1 ? '' : 'n'})</span>` : ''}</div>`;
+  return `<div class="rstat"><div><b>${rec.fir}/${rec.firN}</b><small>Fairways</small></div><div><b>${rec.gir}/${rec.n}</b><small>Grüns</small></div><div><b>${rec.putts}</b><small>Putts</small></div><div><b>${fmtH(rec.diff)}</b><small>HCP-Diff.</small></div></div>
+    <div class="hcpline">Handicap <b>${fmtH(after)}</b>${ch ? ` <span class="${ch < 0 ? 'dn' : 'up'}">${ch < 0 ? '▼' : '▲'} ${Math.abs(ch).toFixed(1).replace('.', ',')}</span>` : after == null ? ` <span>(noch ${3 - save.hist.length} Runde${3 - save.hist.length === 1 ? '' : 'n'})</span>` : ''}</div>`;
 }
 const pct = (a, b) => b ? Math.round(a / b * 100) + ' %' : '–';
 const avg = (a, b, d = 1) => b ? (a / b).toFixed(d).replace('.', ',') : '–';
@@ -1653,7 +1684,7 @@ function renderHome() {
     <button class="card wide" data-go="stats"><span>📊</span><div><b>Statistiken & Handicap</b><small>HCP ${fmtH(hcpIndex())} · Fairways ${pct(save.st.fir, save.st.firN)} · GIR ${pct(save.st.gir, save.st.girN)} · ${avg(save.st.putts, save.st.holes / 9)} Putts</small></div><em>›</em></button>
     <div class="card stat"><div><b>${save.rounds}</b><span>Runden</span></div><div><b>${save.birdies}</b><span>Birdies</span></div><div><b>${money(save.earnings)}</b><span>Preisgeld</span></div></div>
     <p class="help">Ziel antippen · Schläger, Draw/Fade, Spin wählen · „Schlagen“<br>1. Tipp stoppt die pendelnde Linie · 2. Tipp stoppt die Kraft<br>Auf dem Grün: goldener Ring = 1 Putt, weisser Ring = 2, sonst 3</p>
-    <p class="ver">Fairway · Version 1.2</p>
+    <p class="ver">Fairway · Version 1.3</p>
   </div>`;
 }
 function renderCareer() {
