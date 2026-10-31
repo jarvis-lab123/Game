@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<meta name="theme-color" content="#f2f0e8">
-<title>Fairway – Tägliches Golf</title>
+<meta name="theme-color" content="#111c16">
+<title>Fairway – Golf-Karriere</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -59,41 +59,58 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;paddin
 #toast.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
 #toast small{display:block;font-size:13px;font-weight:700;opacity:.8;text-align:center}
 
-/* Screens */
-.screen{position:fixed;inset:0;overflow-y:auto;background:var(--bg);padding:calc(var(--st) + 16px) 16px calc(var(--sb) + 24px);touch-action:pan-y}
+/* Screens – dunkles Sport-Design */
+.screen{position:fixed;inset:0;overflow-y:auto;padding:calc(var(--st) + 14px) 16px calc(var(--sb) + 24px);touch-action:pan-y;
+  --ink:#eef3ec;--soft:#8fa294;--card:#1c2b22;--line:#2a3d31;background:radial-gradient(120% 60% at 50% 0%,#1f3a2a 0%,#111c16 60%);color:var(--ink)}
 .wrap{max-width:460px;margin:0 auto}
 .top{display:flex;align-items:center;gap:10px;margin-bottom:16px}
 .top h2{flex:1;margin:0;font-size:22px;font-weight:900}
-.coins{font-weight:800;background:#fff;border-radius:20px;padding:7px 12px;font-size:15px;box-shadow:0 2px 0 rgba(0,0,0,.05)}
-.logo{font-size:46px;font-weight:900;letter-spacing:-1.5px;margin:22px 0 2px;display:flex;align-items:center;gap:8px}
-.logo svg{width:40px;height:40px}
-.tag{color:var(--soft);font-weight:700;margin-bottom:22px}
-.card{background:var(--card);border-radius:20px;padding:16px;box-shadow:0 3px 0 rgba(0,0,0,.05);margin-bottom:12px}
-.daily{background:var(--acc);color:#fff;position:relative;overflow:hidden}
-.daily .k{opacity:.8;font-weight:800;font-size:12px;letter-spacing:.8px;text-transform:uppercase}
-.daily .t{font-size:28px;font-weight:900;margin:3px 0 4px}
-.daily .s{font-weight:700;opacity:.92;margin-bottom:14px;font-size:14px}
-.btn{display:block;width:100%;padding:14px;border-radius:15px;font-weight:900;font-size:16px;background:var(--ink);color:#fff;text-align:center;box-shadow:0 3px 0 rgba(0,0,0,.12)}
-.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.12)}
-.btn.w{background:#fff;color:var(--ink)}
-.btn.g{background:#e6e8e1;color:var(--ink);box-shadow:none}
-.row{display:flex;gap:10px}.row>*{flex:1}
-.mi{display:flex;align-items:center;gap:14px;width:100%;text-align:left}
-.mi .ic{width:46px;height:46px;border-radius:14px;background:var(--bg);display:grid;place-items:center;font-size:22px;flex:none}
-.mi .tx{flex:1}.mi .tx b{display:block;font-size:16.5px}.mi .tx span{color:var(--soft);font-size:13px;font-weight:600}
-.mi .ar{color:var(--soft);font-size:22px;font-weight:800}
-.ev{display:flex;align-items:center;gap:12px}
-.ev .no{width:40px;height:40px;border-radius:12px;background:var(--bg);display:grid;place-items:center;font-weight:900}
-.ev .tx{flex:1}.ev .tx b{display:block}.ev .tx span{font-size:12.5px;color:var(--soft);font-weight:700}
-.ev.lock{opacity:.45}
-.sbtn{padding:9px 14px;border-radius:12px;font-weight:800;font-size:14px;background:var(--ink);color:#fff}
-.sbtn.dis{background:#e2e5de;color:#a5ada3}
-.sk{display:flex;gap:14px}
-.sk .ic{width:50px;height:50px;border-radius:15px;background:var(--bg);display:grid;place-items:center;font-size:24px;flex:none}
-.sk .tx{flex:1}.sk .tx b{font-size:16.5px}.sk .tx p{margin:3px 0 8px;color:var(--soft);font-size:13px;font-weight:600;line-height:1.35}
-.dots{display:flex;gap:4px;margin-bottom:10px}.dots i{flex:1;max-width:30px;height:6px;border-radius:3px;background:#e2e5de}.dots i.f{background:var(--acc)}
+.screen .pill{background:#24362b;color:var(--ink);box-shadow:none}
+.coins{font-weight:900;background:#24362b;color:#f2c14e;border-radius:20px;padding:8px 13px;font-size:14px;white-space:nowrap}
+.logo{font-size:24px;font-weight:900;letter-spacing:-.5px;display:flex;align-items:center;gap:8px}
+.logo svg{width:34px;height:34px}
+.card{background:var(--card);border-radius:20px;padding:16px;margin-bottom:12px;border:1px solid var(--line)}
+.prof{display:flex;gap:14px;align-items:center}
+.av{width:56px;height:56px;border-radius:18px;background:linear-gradient(135deg,#4fb576,#2f7d4f);display:grid;place-items:center;font-weight:900;font-size:17px;flex:none}
+.prof .tx{flex:1;min-width:0}.prof b{font-size:18px}.prof span{display:block;color:var(--soft);font-size:13px;font-weight:700;margin-top:2px}
+.prof small{display:block;color:var(--soft);font-size:12px;font-weight:700;margin-top:5px}
+.spn{color:#f2c14e}
+.xpb{height:7px;border-radius:4px;background:#2a3d31;margin-top:8px;overflow:hidden}.xpb i{display:block;height:100%;background:linear-gradient(90deg,#4fb576,#9be07a);border-radius:4px}
+.hero{background:linear-gradient(135deg,#2f7d4f 0%,#1f5a39 100%);border:0;position:relative;overflow:hidden}
+.hero:after{content:"";position:absolute;right:-30px;top:-30px;width:140px;height:140px;background:rgba(255,255,255,.07);transform:rotate(30deg);border-radius:22px}
+.hero .k{opacity:.8;font-weight:800;font-size:12px;letter-spacing:.8px;text-transform:uppercase}
+.hero .t{font-size:26px;font-weight:900;margin:4px 0 4px}
+.hero .s{font-weight:700;opacity:.9;margin-bottom:14px;font-size:13.5px}
+.btn{display:block;width:100%;padding:14px;border-radius:15px;font-weight:900;font-size:16px;background:var(--ink);color:#fff;text-align:center;box-shadow:0 3px 0 rgba(0,0,0,.15)}
+.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.15)}
+.btn.w{background:#fff;color:#1f2a22}
+.btn.g{background:#e6e8e1;color:#1f2a22;box-shadow:none}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.tile{margin:0;text-align:left;display:flex;flex-direction:column;gap:3px;padding:14px}
+.tile span{font-size:24px;margin-bottom:4px}.tile b{font-size:15.5px}.tile small{color:var(--soft);font-size:12px;font-weight:700}
+.tile:active{transform:scale(.98)}
+.tourh{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:18px 4px 8px}.tourh b{white-space:nowrap}.tourh span{text-align:right}
+.tourh b{font-size:17px}.tourh span{color:var(--soft);font-size:12.5px;font-weight:700}
+.tourh.lock{opacity:.6}
+.ev{display:flex;align-items:center;gap:12px;padding:12px 14px;margin-bottom:8px}
+.ev .no{width:42px;height:42px;border-radius:12px;background:#24362b;display:grid;place-items:center;font-weight:900;font-size:17px;flex:none}
+.ev .tx{flex:1;min-width:0}.ev .tx b{display:block;font-size:15px}.ev .tx span{font-size:12px;color:var(--soft);font-weight:700}
+.ev.lock{opacity:.4}
+.gear .no{font-size:10px;color:#f2c14e;letter-spacing:-1px}
+.gear.eq{border-color:#4fb576}
+.sbtn{padding:9px 13px;border-radius:12px;font-weight:900;font-size:13px;background:#4fb576;color:#0f1a13;white-space:nowrap}
+.sbtn.dis{background:#2a3d31;color:#6c7f71}
+.sbtn.on{background:transparent;color:#4fb576;border:1.5px solid #4fb576}
+.sk{display:flex;gap:12px;align-items:center}
+.sk .ic{width:46px;height:46px;border-radius:14px;background:#24362b;display:grid;place-items:center;font-size:22px;flex:none}
+.sk .tx{flex:1}.skh{display:flex;justify-content:space-between}.skh b{font-size:16px}.skh em{font-style:normal;color:var(--soft);font-weight:800;font-size:13px}
+.sk p{margin:3px 0 8px;color:var(--soft);font-size:12.5px;font-weight:600;line-height:1.35}
+.dots{display:flex;gap:3px}.dots i{flex:1;height:6px;border-radius:3px;background:#2a3d31}.dots i.f{background:#4fb576}
+.plus{width:44px;height:44px;border-radius:14px;background:#4fb576;color:#0f1a13;font-size:26px;font-weight:900;flex:none}
+.plus.dis{background:#2a3d31;color:#6c7f71}
 .stat{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
-.stat b{display:block;font-size:22px;font-weight:900}.stat span{font-size:12px;color:var(--soft);font-weight:700}
+.stat b{display:block;font-size:19px;font-weight:900}.stat span{font-size:12px;color:var(--soft);font-weight:700}
+.help{color:var(--soft);font-size:12.5px;font-weight:600;text-align:center;line-height:1.55}
 
 /* Overlays */
 .ov{position:fixed;inset:0;display:flex;align-items:flex-end;justify-content:center;background:rgba(20,30,22,.28);padding:0 12px calc(var(--sb) + 12px);z-index:5}
@@ -101,7 +118,14 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;paddin
 @keyframes up{from{transform:translateY(60px);opacity:0}}
 .big{font-size:38px;font-weight:900;letter-spacing:-1px}
 .sub{color:var(--soft);font-weight:700;margin:3px 0 14px}
-.chip{display:inline-block;background:#fbf1d3;color:#9a7409;font-weight:900;border-radius:12px;padding:7px 13px;margin-bottom:14px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:14px}
+.chip{display:inline-block;background:#fbf1d3;color:#9a7409;font-weight:900;border-radius:12px;padding:7px 12px}
+.chip.xp{background:#e1f0e5;color:#2f7d4f}.chip.lv{background:#2f7d4f;color:#fff}
+table.lb{width:100%;border-collapse:collapse;margin:2px 0 14px;font-size:14px;font-weight:800}
+table.lb td{padding:7px 6px;border-bottom:1px solid #eef0ea;text-align:left}
+table.lb td:first-child{width:38px;color:var(--soft)}table.lb td:last-child{text-align:right;width:44px}
+table.lb tr.me td{background:#e6f3ea;color:#1f5a39}table.lb tr.me td:first-child{border-radius:8px 0 0 8px}table.lb tr.me td:last-child{border-radius:0 8px 8px 0}
+.lbh{font-size:12px;font-weight:800;color:var(--soft);text-transform:uppercase;letter-spacing:.6px;text-align:left;margin-bottom:2px}
 .btns{display:flex;flex-direction:column;gap:9px}
 table.sc{width:100%;border-collapse:collapse;margin:4px 0 14px;font-size:13px;font-weight:800}
 table.sc td{padding:6px 0;text-align:center;border-bottom:1px solid #eef0ea}
@@ -144,6 +168,7 @@ table.sc td:first-child{text-align:left;color:var(--soft);font-weight:700;width:
 
 <div id="home" class="screen"></div>
 <div id="career" class="screen hidden"></div>
+<div id="player" class="screen hidden"></div>
 <div id="shop" class="screen hidden"></div>
 <div id="ov" class="ov hidden"><div class="card" id="ovCard"></div></div>
 <div id="rot">Bitte dreh dein Handy ins Hochformat 📱</div>
@@ -178,10 +203,12 @@ const safeTop = () => _st ?? (_st = safeVal('env(safe-area-inset-top,0px)'));
 const safeBot = () => _sb ?? (_sb = safeVal('env(safe-area-inset-bottom,0px)'));
 
 // ---------------- Speicher ----------------
-const KEY = 'fairway_v1';
-const defSave = () => ({ coins: 0, at: { kraft: 0, praez: 0, spin: 0, putt: 0 }, daily: {}, streak: 0, lastDaily: -1, career: {}, muted: false, rounds: 0, birdies: 0, eagles: 0, hio: 0, best: null });
+const KEY = 'fairway_v2';
+const defSave = () => ({ money: 0, earnings: 0, xp: 0, lvl: 1, sp: 1, at: { kraft: 0, praez: 0, spin: 0, putt: 0, nerven: 0 },
+  gear: { driver: 0, woods: 0, irons: 0, wedges: 0, putter: 0 }, owned: { driver: [0], woods: [0], irons: [0], wedges: [0], putter: [0] },
+  results: {}, tourOpen: 0, wins: 0, muted: false, rounds: 0, birdies: 0, eagles: 0, hio: 0, best: null });
 let save = defSave();
-try { const s = JSON.parse(localStorage.getItem(KEY)); if (s) { save = Object.assign(defSave(), s); save.at = Object.assign(defSave().at, s.at || {}); } } catch (e) {}
+try { const s = JSON.parse(localStorage.getItem(KEY)); if (s) { const d = defSave(); save = Object.assign(d, s); save.at = Object.assign(d.at, s.at || {}); save.gear = Object.assign(d.gear, s.gear || {}); save.owned = Object.assign(d.owned, s.owned || {}); } } catch (e) {}
 const persist = () => { try { localStorage.setItem(KEY, JSON.stringify(save)); } catch (e) {} };
 
 // ---------------- Sound ----------------
@@ -236,13 +263,34 @@ const CLUBS = [
   { id: 'P', n: 'Putter', putter: true },
 ];
 const ATTRS = [
-  { id: 'kraft', ic: '💪', n: 'Kraft', d: '+3 % Weite mit allen Schlägern pro Stufe.' },
-  { id: 'praez', ic: '🎯', n: 'Präzision', d: 'Weniger Streuung und eine breitere „Perfekt“-Zone im Schwung.' },
-  { id: 'spin', ic: '🌀', n: 'Spin', d: 'Schaltet Back- und Topspin frei. Höhere Stufe = mehr Wirkung, ab Stufe 3 zieht der Ball auf dem Grün zurück.' },
-  { id: 'putt', ic: '⛳', n: 'Putten', d: 'Zeigt die Putt-Linie inkl. Gefälle (länger pro Stufe) und das Loch „schluckt“ schnellere Bälle.' },
+  { id: 'kraft', ic: '💪', n: 'Kraft', d: '+1,5 % Weite mit allen Schlägern pro Punkt.' },
+  { id: 'praez', ic: '🎯', n: 'Präzision', d: 'Weniger Streuung und eine breitere „Perfekt“-Zone.' },
+  { id: 'spin', ic: '🌀', n: 'Spin', d: 'Ab 2 Punkten Back- und Topspin. Mehr Punkte = stärkerer Effekt, ab 6 zieht der Ball auf dem Grün zurück.' },
+  { id: 'putt', ic: '⛳', n: 'Putten', d: 'Längere Puttlinie mit Gefälle, das Loch schluckt schnellere Bälle.' },
+  { id: 'nerven', ic: '🧊', n: 'Nerven', d: 'Der Schwungmeter läuft ruhiger, Timing wird leichter.' },
 ];
-const COSTS = [60, 130, 220, 340, 500];
-const DAILY_STATS = { kraft: 1, praez: 1, spin: 1, putt: 1 };
+const AMAX = 10;
+// Ausrüstung: 5 Modelle pro Slot (eigene Fantasienamen)
+const GEAR = {
+  driver: { n: 'Driver', ic: '🚀', clubs: ['D'], m: [
+    { n: 'Rookie 460', p: 0, dist: 0, acc: 0 }, { n: 'Kestrel Speed', p: 600, dist: .03, acc: .02 }, { n: 'Basalt TX', p: 1800, dist: .055, acc: .04 },
+    { n: 'Nordwind Pro', p: 4500, dist: .08, acc: .07 }, { n: 'Halcyon Tour', p: 10000, dist: .11, acc: .1 }] },
+  woods: { n: 'Hölzer', ic: '🪵', clubs: ['3W'], m: [
+    { n: 'Rookie 3', p: 0, dist: 0, acc: 0 }, { n: 'Kestrel 3+', p: 450, dist: .03, acc: .03 }, { n: 'Basalt F', p: 1400, dist: .05, acc: .05 },
+    { n: 'Nordwind Fairway', p: 3600, dist: .07, acc: .08 }, { n: 'Halcyon Spoon', p: 8000, dist: .09, acc: .11 }] },
+  irons: { n: 'Eisen', ic: '🗡️', clubs: ['5I', '7I', '9I'], m: [
+    { n: 'Rookie Set', p: 0, dist: 0, acc: 0 }, { n: 'Forge CB', p: 700, dist: .02, acc: .04 }, { n: 'Forge MB', p: 2200, dist: .035, acc: .07 },
+    { n: 'Glacier Blades', p: 5200, dist: .05, acc: .1 }, { n: 'Halcyon Irons', p: 11000, dist: .065, acc: .14 }] },
+  wedges: { n: 'Wedges', ic: '🥄', clubs: ['PW', 'SW', 'LW'], m: [
+    { n: 'Rookie Wedge', p: 0, dist: 0, acc: 0, spin: 0 }, { n: 'Grip 52/56', p: 500, dist: 0, acc: .04, spin: 1 }, { n: 'Raw Spin', p: 1600, dist: .01, acc: .07, spin: 1 },
+    { n: 'Glacier Groove', p: 4000, dist: .015, acc: .1, spin: 2 }, { n: 'Halcyon Touch', p: 9000, dist: .02, acc: .13, spin: 3 }] },
+  putter: { n: 'Putter', ic: '🎳', clubs: ['P'], m: [
+    { n: 'Rookie Blade', p: 0, cap: 0, prev: 0 }, { n: 'Pendel 2', p: 400, cap: .1, prev: .08 }, { n: 'Mallet One', p: 1300, cap: .2, prev: .15 },
+    { n: 'Stillwater', p: 3500, cap: .3, prev: .25 }, { n: 'Halcyon Milled', p: 8500, cap: .45, prev: .38 }] },
+};
+const slotOf = id => Object.keys(GEAR).find(k => GEAR[k].clubs.includes(id));
+const gearM = slot => GEAR[slot].m[save.gear[slot] || 0];
+const gearC = c => gearM(slotOf(c.id));
 const LIE = {
   tee: { n: 'Abschlag', d: 1, s: .9, roll: 1, dec: 7 },
   fairway: { n: 'Fairway', d: 1, s: 1, roll: 1, dec: 7 },
@@ -280,7 +328,7 @@ function resample(pts, step) {
   return out;
 }
 
-function genHole(r, par, diff) {
+function genHole(r, par, diff, wx = 'sonnig') {
   const ri = (a, b) => a + r() * (b - a), sgn = () => r() < .5 ? -1 : 1;
   const len = par === 3 ? ri(118, 182) : par === 4 ? ri(300, 392) : ri(458, 528);
   let P;
@@ -320,7 +368,7 @@ function genHole(r, par, diff) {
   { const a = ri(0, TAU), m = ri(.3, .55 + diff * .6); h.slope = [Math.cos(a) * m, Math.sin(a) * m]; }
   h.tee = [C[0][0], C[0][1]];
   // Wind
-  { const a = ri(0, TAU), v = ri(0, 6 + diff * 24); h.wind = { a, v: Math.round(v) }; }
+  { const a = ri(0, TAU), v = ri(0, 6 + diff * 24) * (wx === 'windig' ? 1.7 : wx === 'regen' ? .8 : 1) + (wx === 'windig' ? 6 : 0); h.wind = { a, v: Math.round(v) }; h.rain = wx === 'regen'; h.wx = wx; }
   const nearGreen = (x, y, m) => inE(x, y, h.fringe, m);
   const nearTee = (x, y, m) => hyp(x - h.tee[0], y - h.tee[1]) < m;
   // Grünbunker
@@ -366,6 +414,7 @@ function genHole(r, par, diff) {
     h.trees.push(t);
   }
   h.trees.sort((a, b) => a.y - b.y);
+  for (const t of h.trees) { const n = 6 + Math.floor(r() * 3), o = r() * TAU; t.poly = Array.from({ length: n }, (_, i) => { const a = o + i / n * TAU, rr2 = t.r * (.82 + r() * .3); return [Math.cos(a) * rr2, Math.sin(a) * rr2]; }); t.top = [ri(-.25, .05) * t.r, ri(-.3, -.05) * t.r]; }
   // Grenzen für die Übersicht
   let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
   for (const [x, y] of C) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
@@ -397,24 +446,62 @@ function lieAt(h, x, y) {
   return 'rough';
 }
 
-function genCourse(seed, diff) {
+function genCourse(seed, diff, wx) {
   const r = rng(seed);
   const pars = [4, 4, 4, 4, 3, 3, 5, 5, 4];
   for (let i = pars.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [pars[i], pars[j]] = [pars[j], pars[i]]; }
-  return pars.map((p, i) => genHole(rng(seed * 31 + i * 977 + 5), p, diff));
+  return pars.map((p, i) => genHole(rng(seed * 31 + i * 977 + 5), p, diff, wx));
 }
 
-// ---------------- Modi ----------------
-const DAY0 = Date.UTC(2026, 0, 1);
-const dayNum = () => { const d = new Date(); return Math.floor((Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) - DAY0) / 864e5) + 1; };
-const TOUR = [
-  { n: 'Clubmeisterschaft', d: .15, cut: 4, prize: 50, seed: 1101 },
-  { n: 'Regionalliga', d: .3, cut: 2, prize: 80, seed: 2203 },
-  { n: 'Amateur Open', d: .45, cut: 1, prize: 120, seed: 3307 },
-  { n: 'Challenge Tour', d: .6, cut: 0, prize: 170, seed: 4409 },
-  { n: 'Pro Tour Classic', d: .75, cut: -1, prize: 240, seed: 5501 },
-  { n: 'Das Major', d: .92, cut: -3, prize: 360, seed: 6607 },
+// ---------------- Karriere ----------------
+const TOURS = [
+  { n: 'Amateur Tour', short: 'AM', skill: [.08, .55], purse: [900, 1100, 1300, 2000], d: [.15, .22, .3, .38],
+    ev: ['Lakeside Open', 'Birkenhof Classic', 'Heideland Cup', 'Amateur Championship'] },
+  { n: 'Challenge Tour', short: 'CT', skill: [-.12, .3], purse: [4000, 4800, 5500, 8000], d: [.42, .48, .54, .6],
+    ev: ['Küstenwind Trophy', 'Steinbruch Invitational', 'Alpensee Open', 'Challenge Finale'] },
+  { n: 'World Tour', short: 'WT', skill: [-.32, .08], purse: [15000, 18000, 22000, 40000], d: [.65, .72, .8, .92],
+    ev: ['Coral Bay Masters', 'Desert Rose Classic', 'Highland Championship', 'The Crown – Major'] },
 ];
+const WXS = ['sonnig', 'sonnig', 'windig', 'regen'];
+const WXI = { sonnig: '☀️', windig: '💨', regen: '🌧️' };
+const evSeed = (t, e) => 1000 + t * 100 + e * 17;
+const evWx = (t, e) => WXS[Math.floor(rng(evSeed(t, e) + 3)() * WXS.length)];
+const NAMES_F = ['M. Berger', 'L. Novak', 'T. Okafor', 'J. Lindqvist', 'R. Sato', 'A. Moreau', 'K. Brandt', 'D. Rossi', 'S. Kowalski', 'E. Hansen', 'P. Duarte', 'N. Fischer', 'H. Tanaka', 'C. Walsh', 'O. Petrov', 'F. Meier', 'G. Alvarez', 'I. Svensson', 'B. Keller', 'V. Ivanova'];
+const PAYOUT = [1, .6, .42, .3, .24, .19, .15, .12, .1, .08, .065, .05];
+function genField(t, seed, holes) {
+  const r = rng(seed + 99), names = NAMES_F.slice();
+  for (let i = names.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [names[i], names[j]] = [names[j], names[i]]; }
+  const [lo, hi2] = TOURS[t].skill;
+  return names.slice(0, 11).map(n => {
+    const sk = lo + (hi2 - lo) * r();
+    const sc = holes.map(h => { const g = (r() + r() + r() - 1.5) * 1.5; let d = Math.round(sk + (h.diff - .5) * .3 + g * .72); d = clamp(d, h.par === 5 ? -2 : -1, 3); return h.par + d; });
+    return { n, sc };
+  });
+}
+function board(upto) {
+  const rows = round.field.map(o => ({ n: o.n, d: o.sc.slice(0, upto).reduce((a, s, i) => a + s - round.holes[i].par, 0) }));
+  rows.push({ n: 'Du', you: true, d: totalDiff() });
+  rows.sort((a, b) => a.d - b.d || (a.you ? -1 : b.you ? 1 : 0));
+  rows.forEach(r => { const better = rows.filter(o => o.d < r.d).length, tie = rows.filter(o => o.d === r.d).length > 1; r.pos = (tie ? 'T' : '') + (better + 1); r.place = better + 1; });
+  return rows;
+}
+function boardHtml(upto, full) {
+  const rows = board(upto), me = rows.findIndex(r => r.you);
+  let show = full ? rows : rows.slice(0, 5);
+  if (!full && me >= 5) show = show.concat([{ gap: 1 }, rows[me]]);
+  return `<table class="lb">${show.map(r => r.gap ? '<tr><td colspan="3" style="color:var(--soft)">…</td></tr>' : `<tr class="${r.you ? 'me' : ''}"><td>${r.pos}</td><td>${r.n}</td><td>${fmtD(r.d)}</td></tr>`).join('')}</table>`;
+}
+const xpNeed = l => Math.round(120 * Math.pow(l, 1.35));
+function addXp(n) {
+  save.xp += n; let ups = 0;
+  while (save.xp >= xpNeed(save.lvl)) { save.xp -= xpNeed(save.lvl); save.lvl++; save.sp += save.lvl % 5 === 0 ? 2 : 1; ups++; }
+  return ups;
+}
+const money = n => n.toLocaleString('de-DE') + ' $';
+function nextEvent() {
+  for (let t = 0; t <= Math.min(save.tourOpen, TOURS.length - 1); t++) for (let e = 0; e < 4; e++) if (!save.results[t + '-' + e]) return [t, e];
+  return [Math.min(save.tourOpen, 2), 0];
+}
 
 // ---------------- Spielzustand ----------------
 let mode = 'menu', round = null, hole = null, hi = 0;
@@ -423,7 +510,9 @@ let ball = { x: 0, y: 0, z: 0, vx: 0, vy: 0 }, strokes = 0, lie = 'tee';
 let target = [0, 0], clubI = 0, shape = 0, spin = 0, overview = false;
 let swing = null, flight = null, rollInfo = null, putDrag = null, parts = [], trail = [], stateT = 0, time = 0, ffwd = false;
 const cam = { x: 0, y: 0, s: 3 }, camT = { x: 0, y: 0, s: 3 };
-const stats = () => round && round.mode === 'daily' ? DAILY_STATS : save.at;
+const stats = () => { const a = save.at; return { kraft: a.kraft, praez: a.praez, putt: a.putt, nerven: a.nerven, spin: Math.min(5, Math.floor(a.spin / 2) + (gearM('wedges').spin || 0)) }; };
+const decOf = l => LIE[l].dec * (hole && hole.rain && (l === 'green' || l === 'fringe') ? 1.3 : 1);
+const meterT = () => .9 * (1 + .035 * stats().nerven);
 const wind = () => { const w = hole.wind; return [Math.cos(w.a) * w.v, Math.sin(w.a) * w.v]; };
 
 function allowedClubs() {
@@ -439,7 +528,7 @@ function allowedClubs() {
 function carry(c, l = lie) {
   if (c.putter) return 30;
   let d = LIE[l].d; if (l === 'sand' && (c.id === 'SW' || c.id === 'LW')) d = .9;
-  return c.c * (1 + .03 * stats().kraft) * d;
+  return c.c * (1 + .015 * stats().kraft + (gearC(c).dist || 0)) * d;
 }
 function autoClub(dist) {
   const al = allowedClubs().filter(i => !CLUBS[i].putter);
@@ -450,11 +539,11 @@ function maxRange() { const al = allowedClubs().filter(i => !CLUBS[i].putter); r
 
 // ---------------- Runde / Loch ----------------
 function startRound(m, opts = {}) {
-  let seed, diff, label;
-  if (m === 'daily') { const n = opts.n || dayNum(); seed = n * 7919 + 17; diff = .45 + .25 * (((n * 37) % 7) / 6); label = 'Tagesrunde #' + n; round = { n }; }
-  else if (m === 'tour') { const t = TOUR[opts.i]; seed = t.seed; diff = t.d; label = t.n; round = { ti: opts.i }; }
-  else { seed = (Math.random() * 1e9) | 0; diff = .4; label = 'Training'; round = {}; }
-  Object.assign(round, { mode: m, label, holes: genCourse(seed, diff), scores: [] });
+  let seed, diff, label, wx;
+  if (m === 'tour') { const { t, e } = opts; seed = evSeed(t, e); diff = TOURS[t].d[e]; wx = evWx(t, e); label = TOURS[t].ev[e]; round = { t, e }; }
+  else { seed = (Math.random() * 1e9) | 0; diff = .35 + Math.random() * .3; wx = WXS[Math.floor(Math.random() * 4)]; label = 'Freies Spiel'; round = {}; }
+  Object.assign(round, { mode: m, label, wx, holes: genCourse(seed, diff, wx), scores: [] });
+  if (m === 'tour') round.field = genField(round.t, seed, round.holes);
   enterPlay(); startHole(0);
 }
 function startHole(i) {
@@ -465,7 +554,7 @@ function startHole(i) {
   setupShot();
   snapCam();
   const w = hole.wind;
-  toast('Loch ' + (i + 1), 'Par ' + hole.par + ' · ' + hole.len + ' m' + (w.v ? ' · Wind ' + w.v + ' km/h' : ''), 1600);
+  toast('Loch ' + (i + 1), 'Par ' + hole.par + ' · ' + hole.len + ' m · ' + WXI[hole.wx] + (w.v ? ' ' + w.v + ' km/h' : ''), 1600);
 }
 function setupShot() {
   lie = lieAt(hole, ball.x, ball.y);
@@ -500,9 +589,9 @@ function swingTap() {
   if (swing.ph === 'power') { swing.p = swingVal(); swing.ph = 'acc'; swing.t = 0; Snd.tick(); buzz(8); }
   else if (swing.ph === 'acc') { swing.a = accVal(); swing.ph = 'done'; Snd.tick(); hitBall(); }
 }
-const swingVal = () => { const t = swing.t / .9; return t <= 1.1 ? t : Math.max(0, 2.2 - t); };
-const accVal = () => 1.15 - swing.t * 2.4;
-function perfZone() { return .07 + .02 * stats().praez; }
+const swingVal = () => { const t = swing.t / meterT(); return t <= 1.1 ? t : Math.max(0, 2.2 - t); };
+const accVal = () => 1.15 - swing.t * 2.4 * (1 - .03 * stats().nerven);
+function perfZone() { return .06 + .009 * stats().praez; }
 
 function hitBall() {
   const c = CLUBS[clubI], S = [ball.x, ball.y];
@@ -513,7 +602,7 @@ function hitBall() {
   const over = Math.max(0, p - 1);
   let carryAct = carry(c) * (p <= 1 ? p : 1 + over * .45);
   if (spin) carryAct *= spin < 0 ? .98 : .97;
-  let errDeg = a * c.sp * LIE[lie].s * (1 - .07 * stats().praez) * 2.2 + (over ? Math.sign(a || (Math.random() - .5)) * over * 25 : 0);
+  let errDeg = a * c.sp * LIE[lie].s * (1 - .035 * stats().praez - (gearC(c).acc || 0)) * 2.2 + (over ? Math.sign(a || (Math.random() - .5)) * over * 25 : 0);
   if (shape && !perfect) errDeg *= 1.1;
   const dx = (target[0] - S[0]) / dist, dy = (target[1] - S[1]) / dist;
   const [rx, ry] = rot(dx, dy, errDeg * Math.PI / 180);
@@ -565,7 +654,8 @@ function land() {
   let dir = 1;
   if (f.spin < 0) { rollD *= Math.max(.05, 1 - .3 * Math.max(1, sl)); if (sl >= 3 && (l === 'green' || l === 'fringe')) { dir = -1; rollD = .8 + (sl - 2) * 1.2 + f.club.apex * .02; } }
   if (f.spin > 0) rollD *= 1 + .3 * Math.max(1, sl);
-  const v0 = Math.sqrt(2 * LIE[l].dec * Math.max(0, rollD));
+  if (hole.rain) rollD *= .6;
+  const v0 = Math.sqrt(2 * decOf(l) * Math.max(0, rollD));
   bounce = { t: 0, h: Math.min(3, f.carry * .012) };
   startRoll(tx / tl * v0 * dir, ty / tl * v0 * dir);
 }
@@ -594,14 +684,14 @@ function rollStep(h) {
   if (l === 'water') { ball.vx = ball.vy = 0; penaltyWater({ S: rollInfo.from || [ball.x, ball.y + 5] }); return; }
   if (l === 'ob') { penaltyOB({ origin: rollInfo.origin || [hole.tee[0], hole.tee[1]] }); return; }
   let sp = hyp(ball.vx, ball.vy);
-  const dec = LIE[l].dec;
+  const dec = decOf(l);
   if (sp > 0) { const ns = Math.max(0, sp - dec * h); ball.vx *= ns / sp; ball.vy *= ns / sp; }
   if (l === 'green' && sp > .05) { ball.vx += hole.slope[0] * h; ball.vy += hole.slope[1] * h; }
   else if (l === 'green' && Math.hypot(...hole.slope) > .55) { ball.vx += hole.slope[0] * h * .5; ball.vy += hole.slope[1] * h * .5; }
   // Loch
   const dx = hole.pin[0] - ball.x, dy = hole.pin[1] - ball.y, d = hyp(dx, dy);
   sp = hyp(ball.vx, ball.vy);
-  const capV = 1.7 + .15 * stats().putt;
+  const capV = 1.7 + .07 * stats().putt + gearM('putter').cap;
   if (d < CUP + .12 && d > .01 && sp < capV * 1.4) { ball.vx += dx / d * 3 * h; ball.vy += dy / d * 3 * h; }
   ball.x += ball.vx * h; ball.y += ball.vy * h;
   const d2 = hyp(hole.pin[0] - ball.x, hole.pin[1] - ball.y);
@@ -636,7 +726,7 @@ function puttDragVec() {
   const dx = putDrag.sx - putDrag.x, dy = putDrag.sy - putDrag.y, l = hyp(dx, dy);
   if (l < 8) return null;
   const p = clamp(l / (Math.min(W, H) * .6), 0, 1), dist = 26 * p * p + .3;
-  return { dx: dx / l, dy: dy / l, p, v: Math.sqrt(2 * LIE.green.dec * dist) };
+  return { dx: dx / l, dy: dy / l, p, v: Math.sqrt(2 * decOf('green') * dist) };
 }
 function doPutt(a) {
   strokes++; Snd.putt(); buzz(10);
@@ -733,7 +823,7 @@ function update(dt) {
   time += dt; stateT += dt; runTimers();
   if (state === 'swing') {
     swing.t += dt;
-    if (swing.ph === 'power' && swing.t > .9 * 2.2) { state = 'aim'; swing = null; updPanel(); toast('Abgebrochen', null, 700); }
+    if (swing.ph === 'power' && swing.t > meterT() * 2.2) { state = 'aim'; swing = null; updPanel(); toast('Abgebrochen', null, 700); }
     else if (swing.ph === 'acc' && accVal() < -1.3) { swing.a = -1.3; swing.ph = 'done'; hitBall(); }
   } else if (state === 'flight') updFlight(dt);
   else if (state === 'roll' || state === 'putting') {
@@ -752,10 +842,25 @@ function splashFx(x, y) { for (let i = 0; i < 18; i++) { const a = Math.random()
 function leafFx(x, y) { for (let i = 0; i < 12; i++) { const a = Math.random() * TAU, s = 2 + Math.random() * 5; parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: .8, max: .8, c: i % 2 ? '#5f9e4d' : '#87c06a', r: .4 + Math.random() * .4 }); } }
 
 // ---------------- Rendering ----------------
-const PAL = { deep: '#5f9952', rough: '#79b062', roughL: '#82b86a', fw: '#9fd27a', fwL: '#a9d985', fringe: '#9dd078', green: '#b6e391', greenL: '#bee899', sand: '#f0e2b4', sandD: '#ddc98e', water: '#5ab4dc', waterD: '#4aa2cb', tree: '#3f7f45', treeL: '#4f9354', treeS: 'rgba(20,50,25,.28)', tee: '#a9d985' };
+const PAL = { deep: '#5f9952', rough: '#79b062', roughL: '#82b86a', fw: '#9fd27a', fwL: '#a9d985', fringe: '#9dd078', green: '#b6e391', greenL: '#bee899', sand: '#f0e2b4', sandD: '#ddc98e', water: '#5ab4dc', waterD: '#4aa2cb', tree: '#3d8547', treeL: '#4f9354', treeS: 'rgba(20,50,25,.28)', tee: '#a9d985' };
 function ell(e, grow = 0) { ctx.beginPath(); ctx.ellipse(e.x, e.y, e.rx + grow, e.ry + grow, e.a, 0, TAU); }
 function poly(p) { ctx.beginPath(); ctx.moveTo(p[0][0], p[0][1]); for (let i = 1; i < p.length; i++) ctx.lineTo(p[i][0], p[i][1]); ctx.closePath(); }
-function waterPath(w) { if (w.e) ell(w.e); else poly(w.p); }
+function ePts(e, n, grow = 0) { const out = []; for (let i = 0; i < n; i++) { const a = i / n * TAU, [x, y] = rot(Math.cos(a) * (e.rx + grow), Math.sin(a) * (e.ry + grow), e.a); out.push([e.x + x, e.y + y]); } return out; }
+function ellP(e, grow = 0, n = 16) { poly(ePts(e, n, grow)); }
+function waterPath(w) { if (w.e) ellP(w.e, 0, 18); else poly(w.p); }
+const LX = -.55, LY = -.83; // Lichtrichtung (von oben links)
+function shade(hex, k) { const n = parseInt(hex.slice(1), 16); let r = n >> 16, g = n >> 8 & 255, b = n & 255; const f = k >= 0 ? [255, 255, 255] : [0, 0, 0], t = Math.abs(k); r += (f[0] - r) * t; g += (f[1] - g) * t; b += (f[2] - b) * t; return `rgb(${r | 0},${g | 0},${b | 0})`; }
+function facet(cx, cy, pts, base, amt, top) {
+  // Low-Poly: Fächer aus Dreiecken, Helligkeit nach Ausrichtung zur Lichtquelle
+  const tx = cx + (top ? top[0] : 0), ty = cy + (top ? top[1] : 0);
+  for (let i = 0; i < pts.length; i++) {
+    const a = pts[i], b = pts[(i + 1) % pts.length], mx = (a[0] + b[0]) / 2 - cx, my = (a[1] + b[1]) / 2 - cy, l = hyp(mx, my) || 1;
+    const d = -(mx / l * LX + my / l * LY);
+    ctx.fillStyle = shade(base, -d * amt);
+    ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = .08; ctx.stroke();
+  }
+}
 function render() {
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   ctx.fillStyle = mode === 'play' ? PAL.deep : '#f2f0e8'; ctx.fillRect(0, 0, W, H);
@@ -791,13 +896,12 @@ function render() {
     ctx.restore();
   }
   // Grün
-  ctx.fillStyle = PAL.fringe; ell(hole.fringe); ctx.fill();
-  ctx.fillStyle = PAL.green; ell(hole.green); ctx.fill();
-  ctx.save(); ell(hole.green); ctx.clip(); ctx.fillStyle = PAL.greenL; for (let k = -20; k < 20; k += 2) { ctx.fillRect(hole.green.x - 20, hole.green.y + k * 1.5, 40, 1.5); } ctx.restore();
+  facet(hole.fringe.x, hole.fringe.y, ePts(hole.fringe, 14), PAL.fringe, .1);
+  facet(hole.green.x, hole.green.y, ePts(hole.green, 14), PAL.green, .09, [hole.slope[0] * -3, hole.slope[1] * -3]);
   // Gefälle auf dem Grün
   drawSlope();
   // Bunker
-  for (const b of hole.bunkers) { ctx.fillStyle = PAL.sandD; ell(b, .5); ctx.fill(); ctx.fillStyle = PAL.sand; ctx.save(); ctx.translate(.25, .35); ell(b, 0); ctx.fill(); ctx.restore(); }
+  for (const b of hole.bunkers) { ctx.fillStyle = PAL.sandD; ellP(b, .5, 10); ctx.fill(); ctx.save(); ctx.translate(.25, .35); facet(b.x, b.y, ePts(b, 10), PAL.sand, -.12); ctx.restore(); }
   // Loch + Fahne
   const [pxn, pyn] = hole.pin, cupR = Math.max(CUP, 3.5 * px);
   ctx.fillStyle = 'rgba(0,0,0,.12)'; ctx.beginPath(); ctx.arc(pxn, pyn, cupR * 1.35, 0, TAU); ctx.fill();
@@ -812,11 +916,8 @@ function render() {
   }
   // Bäume (Schatten, dann Kronen)
   ctx.fillStyle = PAL.treeS;
-  for (const t of hole.trees) { ctx.beginPath(); ctx.ellipse(t.x + t.h * .18, t.y + t.h * .26, t.r, t.r * .9, 0, 0, TAU); ctx.fill(); }
-  for (const t of hole.trees) {
-    ctx.fillStyle = PAL.tree; ctx.beginPath(); ctx.arc(t.x, t.y, t.r, 0, TAU); ctx.fill();
-    ctx.fillStyle = PAL.treeL; ctx.beginPath(); ctx.arc(t.x - t.r * .22, t.y - t.r * .25, t.r * .62, 0, TAU); ctx.fill();
-  }
+  for (const t of hole.trees) { const ox = t.x + t.h * .18, oy = t.y + t.h * .26; ctx.beginPath(); t.poly.forEach(([x, y], i) => i ? ctx.lineTo(ox + x, oy + y) : ctx.moveTo(ox + x, oy + y)); ctx.closePath(); ctx.fill(); }
+  for (const t of hole.trees) facet(t.x, t.y, t.poly.map(([x, y]) => [t.x + x, t.y + y]), PAL.tree, .32, t.top);
   // Fahne
   const fl = 30 * px, near = hyp(ball.x - pxn, ball.y - pyn) < 6 && state !== 'aim';
   if (state !== 'holed') {
@@ -846,6 +947,12 @@ function render() {
   ctx.globalAlpha = 1;
   // Bildschirm-Overlays
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  if (hole.rain) {
+    ctx.fillStyle = 'rgba(40,60,90,.14)'; ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = 'rgba(220,235,255,.35)'; ctx.lineWidth = 1.2; ctx.beginPath();
+    for (let i = 0; i < 90; i++) { const x = ((i * 137.5 + time * 60) % (W + 40)) - 20, y = ((i * 89.3 + time * 520) % (H + 40)) - 20; ctx.moveTo(x, y); ctx.lineTo(x - 4, y + 14); }
+    ctx.stroke();
+  }
   if (state === 'aim' || state === 'swing') drawTargetLabel();
   if (state === 'putt' && putDrag) drawPuttLabel();
   if (state === 'swing') drawMeter();
@@ -876,7 +983,7 @@ function drawAim() {
   for (let i = 1; i < n; i++) { const t = i / n, [x, y] = bez(S, Cp, L, t); ctx.globalAlpha = .35 + .65 * Math.sin(t * Math.PI); ctx.beginPath(); ctx.arc(x, y, Math.max(.25, 1.9 * px), 0, TAU); ctx.fill(); }
   ctx.globalAlpha = 1;
   // Streukreis
-  const spread = Math.tan(c.sp * LIE[lie].s * (1 - .07 * stats().praez) * .55 * Math.PI / 180) * d + 1;
+  const spread = Math.tan(c.sp * LIE[lie].s * (1 - .035 * stats().praez - (gearC(c).acc || 0)) * .55 * Math.PI / 180) * d + 1;
   ctx.fillStyle = 'rgba(255,255,255,.16)'; ctx.strokeStyle = 'rgba(255,255,255,.6)'; ctx.lineWidth = Math.max(.12, 1.2 * px);
   ctx.beginPath(); ctx.ellipse(L[0], L[1], spread, spread * .75 + 1, Math.atan2(L[1] - S[1], L[0] - S[0]) + Math.PI / 2, 0, TAU); ctx.fill(); ctx.stroke();
   ctx.lineWidth = Math.max(.15, 2 * px); ctx.strokeStyle = '#fff';
@@ -894,7 +1001,7 @@ function simPutt(a, tmax) {
   // Vorschau: gleiche Physik wie rollStep, aber ohne Effekte
   let x = ball.x, y = ball.y, vx = a.dx * a.v, vy = a.dy * a.v; const pts = [[x, y]]; const h = 1 / 60;
   for (let t = 0; t < tmax; t += h) {
-    const l = lieAt(hole, x, y); const dec = LIE[l].dec; let sp = hyp(vx, vy);
+    const l = lieAt(hole, x, y); const dec = decOf(l); let sp = hyp(vx, vy);
     if (sp > 0) { const ns = Math.max(0, sp - dec * h); vx *= ns / sp; vy *= ns / sp; }
     if (l === 'green' && sp > .05) { vx += hole.slope[0] * h; vy += hole.slope[1] * h; }
     x += vx * h; y += vy * h; pts.push([x, y]);
@@ -904,11 +1011,11 @@ function simPutt(a, tmax) {
 }
 function drawPuttAim() {
   const a = puttDragVec(); if (!a) return;
-  const px = 1 / cam.s, pl = stats().putt;
-  const flat = a.v * a.v / (2 * LIE.green.dec);
+  const px = 1 / cam.s, pl = .07 * stats().putt + gearM('putter').prev;
+  const flat = a.v * a.v / (2 * decOf('green'));
   ctx.fillStyle = '#fff';
   if (pl > 0) {
-    const pts = simPutt(a, 99), n = Math.max(2, Math.floor(pts.length * Math.min(1, .2 * pl + .1)));
+    const pts = simPutt(a, 99), n = Math.max(2, Math.floor(pts.length * Math.min(1, pl)));
     for (let i = 4; i < n; i += 4) { ctx.globalAlpha = 1 - i / n * .7; ctx.beginPath(); ctx.arc(pts[i][0], pts[i][1], Math.max(.08, 1.8 * px), 0, TAU); ctx.fill(); }
   } else {
     const L = Math.min(flat, 40); for (let s = .6; s < L; s += Math.max(.35, 7 * px)) { ctx.globalAlpha = 1 - s / L * .7; ctx.beginPath(); ctx.arc(ball.x + a.dx * s, ball.y + a.dy * s, Math.max(.08, 1.8 * px), 0, TAU); ctx.fill(); }
@@ -917,7 +1024,7 @@ function drawPuttAim() {
 }
 function drawPuttLabel() {
   const a = puttDragVec(); if (!a) return;
-  const flat = a.v * a.v / (2 * LIE.green.dec);
+  const flat = a.v * a.v / (2 * decOf('green'));
   const [x, y] = toScreen(ball.x, ball.y);
   ctx.font = '800 13px -apple-system,Segoe UI,Roboto,sans-serif'; const t = flat.toFixed(1) + ' m'; const w = ctx.measureText(t).width + 16;
   ctx.fillStyle = 'rgba(31,42,34,.85)'; rr(x - w / 2, y + 22, w, 24, 12); ctx.fill(); ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(t, x, y + 35);
@@ -965,7 +1072,7 @@ function updHud() {
   $('#hSub').textContent = (strokes === 0 ? 'Abschlag' : LIE[lie].n) + ' · ' + (dPin < 30 ? dPin.toFixed(1) : Math.round(dPin)) + ' m zur Fahne';
   $('#scoreT').textContent = fmtD(totalDiff());
   $('#strokeT').textContent = 'SCHLAG ' + (strokes + 1);
-  const w = hole.wind; $('#windT').textContent = w.v + ' km/h';
+  const w = hole.wind; $('#windT').textContent = WXI[hole.wx] + ' ' + w.v + ' km/h';
   $('#wind i').style.transform = 'rotate(' + (w.a + Math.PI / 2) + 'rad)';
   $('#wind i').style.opacity = w.v ? 1 : .2;
 }
@@ -1002,10 +1109,10 @@ function cycleClub(dir) {
 }
 $('#chipBtn').onclick = () => { state = 'aim'; const al = allowedClubs().filter(i => !CLUBS[i].putter); target = [...hole.pin]; clubI = autoClub(hyp(target[0] - ball.x, target[1] - ball.y)); if (!al.includes(clubI)) clubI = al[al.length - 1]; updPanel(); };
 $('#shapeSeg').onclick = e => { const b = e.target.closest('button'); if (!b) return; shape = +b.dataset.sh; updPanel(); };
-$('#spinSeg').onclick = e => { const b = e.target.closest('button'); if (!b) return; if (!stats().spin) { toast('Spin gesperrt', 'Im Pro-Shop freischalten', 1200); return; } spin = +b.dataset.sp; updPanel(); };
+$('#spinSeg').onclick = e => { const b = e.target.closest('button'); if (!b) return; if (!stats().spin) { toast('Spin gesperrt', 'Spin-Skill auf 2 oder bessere Wedges', 1400); return; } spin = +b.dataset.sp; updPanel(); };
 $('#swingBtn').onclick = () => startSwing();
 $('#ovBtn').onclick = () => { overview = !overview; };
-$('#menuBtn').onclick = () => showOv(`<div class="big" style="font-size:28px">Runde abbrechen?</div><div class="sub">${round.mode === 'daily' ? 'Die Tagesrunde zählt erst, wenn du alle 9 Löcher spielst.' : 'Der Fortschritt dieser Runde geht verloren.'}</div>
+$('#menuBtn').onclick = () => showOv(`<div class="big" style="font-size:28px">Runde abbrechen?</div><div class="sub">${round.mode === 'tour' ? 'Du gibst das Turnier auf – kein Preisgeld.' : 'Der Fortschritt dieser Runde geht verloren.'}</div>
   <div class="btns"><button class="btn" data-a="resume">Weiterspielen</button><button class="btn g" data-a="quit">Zum Menü</button></div>`);
 
 function holeDone(score) {
@@ -1018,8 +1125,8 @@ function holeDone(score) {
   const last = hi === round.holes.length - 1;
   showOv(`<div class="big" style="color:${d < 0 ? 'var(--acc)' : d > 0 ? 'var(--warn)' : 'var(--ink)'}">${name}</div>
     <div class="sub">Loch ${hi + 1} · ${score} ${score === 1 ? 'Schlag' : 'Schläge'} · Gesamt ${fmtD(totalDiff())}</div>
-    ${cardHtml()}
-    <div class="btns"><button class="btn" data-a="${last ? 'finish' : 'next'}">${last ? 'Runde abschliessen' : 'Loch ' + (hi + 2) + ' →'}</button></div>`);
+    ${round.field ? `<div class="lbh">Leaderboard nach ${hi + 1} ${hi ? 'Löchern' : 'Loch'}</div>` + boardHtml(hi + 1) : cardHtml()}
+    <div class="btns"><button class="btn" data-a="${last ? 'finish' : 'next'}">${last ? 'Turnier abschliessen' : 'Loch ' + (hi + 2) + ' →'}</button></div>`);
 }
 const NAMES = { '-3': 'Albatros', '-2': 'Eagle', '-1': 'Birdie', '0': 'Par', '1': 'Bogey', '2': 'Doppel-Bogey', '3': 'Triple-Bogey' };
 function scoreName(s, par) { if (s === 1) return 'Hole-in-One!'; const d = s - par; return NAMES[d] || (d > 0 ? '+' + d : String(d)); }
@@ -1031,112 +1138,131 @@ function cardHtml() {
     <tr><td>Par</td>${hs.map(h => `<td>${h.par}</td>`).join('')}</tr>
     <tr><td>Du</td>${hs.map((_, i) => cell(i)).join('')}</tr></table>`;
 }
-function coinsFor(s, par) { if (s === 1) return 80; const d = s - par; return d <= -2 ? 40 : d === -1 ? 18 : d === 0 ? 8 : d === 1 ? 3 : 1; }
+function xpFor(s, par) { if (s === 1) return 150; const d = s - par; return d <= -2 ? 60 : d === -1 ? 30 : d === 0 ? 12 : d === 1 ? 4 : 1; }
 function finishRound() {
   const tot = round.scores.reduce((a, b) => a + b, 0), par = round.holes.reduce((a, h) => a + h.par, 0), d = tot - par;
-  let coins = round.scores.reduce((a, s, i) => a + coinsFor(s, round.holes[i].par), 0), extra = '', first = false;
+  let xp = round.scores.reduce((a, s, i) => a + xpFor(s, round.holes[i].par), 0), cash = 0, head = '', extra = '';
   save.rounds++;
-  if (round.mode === 'daily') {
-    const n = round.n;
-    if (save.daily[n] == null) { first = true; save.daily[n] = { s: round.scores.slice(), p: round.holes.map(h => h.par) }; save.streak = save.lastDaily === n - 1 ? save.streak + 1 : 1; save.lastDaily = n; coins = coins * 2 + 20; extra = '🔥 Serie: ' + save.streak + (save.streak === 1 ? ' Tag' : ' Tage'); }
-    else { coins = Math.ceil(coins / 3); extra = 'Übungsrunde – gewertet ist deine erste'; }
-  } else if (round.mode === 'tour') {
-    const t = TOUR[round.ti], made = d <= t.cut, prev = save.career[round.ti];
-    if (made) { coins += prev && prev.made ? Math.round(t.prize / 4) : t.prize; extra = '🏆 Ziel geschafft (' + fmtD(t.cut) + ')' + (prev && prev.made ? '' : ' · Preisgeld ' + t.prize); }
-    else extra = 'Ziel verpasst: ' + fmtD(t.cut) + ' oder besser';
-    if (!prev || d < prev.best) save.career[round.ti] = { best: d, made: made || !!(prev && prev.made) };
-    else if (made) save.career[round.ti].made = true;
-  } else coins = Math.ceil(coins / 2);
   if (save.best == null || d < save.best) save.best = d;
-  save.coins += coins; persist();
+  if (round.mode === 'tour') {
+    const { t, e } = round, rows = board(9), me = rows.find(r => r.you), place = me.place;
+    const purse = TOURS[t].purse[e];
+    cash = Math.round(purse * (PAYOUT[place - 1] || .03) / 10) * 10;
+    xp += Math.max(0, 13 - place) * 12 * (t + 1);
+    const key = t + '-' + e, prev = save.results[key];
+    if (!prev || place < prev.place) save.results[key] = { place, d };
+    if (place === 1) { save.wins++; if (save.tourOpen < t + 1 && t + 1 < TOURS.length) { save.tourOpen = t + 1; extra = '🔓 ' + TOURS[t + 1].n + ' freigeschaltet!'; } }
+    head = place === 1 ? '🏆 Turniersieg!' : me.pos + '. Platz';
+    if (place === 1 && t === 2 && e === 3) extra = '👑 Du hast das Major gewonnen!';
+  } else { cash = round.scores.reduce((a, s, i) => a + xpFor(s, round.holes[i].par) * 3, 0); xp = Math.round(xp * .6); head = 'Runde beendet'; }
+  save.money += cash; save.earnings += cash;
+  const ups = addXp(xp); persist();
   later(300, () => Snd.coin());
-  const btns = round.mode === 'daily'
-    ? `<button class="btn" data-a="share">Ergebnis teilen</button><button class="btn g" data-a="home">Zum Menü</button>`
-    : `<button class="btn" data-a="again">Nochmal spielen</button><button class="btn g" data-a="${round.mode === 'tour' ? 'career' : 'home'}">${round.mode === 'tour' ? 'Zur Tour' : 'Zum Menü'}</button>`;
-  showOv(`<div class="sub" style="margin:0">${round.label}</div><div class="big">${fmtD(d)} <span style="font-size:22px;color:var(--soft)">(${tot})</span></div>
-    <div class="sub">${extra}</div>${cardHtml()}<div class="chip">+${coins} Münzen</div><div class="btns">${btns}</div>`);
+  if (ups) later(700, () => Snd.good());
+  const btns = round.mode === 'tour'
+    ? `<button class="btn" data-a="career">Weiter zur Karriere</button><button class="btn g" data-a="again">Turnier wiederholen</button>`
+    : `<button class="btn" data-a="again">Neuer Platz</button><button class="btn g" data-a="home">Zum Menü</button>`;
+  showOv(`<div class="sub" style="margin:0">${round.label} ${WXI[round.wx]}</div><div class="big">${head}</div>
+    <div class="sub">${fmtD(d)} (${tot})${extra ? ' · ' + extra : ''}</div>
+    ${round.field ? boardHtml(9, true) : ''}${cardHtml()}
+    <div class="chips"><span class="chip">+${money(cash)}</span><span class="chip xp">+${xp} XP</span>${ups ? `<span class="chip lv">Level ${save.lvl}! +${ups} Skillpunkt${ups > 1 ? 'e' : ''}</span>` : ''}</div>
+    <div class="btns">${btns}</div>`);
 }
-function shareText() {
-  const n = round.n, rec = save.daily[n] || { s: round.scores, p: round.holes.map(h => h.par) };
-  const tot = rec.s.reduce((a, b) => a + b, 0), par = rec.p.reduce((a, b) => a + b, 0);
-  const em = rec.s.map((s, i) => { const d = s - rec.p[i]; return d <= -2 ? '🟦' : d === -1 ? '🟩' : d === 0 ? '⬜' : d === 1 ? '🟧' : '🟥'; }).join('');
-  return `⛳ Fairway – Tagesrunde #${n}\n${fmtD(tot - par)} (${tot})\n${em}\n🔥 ${save.streak}`;
-}
-function showOv(html) { $('#ovCard').innerHTML = html; $('#ov').classList.remove('hidden'); }
+function showOv(html) { $('#ovCard').innerHTML = html; $('#ov').classList.remove('hidden'); $('#ovCard').scrollTop = 0; }
 function hideOv() { $('#ov').classList.add('hidden'); }
-$('#ov').addEventListener('click', async e => {
+$('#ov').addEventListener('click', e => {
   const b = e.target.closest('[data-a]'); if (!b) return; const a = b.dataset.a;
-  if (a === 'share') { const t = shareText(); let ok = false; try { if (navigator.share) { await navigator.share({ text: t }); ok = true; } } catch (_) {} if (!ok) try { await navigator.clipboard.writeText(t); b.textContent = 'Kopiert ✓'; } catch (_) { b.textContent = 'Teilen nicht möglich'; } return; }
   hideOv();
   if (a === 'resume') return;
   if (a === 'next') startHole(hi + 1);
   else if (a === 'finish') finishRound();
-  else if (a === 'again') startRound(round.mode, round.mode === 'tour' ? { i: round.ti } : {});
+  else if (a === 'again') startRound(round.mode, round.mode === 'tour' ? { t: round.t, e: round.e } : {});
   else if (a === 'career') showScreen('career');
   else showScreen('home');
 });
 
-function enterPlay() { mode = 'play'; ['home', 'career', 'shop'].forEach(id => $('#' + id).classList.add('hidden')); hud.classList.remove('hidden'); panel.classList.remove('hidden'); }
+function enterPlay() { mode = 'play'; SCREENS.forEach(id => $('#' + id).classList.add('hidden')); hud.classList.remove('hidden'); panel.classList.remove('hidden'); }
 
 // ---------------- Menüs ----------------
-const logo = `<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="19" fill="#2f7d4f"/><path d="M17 8v22" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/><path d="M17 8l10 4-10 4z" fill="#e8503a"/><ellipse cx="20" cy="30.5" rx="7" ry="2.2" fill="#1f2a22" opacity=".35"/></svg>`;
-const coinsHtml = () => `<div class="coins">🪙 ${save.coins}</div>`;
+const SCREENS = ['home', 'career', 'player', 'shop'];
+const logo = `<svg viewBox="0 0 40 40"><polygon points="20,2 36,11 36,29 20,38 4,29 4,11" fill="#3b9a62"/><polygon points="20,2 36,11 20,20" fill="#4fb576"/><polygon points="4,29 20,20 20,38" fill="#2f7d4f"/><path d="M17 9v19" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/><path d="M17 9l9 3.5-9 3.5z" fill="#e8503a"/></svg>`;
+const moneyHtml = () => `<div class="coins">${money(save.money)}</div>`;
+const back = t => `<div class="top"><button class="pill ib" data-go="home">‹</button><h2>${t}</h2>${moneyHtml()}</div>`;
 function showScreen(name) {
   mode = 'menu'; round = null; hole = null; timers = [];
   hud.classList.add('hidden'); panel.classList.add('hidden'); hideOv();
-  ['home', 'career', 'shop'].forEach(id => $('#' + id).classList.toggle('hidden', id !== name));
-  ({ home: renderHome, career: renderCareer, shop: renderShop })[name]();
+  SCREENS.forEach(id => $('#' + id).classList.toggle('hidden', id !== name));
+  ({ home: renderHome, career: renderCareer, player: renderPlayer, shop: renderShop })[name]();
 }
 function renderHome() {
-  const n = dayNum(), rec = save.daily[n];
-  const streak = (save.lastDaily === n || save.lastDaily === n - 1) ? save.streak : 0;
-  let st = 'Neuer Platz · 9 Löcher · gleiche Ausrüstung für alle';
-  if (rec) { const t = rec.s.reduce((a, b) => a + b, 0), p = rec.p.reduce((a, b) => a + b, 0); st = 'Gespielt: ' + fmtD(t - p) + ' (' + t + ')'; }
-  const made = TOUR.filter((_, i) => save.career[i] && save.career[i].made).length;
+  const [t, e] = nextEvent(), need = xpNeed(save.lvl);
   $('#home').innerHTML = `<div class="wrap">
-    <div class="top"><div style="flex:1"></div>${coinsHtml()}<button class="pill ib" id="mute">${save.muted ? '🔇' : '🔊'}</button></div>
-    <div class="logo">${logo}Fairway</div>
-    <div class="tag">Jeden Tag ein neuer Platz. Neun Löcher. Ein Versuch.</div>
-    <div class="card daily"><div class="k">Heute${streak ? ' · 🔥 ' + streak : ''}</div><div class="t">Tagesrunde #${n}</div><div class="s">${st}</div>
-      <button class="btn w" data-go="daily">${rec ? 'Nochmal üben' : 'Abschlagen'}</button></div>
-    <div class="card"><button class="mi" data-go="career"><div class="ic">🏆</div><div class="tx"><b>Karriere</b><span>${made}/${TOUR.length} Turniere geschafft</span></div><div class="ar">›</div></button></div>
-    <div class="card"><button class="mi" data-go="train"><div class="ic">🏌️</div><div class="tx"><b>Training</b><span>Zufälliger Platz mit deinen Werten</span></div><div class="ar">›</div></button></div>
-    <div class="card"><button class="mi" data-go="shop"><div class="ic">🛍️</div><div class="tx"><b>Pro-Shop</b><span>Kraft, Präzision, Spin, Putten</span></div><div class="ar">›</div></button></div>
-    <div class="card stat"><div><b>${save.rounds}</b><span>Runden</span></div><div><b>${save.birdies}</b><span>Birdies</span></div><div><b>${save.best == null ? '–' : fmtD(save.best)}</b><span>Bestes</span></div></div>
-    <p style="color:var(--soft);font-size:12.5px;font-weight:600;text-align:center;line-height:1.5">Ziel antippen · „Schlagen“ · 1. Tipp = Kraft, 2. Tipp = Genauigkeit<br>Auf dem Grün: zurückziehen und loslassen</p>
+    <div class="top"><div class="logo">${logo}<span>Fairway</span></div><div style="flex:1"></div>${moneyHtml()}<button class="pill ib" id="mute">${save.muted ? '🔇' : '🔊'}</button></div>
+    <div class="card prof"><div class="av">DU</div><div class="tx"><b>Level ${save.lvl}</b><span>${TOURS[Math.min(save.tourOpen, 2)].n} · ${save.wins} ${save.wins === 1 ? 'Sieg' : 'Siege'}</span>
+      <div class="xpb"><i style="width:${Math.round(save.xp / need * 100)}%"></i></div><small>${save.xp} / ${need} XP${save.sp ? ` · <b class="spn">${save.sp} Skillpunkt${save.sp > 1 ? 'e' : ''}</b>` : ''}</small></div></div>
+    <div class="card hero"><div class="k">${TOURS[t].n} · Turnier ${e + 1}/4</div><div class="t">${TOURS[t].ev[e]}</div>
+      <div class="s">${WXI[evWx(t, e)]} ${evWx(t, e)} · Preisgeld ${money(TOURS[t].purse[e])} · 12 Spieler</div>
+      <button class="btn w" data-ev="${t}-${e}">Antreten</button></div>
+    <div class="grid2">
+      <button class="card tile" data-go="career"><span>🏆</span><b>Karriere</b><small>3 Touren · 12 Turniere</small></button>
+      <button class="card tile" data-go="player"><span>🏌️</span><b>Spieler</b><small>${save.sp ? save.sp + (save.sp === 1 ? ' Punkt' : ' Punkte') + ' frei' : 'Skills ansehen'}</small></button>
+      <button class="card tile" data-go="shop"><span>🛍️</span><b>Ausrüstung</b><small>Schläger kaufen</small></button>
+      <button class="card tile" data-go="free"><span>🌤️</span><b>Freies Spiel</b><small>Zufälliger Platz</small></button>
+    </div>
+    <div class="card stat"><div><b>${save.rounds}</b><span>Runden</span></div><div><b>${save.birdies}</b><span>Birdies</span></div><div><b>${money(save.earnings)}</b><span>Preisgeld</span></div></div>
+    <p class="help">Ziel antippen · Schläger, Draw/Fade, Spin wählen · „Schlagen“<br>1. Tipp = Kraft · 2. Tipp = Genauigkeit · Grün: zurückziehen &amp; loslassen</p>
   </div>`;
 }
 function renderCareer() {
-  $('#career').innerHTML = `<div class="wrap"><div class="top"><button class="pill ib" data-go="home">‹</button><h2>Karriere</h2>${coinsHtml()}</div>
-    ${TOUR.map((t, i) => {
-      const r = save.career[i], lock = i > 0 && !(save.career[i - 1] && save.career[i - 1].made);
-      return `<div class="card ev ${lock ? 'lock' : ''}"><div class="no">${lock ? '🔒' : r && r.made ? '✓' : i + 1}</div><div class="tx"><b>${t.n}</b><span>Ziel ${fmtD(t.cut)} · Preisgeld ${t.prize}${r ? ' · Bestes ' + fmtD(r.best) : ''}</span></div>
-        <button class="sbtn ${lock ? 'dis' : ''}" data-tour="${i}" ${lock ? 'disabled' : ''}>Spielen</button></div>`;
+  $('#career').innerHTML = `<div class="wrap">${back('Karriere')}
+    ${TOURS.map((T, t) => {
+      const lock = t > save.tourOpen;
+      return `<div class="tourh ${lock ? 'lock' : ''}"><b>${T.n}</b><span>${lock ? '🔒 Gewinne ein Turnier der ' + TOURS[t - 1].n : 'Spielerstärke ' + (t === 0 ? '★' : t === 1 ? '★★' : '★★★')}</span></div>
+      ${T.ev.map((n, e) => { const r = save.results[t + '-' + e], wx = evWx(t, e);
+        return `<div class="card ev ${lock ? 'lock' : ''}"><div class="no">${r && r.place === 1 ? '🏆' : WXI[wx]}</div><div class="tx"><b>${n}</b><span>${money(T.purse[e])}${r ? ' · Bestes: ' + r.place + '. (' + fmtD(r.d) + ')' : ''}</span></div>
+          <button class="sbtn ${lock ? 'dis' : ''}" data-ev="${t}-${e}" ${lock ? 'disabled' : ''}>Spielen</button></div>`; }).join('')}`;
     }).join('')}
-    <p style="color:var(--soft);font-size:13px;font-weight:600;text-align:center">Jedes Turnier ist ein fester 9-Loch-Platz. Schaffe das Ziel, um das nächste freizuschalten.<br>Wind, Wasser und Gefälle werden von Turnier zu Turnier härter.</p></div>`;
+  </div>`;
+}
+function renderPlayer() {
+  const st = stats();
+  $('#player').innerHTML = `<div class="wrap">${back('Spieler')}
+    <div class="card prof"><div class="av">DU</div><div class="tx"><b>Level ${save.lvl}</b><span>${save.sp} Skillpunkt${save.sp === 1 ? '' : 'e'} frei · pro Level +1 (alle 5 Level +2)</span></div></div>
+    ${ATTRS.map(a => { const L = save.at[a.id], can = save.sp > 0 && L < AMAX;
+      return `<div class="card sk"><div class="ic">${a.ic}</div><div class="tx"><div class="skh"><b>${a.n}</b><em>${L}/${AMAX}</em></div><p>${a.d}</p>
+        <div class="dots">${Array.from({ length: AMAX }, (_, i) => `<i class="${i < L ? 'f' : ''}"></i>`).join('')}</div></div>
+        <button class="plus ${can ? '' : 'dis'}" data-skill="${a.id}" ${can ? '' : 'disabled'}>+</button></div>`; }).join('')}
+    <p class="help">Spin-Stufe aktuell: ${st.spin}/5 (aus Skill + Wedges)</p>
+  </div>`;
+}
+function statLine(slot, m) {
+  if (slot === 'putter') return `Gefühl +${Math.round(m.cap * 100)} · Linie +${Math.round(m.prev * 100)} %`;
+  return `Weite +${Math.round(m.dist * 100)} % · Präzision +${Math.round(m.acc * 100)} %${m.spin ? ' · Spin +' + m.spin : ''}`;
 }
 function renderShop() {
-  $('#shop').innerHTML = `<div class="wrap"><div class="top"><button class="pill ib" data-go="home">‹</button><h2>Pro-Shop</h2>${coinsHtml()}</div>
-    ${ATTRS.map(a => {
-      const L = save.at[a.id], max = L >= 5, cost = max ? 0 : COSTS[L], can = !max && save.coins >= cost;
-      return `<div class="card sk"><div class="ic">${a.ic}</div><div class="tx"><b>${a.n}</b><p>${a.d}</p><div class="dots">${[0, 1, 2, 3, 4].map(i => `<i class="${i < L ? 'f' : ''}"></i>`).join('')}</div>
-        <button class="sbtn ${can ? '' : 'dis'}" data-buy="${a.id}" ${can ? '' : 'disabled'}>${max ? 'Maximal' : 'Stufe ' + (L + 1) + ' · ' + cost + ' 🪙'}</button></div></div>`;
-    }).join('')}
-    <p style="color:var(--soft);font-size:13px;font-weight:600;text-align:center">Gilt für Karriere und Training. In der Tagesrunde spielen alle mit derselben Ausrüstung (Stufe 1).</p></div>`;
+  $('#shop').innerHTML = `<div class="wrap">${back('Ausrüstung')}
+    ${Object.entries(GEAR).map(([slot, G]) => `<div class="tourh"><b>${G.ic} ${G.n}</b><span>${G.clubs.length > 1 ? G.clubs.join(' · ') : ''}</span></div>
+      ${G.m.map((m, i) => { const own = save.owned[slot].includes(i), eq = save.gear[slot] === i, can = save.money >= m.p;
+        const btn = eq ? `<button class="sbtn on" disabled>Im Bag</button>` : own ? `<button class="sbtn" data-equip="${slot}-${i}">Einpacken</button>` : `<button class="sbtn ${can ? '' : 'dis'}" data-buy="${slot}-${i}" ${can ? '' : 'disabled'}>${money(m.p)}</button>`;
+        return `<div class="card ev gear ${eq ? 'eq' : ''}"><div class="no">${'★'.repeat(i + 1)}</div><div class="tx"><b>${m.n}</b><span>${statLine(slot, m)}</span></div>${btn}</div>`; }).join('')}`).join('')}
+  </div>`;
 }
 document.addEventListener('click', e => {
   if (e.target.closest('#mute')) { save.muted = !save.muted; persist(); renderHome(); return; }
-  const g = e.target.closest('[data-go]'), t = e.target.closest('[data-tour]'), b = e.target.closest('[data-buy]');
-  if (g) { Snd.init(); const v = g.dataset.go; if (v === 'daily') startRound('daily'); else if (v === 'train') startRound('train'); else showScreen(v); }
-  else if (t) { Snd.init(); startRound('tour', { i: +t.dataset.tour }); }
-  else if (b) { const id = b.dataset.buy, L = save.at[id]; if (L < 5 && save.coins >= COSTS[L]) { save.coins -= COSTS[L]; save.at[id] = L + 1; persist(); Snd.coin(); buzz(20); renderShop(); } }
+  const q = sel => e.target.closest(sel);
+  const g = q('[data-go]'), ev = q('[data-ev]'), b = q('[data-buy]'), eq = q('[data-equip]'), sk = q('[data-skill]');
+  if (g) { Snd.init(); const v = g.dataset.go; if (v === 'free') startRound('free'); else showScreen(v); }
+  else if (ev) { Snd.init(); const [t, n] = ev.dataset.ev.split('-').map(Number); startRound('tour', { t, e: n }); }
+  else if (b) { const [slot, i] = b.dataset.buy.split('-'), m = GEAR[slot].m[+i]; if (save.money >= m.p) { save.money -= m.p; save.owned[slot].push(+i); save.gear[slot] = +i; persist(); Snd.coin(); buzz(20); renderShop(); } }
+  else if (eq) { const [slot, i] = eq.dataset.equip.split('-'); save.gear[slot] = +i; persist(); Snd.tick(); renderShop(); }
+  else if (sk) { const id = sk.dataset.skill; if (save.sp > 0 && save.at[id] < AMAX) { save.sp--; save.at[id]++; persist(); Snd.coin(); buzz(15); renderPlayer(); } }
 });
 
 // Test-Hook
 window.__fw = {
   get state() { return state; }, get ball() { return ball; }, get hole() { return hole; }, get strokes() { return strokes; }, get round() { return round; }, get lie() { return lie; }, get save() { return save; },
   get target() { return target; }, set target(v) { target = v; }, get club() { return clubI; }, set club(v) { clubI = v; },
-  startRound, genCourse, lieAt, update, autoClub, carry: c => carry(CLUBS[c]),
+  startRound, genCourse, lieAt, board, update, autoClub, carry: c => carry(CLUBS[c]),
   hit(p, a) { startSwing(); swing.p = p; swing.a = a; swing.ph = 'done'; hitBall(); },
   putt(dx, dy, v) { const l = hyp(dx, dy); doPutt({ dx: dx / l, dy: dy / l, v, p: 1 }); },
   run(maxT = 30) { for (let t = 0; t < maxT && !['aim', 'putt', 'wait', 'holed'].includes(state); t += 1 / 60) update(1 / 60); for (let i = 0; i < 200 && state === 'wait'; i++) { update(1 / 60); } },
