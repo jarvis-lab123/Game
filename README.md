@@ -125,7 +125,10 @@ Schlichtes 2D-Minigolf im Ordner `plopp/`. Ein Finger: zurückziehen, zielen, lo
 **Steuerung:** Ziel antippen → Schläger, Draw/Fade, Spin wählen → „Schlagen“ → 1. Tipp stoppt die pendelnde Richtungslinie, 2. Tipp stoppt die Kraft. Auf dem Grün: goldener Ring = 1 Putt, weisser Ring = 2 Putts, Rest = 3 Putts (werden automatisch gespielt).
 
 **Veröffentlichen / Installieren:** `fairway/` ist eine fertige Web-App (PWA) mit Manifest, Offline-Cache, Schrift „Outfit“ (SIL OFL) und App-Icons (`icons/`, inkl. maskable und 1024 px für Stores).
-Nach GitHub Pages: `https://jarvis-lab123.github.io/Game/fairway/` öffnen → „Zum Home-Bildschirm“ bzw. „App installieren“.
+**Aufs iPhone (ohne Mac, ohne App Store):**
+1. In **Safari** `https://jarvis-lab123.github.io/Game/fairway/` öffnen.
+2. Unten auf **Teilen** tippen → **„Zum Home-Bildschirm“** → **Hinzufügen**.
+3. Fairway startet dann vom Home-Bildschirm im Vollbild mit eigenem Icon und Startbild, auch offline. Der Spielstand bleibt auf dem Handy gespeichert.
 `fairway/standalone.html` ist dieselbe App als Einzeldatei (Schrift und Icon eingebettet).
 
 **Statistiken & Handicap:** Handicap-Index nach WHS-Logik (beste 8 der letzten 20 Runden, Course Rating je Platz und Wetter), Verlauf als Grafik, Fairways, GIR, Putts, 1-/3-Putts, Scrambling, Sand Saves, Chip-ins, Drive-Längen, Abstand zur Fahne, perfekte Schwünge, Score-Verteilung und die letzten Runden.

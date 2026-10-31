@@ -1506,6 +1506,15 @@ window.__fw = {
   holeDone, finishRound, setupShot,
 };
 
+// iPhone/iPad in Safari (nicht installiert): Hinweis zum Installieren
+(function iosHint() {
+  const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const standalone = navigator.standalone || matchMedia('(display-mode: standalone)').matches || window.Capacitor;
+  let seen = 0; try { seen = +localStorage.getItem('fw_ios_hint') || 0; } catch (e) {}
+  if (!ios || standalone || seen > 2 || location.protocol === 'file:' || window.self !== window.top) return;
+  setTimeout(() => $('#ios').classList.remove('hidden'), 1200);
+  $('#iosX').onclick = () => { $('#ios').classList.add('hidden'); try { localStorage.setItem('fw_ios_hint', seen + 1); } catch (e) {} };
+})();
 resize();
 showScreen('home');
 requestAnimationFrame(frame);
