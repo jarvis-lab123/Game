@@ -111,13 +111,14 @@ Schlichtes 2D-Minigolf im Ordner `plopp/`. Ein Finger: zurückziehen, zielen, lo
 
 # 🏌️ Fairway – Golf-Karriere (Handy, Hochformat)
 
-2D-Golf von oben im Low-Poly-Stil im Ordner `fairway/`: Ballflug mit Höhe, Wind, Wetter, Bäume, Bunker, Wasser, Aus, echtes Putten auf geneigten Grüns.
+2D-Golf von oben im Low-Poly-Stil im Ordner `fairway/`: Ballflug mit Höhe, Wind, Wetter, Bäume, Bunker, Wasser, Aus, Putt-Ringe auf geneigten Grüns.
 
 - **Karriere:** Amateur Tour → Challenge Tour → World Tour, je 4 Turniere (9 Löcher) gegen 11 Gegner mit Live-Leaderboard und Preisgeld. Ein Sieg schaltet die nächste Tour frei; Finale ist das Major „The Crown“.
 - **Spieler:** XP und Level, pro Level Skillpunkte für Kraft, Präzision, Spin, Putten und Nerven.
 - **Ausrüstung:** Driver, Hölzer, Eisen, Wedges und Putter in je 5 Modellen.
 - **Wetter:** sonnig, windig (mehr Wind) oder Regen (weniger Ausrollen, langsamere Grüns).
-- **Steuerung:** Ziel antippen → Schläger, Draw/Fade, Spin wählen → „Schlagen“ → 1. Tipp Kraft, 2. Tipp Genauigkeit. Auf dem Grün: zurückziehen und loslassen.
+- **Steuerung:** Ziel antippen → Schläger, Draw/Fade, Spin wählen → „Schlagen“ → 1. Tipp stoppt die pendelnde Richtungslinie, 2. Tipp stoppt die Kraft.
+- **Grün:** Ringe um die Fahne – goldener Ring = 1 Putt, weisser Ring = 2 Putts, Rest des Grüns = 3 Putts. Die Putts werden automatisch gespielt; steile Grüns machen die Ringe kleiner, Putten-Skill und Putter grösser.
 
 Installieren: `https://jarvis-lab123.github.io/Game/fairway/` öffnen → „Zum Home-Bildschirm“.
 `fairway/standalone.html` ist dieselbe App als Einzeldatei (für das Claude-Artefakt).
