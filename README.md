@@ -93,3 +93,16 @@ Teilen kehren zurück: Leon Walter, Jannik, Mila, Valentin, Lena, Sepp, Kai, Nor
 `android/build.sh` baut `android/AlpineGrandSlam.apk`: eine Vollbild-App im Querformat, die das Spiel komplett offline aus der App lädt.
 Benötigt nur Ubuntu-Pakete: `apt-get install aapt apksigner zipalign dalvik-exchange android-sdk-platform-23 default-jdk`.
 Die Datei `android/grandslam.keystore` signiert alle Versionen gleich, damit Updates über die alte App installiert werden können (der Spielstand bleibt erhalten).
+
+---
+
+# ⛳ Plopp – Daily Golf (Handy, Hochformat)
+
+Schlichtes 2D-Minigolf im Ordner `plopp/`. Ein Finger: zurückziehen, zielen, loslassen.
+
+- **Tagesloch:** jeden Tag ein neues, zufällig erzeugtes Loch (für alle gleich, immer lösbar). Nur der erste Versuch zählt, mit Serie 🔥 und Ergebnis zum Teilen.
+- **Der Platz:** 18 handgebaute Löcher mit Sand, Wasser, Eis, Hängen, Schanzen, Bumpern und beweglichen Mühlen.
+- **6 Fähigkeiten**, einsetzbar während der Ball rollt: ✋ Stopp · ⤴️ Sprung · 👻 Geist · ⚡ Turbo · 🧲 Magnet · 🎯 Umlenken.
+  Mit Münzen freischalten und bis Stufe 3 verbessern (mehr Ladungen pro Loch, stärkerer Effekt). Beim Tagesloch hat jeder alle Fähigkeiten 1×.
+
+**Installieren:** `https://jarvis-lab123.github.io/Game/plopp/` auf dem Handy öffnen → „Zum Home-Bildschirm“ (iPhone) bzw. „App installieren“ (Android). Läuft danach offline.
