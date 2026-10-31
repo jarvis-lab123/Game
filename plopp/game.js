@@ -668,7 +668,7 @@ $('#rBtns').addEventListener('click', async e => {
     const n = dayNum(), s = save.daily[n] ?? +$('#rBtns').dataset.s, d = s - hole.par;
     const sq = Array.from({ length: Math.max(s, hole.par) }, (_, i) => i < s ? (s <= hole.par ? '🟩' : i < hole.par ? '🟨' : '🟥') : '⬜').join('');
     const txt = `⛳ Plopp – Tagesloch #${n}\n${scoreName(s, hole.par)} (${fmtDiff(d)})\n${sq}\n🔥 ${save.streak}`;
-    try { if (navigator.share) await navigator.share({ text: txt }); else { await navigator.clipboard.writeText(txt); b.textContent = 'Kopiert ✓'; } } catch (_) {}
+    let ok = false; try { if (navigator.share) { await navigator.share({ text: txt }); ok = true; } } catch (_) {} if (!ok) try { await navigator.clipboard.writeText(txt); b.textContent = 'Kopiert ✓'; } catch (_) { b.textContent = 'Teilen nicht möglich'; }
     return;
   }
   $('#result').classList.add('hidden');
