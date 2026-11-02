@@ -66,7 +66,8 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;paddin
 
 /* Screens – dunkles Sport-Design */
 .screen{position:fixed;top:0;left:0;right:0;bottom:0;min-height:100vh;min-height:100lvh;overflow-y:auto;padding:calc(var(--st) + 14px) 16px calc(var(--sb) + 24px);touch-action:pan-y;
-  --ink:#eef3ec;--soft:#8fa294;--card:#1c2b22;--line:#2a3d31;background:radial-gradient(120% 60% at 50% 0%,#1f3a2a 0%,#111c16 60%);color:var(--ink)}
+  --ink:#eef3ec;--soft:#9aae9f;--card:rgba(22,36,28,.9);--line:rgba(255,255,255,.08);background:linear-gradient(180deg,rgba(10,20,14,.22) 0%,rgba(12,22,16,.6) 30%,rgba(12,22,16,.88) 62%,rgba(12,22,16,.95) 100%);color:var(--ink)}
+.screen .card{box-shadow:0 6px 20px rgba(0,0,0,.18)}
 .wrap{max-width:460px;margin:0 auto}
 .top{display:flex;align-items:center;gap:10px;margin-bottom:16px}
 .top h2{flex:1;margin:0;font-size:22px;font-weight:900}
@@ -362,7 +363,8 @@ table.sc + table.sc{margin-top:-6px}
 @keyframes cadIn{from{opacity:0;transform:translate(-50%,10px) scale(.95)}}
 #achb{position:fixed;left:50%;top:calc(var(--st) + 12px);transform:translate(-50%,-140%);z-index:50;display:flex;gap:12px;align-items:center;background:linear-gradient(135deg,#3a2f12,#1c1a10);border:1.5px solid #f2c14e;color:#fff;border-radius:18px;padding:10px 16px 10px 12px;box-shadow:0 12px 30px rgba(0,0,0,.4);pointer-events:none;min-width:250px}
 #achb.show{animation:achA 3.3s cubic-bezier(.2,.9,.3,1) both}
-@keyframes achA{0%{transform:translate(-50%,-140%)}12%,85%{transform:translate(-50%,0)}100%{transform:translate(-50%,-140%)}}
+@keyframes achA{0%{transform:translate(-50%,-140%);opacity:0}12%,85%{transform:translate(-50%,0);opacity:1}100%{transform:translate(-50%,-140%);opacity:0}}
+#achb{opacity:0}
 #achb i{font-style:normal;font-size:30px;width:46px;height:46px;border-radius:14px;background:rgba(242,193,78,.18);display:grid;place-items:center}
 #achb small{display:block;font-size:10.5px;font-weight:900;color:#f2c14e;text-transform:uppercase;letter-spacing:.8px}#achb b{display:block;font-size:16px}#achb span{font-size:12px;font-weight:800;color:#ffe08a}
 .achsum{text-align:center}.achsum b{font-size:30px;font-weight:900}.achsum span{display:block;color:var(--soft);font-weight:700;font-size:13px}
@@ -374,6 +376,31 @@ table.sc + table.sc{margin-top:-6px}
 .bl{margin:0;text-align:center;padding:12px 6px}.bl i{display:block;width:30px;height:30px;border-radius:50%;margin:2px auto 8px;border:1px solid rgba(255,255,255,.2)}
 .bl b{display:block;font-size:13px}.bl small{font-size:11.5px;font-weight:800;color:#f2c14e}.bl.eq{border-color:#4fb576}.bl.eq small{color:#9be07a}.bl.dis{opacity:.5}
 .grid2 .tile:nth-child(3),.grid2 .tile:nth-child(4){}
+
+/* ---------- TV-Stil: unter Par rot ---------- */
+.under{color:#ff7b6b!important}.over{color:#b9c9be}
+#score b.under{color:#ff7b6b}#score b.over{color:#dfe8e2}#score b{color:#fff}
+table.lb td.under{color:#ff7b6b}
+/* Scorekarte – klassische Tinte statt bunter Flächen */
+.sy.birdie{background:none!important;border:1.8px solid #c8372d;border-radius:50%;color:#c8372d!important}
+.sy.eagle{background:none!important;border:1.8px solid #c8372d;border-radius:50%;color:#c8372d!important;box-shadow:0 0 0 2px #f7f4ec,0 0 0 3.6px #c8372d!important}
+.sy.ace{background:#c9a227!important;color:#fff!important;border-radius:50%;box-shadow:0 0 0 2px #f7f4ec,0 0 0 3.6px #c9a227!important}
+.sy.bogey{background:none!important;border:1.8px solid #2b4f86!important;border-radius:3px!important;color:#2b4f86!important}
+.sy.dbl{background:none!important;border:1.8px solid #2b4f86;border-radius:3px;color:#2b4f86!important;box-shadow:0 0 0 2px #f7f4ec,0 0 0 3.6px #2b4f86}
+.pl .sy.eagle{box-shadow:0 0 0 1.5px #f7f4ec,0 0 0 2.6px #c8372d!important}.pl .sy.dbl{box-shadow:0 0 0 1.5px #f7f4ec,0 0 0 2.6px #2b4f86}
+.pl .sy.birdie,.pl .sy.bogey,.pl .sy.eagle,.pl .sy.dbl{border-width:1.3px}
+.pf .all em.under{color:#ff9d90}
+.paper{background:#f7f4ec repeating-linear-gradient(0deg,transparent 0 27px,rgba(43,79,134,.05) 27px 28px)}
+.ph{background:linear-gradient(135deg,#1f4f35,#163a27)}
+/* Loch-Ergebnis */
+.hres{display:flex;align-items:center;gap:14px;text-align:left;margin:2px 0 14px;padding:14px;border-radius:20px;background:#f7f4ec;color:#1d2a22;animation:fadeUp .35s both}
+.hsym .sy.xl{width:58px;height:58px;font-size:30px;border-width:2.6px!important}
+.hsym .sy.xl.eagle,.hsym .sy.xl.dbl{box-shadow:0 0 0 3px #f7f4ec,0 0 0 5.6px currentColor!important}
+.hsym .sy.xl.par{background:#ebe6d8;border-radius:50%}
+.htx{flex:1;min-width:0}.htx b{display:block;font-size:26px;font-weight:900;letter-spacing:-.5px;line-height:1.05}
+.htx b.under{color:#c8372d!important}.htx b.over{color:#2b4f86}
+.htx span{display:block;font-size:12.5px;font-weight:700;color:#7c887f;margin-top:3px}
+.htot{text-align:center;background:#1f4f35;color:#fff;border-radius:14px;padding:6px 12px}.htot small{display:block;font-size:10px;font-weight:900;opacity:.7;text-transform:uppercase;letter-spacing:.8px}.htot b{font-size:22px;font-weight:900}.htot b.under{color:#ff9d90!important}
 #rot{position:fixed;inset:0;background:var(--bg);display:none;place-items:center;text-align:center;font-weight:800;font-size:18px;padding:30px;z-index:9}
 @media (orientation:landscape) and (max-height:500px){#rot{display:grid}}
 </style>
@@ -497,6 +524,26 @@ const Snd = {
   sand() { this.noise(.18, .2, 1500, 600); },
   good() { [660, 880, 1320].forEach((f, i) => this.tone(f, .16, 'triangle', .15, 0, i * .09)); },
   cheer() { if (!this.ac || save.muted) return; this.noise(1.6, .22, 900, 1400); for (let i = 0; i < 14; i++) setTimeout(() => this.noise(.05, .18, 1800 + Math.random() * 1500), 80 + Math.random() * 1200); },
+  amb: null,
+  ambSet(cfg) {
+    if (!this.ac || save.muted) { this.ambStop(); return; }
+    if (!this.amb) {
+      const ac = this.ac, len = ac.sampleRate * 3, buf = ac.createBuffer(1, len, ac.sampleRate), d = buf.getChannelData(0);
+      let b = 0; for (let i = 0; i < len; i++) { b = b * .985 + (Math.random() * 2 - 1) * .15; d[i] = b; }
+      const mk = (type, f, q) => { const src = ac.createBufferSource(); src.buffer = buf; src.loop = true; src.playbackRate.value = .5 + Math.random() * .5; const fl = ac.createBiquadFilter(); fl.type = type; fl.frequency.value = f; if (q) fl.Q.value = q; const g = ac.createGain(); g.gain.value = 0; src.connect(fl).connect(g).connect(ac.destination); src.start(); return g; };
+      this.amb = { wind: mk('lowpass', 500), sea: mk('lowpass', 380), crowd: mk('bandpass', 650, .6) };
+      setInterval(() => { const a = this.amb, c = a.cfg; if (!c || mode !== 'play' || save.muted) return;
+        if (c.sea) a.sea.gain.setTargetAtTime(.05 + .05 * Math.sin(this.ac.currentTime * .45), this.ac.currentTime, .4);
+        if (c.night) { if (Math.random() < .55) for (let k = 0; k < 3; k++) this.tone(4300, .03, 'sine', .012, 0, k * .06); }
+        else if (c.birds && Math.random() < .22) { const f = 2200 + Math.random() * 1600; this.tone(f, .07, 'sine', .02, 700); this.tone(f * 1.2, .06, 'sine', .016, -400, .1); }
+      }, 700);
+    }
+    const a = this.amb, t = this.ac.currentTime; a.cfg = cfg;
+    a.wind.gain.setTargetAtTime(Math.min(.16, .015 + cfg.wind / 40 * .13), t, .8);
+    a.sea.gain.setTargetAtTime(cfg.sea ? .07 : 0, t, .8);
+    a.crowd.gain.setTargetAtTime(cfg.crowd ? .035 : 0, t, .8);
+  },
+  ambStop() { if (!this.amb) return; const t = this.ac.currentTime; for (const k of ['wind', 'sea', 'crowd']) this.amb[k].gain.setTargetAtTime(0, t, .3); this.amb.cfg = null; },
   coin() { [990, 1480].forEach((f, i) => this.tone(f, .12, 'triangle', .13, 0, i * .08)); },
 };
 const buzz = ms => {
@@ -988,7 +1035,7 @@ function boardHtml(upto, full) {
   const rows = board(upto), me = rows.findIndex(r => r.you);
   let show = full ? rows : rows.slice(0, 5);
   if (!full && me >= 5) show = show.concat([{ gap: 1 }, rows[me]]);
-  return `<table class="lb">${show.map(r => r.gap ? '<tr><td colspan="3" style="color:var(--soft)">…</td></tr>' : `<tr class="${r.you ? 'me' : ''}"><td>${r.pos}</td><td>${r.n}</td><td>${fmtD(r.d)}</td></tr>`).join('')}</table>`;
+  return `<table class="lb">${show.map(r => r.gap ? '<tr><td colspan="3" style="color:var(--soft)">…</td></tr>' : `<tr class="${r.you ? 'me' : ''}"><td>${r.pos}</td><td>${r.n}</td><td class="${r.d < 0 ? 'under' : ''}">${fmtD(r.d)}</td></tr>`).join('')}</table>`;
 }
 const xpNeed = l => Math.round(120 * Math.pow(l, 1.35));
 function addXp(n) {
@@ -1107,6 +1154,9 @@ function startHole(i) {
   lie = 'tee'; cam.s = 0;
   setupShot();
   snapCam();
+  lastShot = null;
+  Snd.ambSet({ wind: hole.wind.v, sea: hole.water.some(w => w.ocean), crowd: !!hole.crowd, night: !!(WX[hole.wx] || {}).night, birds: !(WX[hole.wx] || {}).rain && hole.th !== 'volcano' });
+  if (!round.mini && !window.__fwNoFx) fly = { t: 0, dur: 2.6, x: hole.green.x, y: hole.green.y, s: Math.min(W, H - 300) / 64 };
   const w = hole.wind;
   if (round.mini) intro(round.label, (round.mini.kind === 'ctp' ? 'Par 3 · ' + hole.len + ' m · 5 Bälle' : '5 Drives · nur Fairway zählt'), WXI[hole.wx] + (w.v ? ' ' + w.v + ' km/h' : ''));
   else intro(round.mode === 'match' && i >= 9 ? 'Stechen' : 'Loch ' + (i + 1), 'Par ' + hole.par + ' · ' + hole.len + ' m' + (Math.abs(hole.elev || 0) >= 4 ? (hole.elev > 0 ? ' · bergauf +' : ' · bergab −') + Math.abs(hole.elev) + ' m' : ''), (hole.sig ? '★ ' + SIGN[hole.sig] + ' · ' : i === 0 ? round.label + ' · ' : '') + WXI[hole.wx] + ' ' + wxN(hole.wx) + (w.v ? ' · Wind ' + w.v + ' km/h' : ' · windstill') + (round.mode === 'match' ? ' · ' + msText(round.ms) : ''));
@@ -1190,7 +1240,7 @@ function updAutoPutt(dt) {
 // ---------------- Schwung ----------------
 function startSwing() {
   if (state !== 'aim') return;
-  $('#caddie').classList.add('hidden');
+  $('#caddie').classList.add('hidden'); fly = null;
   Snd.init(); overview = false;
   state = 'swing'; swing = { ph: 'dir', t: 0, p: 0, a: 0, ph0: Math.random(), pt: clamp(playsLike() / carry(CLUBS[clubI]), .05, 1) };
   updPanel();
@@ -1235,6 +1285,7 @@ function hitBall() {
   const mid = [(S[0] + L[0]) / 2, (S[1] + L[1]) / 2], rgt = [-ry, rx], bow = -shape * carryAct * .11;
   const Cp = [mid[0] + rgt[0] * bow - wx * wk * .3, mid[1] + rgt[1] * bow - wy * wk * .3];
   strokes++;
+  lastShot = null;
   flight = { S, L, Cp, T: air, t: 0, apex: c.apex * clamp(.5 + p * .5, .5, 1.05) * (spin < 0 ? 1.08 : spin > 0 ? .9 : 1), carry: carryAct, club: c, shape, spin, origin: S };
   state = 'flight'; ffwd = false; trail = [];
   Snd.swing(p); buzz(15);
@@ -1261,6 +1312,7 @@ function updFlight(dt) {
   }
   ball.x = x; ball.y = y; ball.z = z;
   trail.push([x, y - 0, z]); if (trail.length > 40) trail.shift();
+  (flight.path = flight.path || []).push([x, y]);
   if (p >= 1) land();
 }
 function land() {
@@ -1343,6 +1395,7 @@ function teeEval(pen) {
 }
 function afterStop() {
   if (state === 'holed') return;
+  if (flight && flight.path && !round.mini) lastShot = { h: hole, pts: flight.path.concat([[ball.x, ball.y]]), S: flight.origin, end: [ball.x, ball.y], d: Math.round(hyp(ball.x - flight.origin[0], ball.y - flight.origin[1])) };
   state = 'wait';
   if (round.mini) { miniShotDone(false); return; }
   teeEval(false);
@@ -1358,6 +1411,7 @@ function holed() {
   if ((round.mode === 'tour' || round.mode === 'match') && (strokes - hole.par < 0 || hs.chip)) { cheerT = time; later(200, () => Snd.cheer()); }
   const d = strokes - hole.par;
   if (d < 0 || strokes === 1) later(250, () => Snd.good());
+  if (d < 0 || strokes === 1 || hs.chip) parts.push({ txt: strokes === 1 ? 'HOLE-IN-ONE!' : hs.chip && d >= 0 ? 'CHIP-IN!' : scoreName(strokes, hole.par).toUpperCase() + '!', x: hole.pin[0], y: hole.pin[1], vx: 0, vy: 0, life: 1.8, max: 1.8 });
   for (let i = 0; i < 30; i++) { const a = Math.random() * TAU, s = 1 + Math.random() * 5; parts.push({ x: hole.pin[0], y: hole.pin[1], vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 1.1, max: 1.1, c: ['#ffffff', '#ffd54f', '#ff8a65', '#81d4fa'][i % 4], r: .25 + Math.random() * .25 }); }
   if (round.mini) { later(900, () => miniShotDone(false, true)); return; }
   later(1000, () => holeDone(strokes));
@@ -1383,6 +1437,7 @@ let aimDrag = false;
 cv.addEventListener('pointerdown', e => {
   Snd.init();
   if (mode !== 'play') return;
+  if (fly) { fly = null; return; }
   if (state === 'swing') { swingTap(); return; }
   if (state === 'flight') { ffwd = true; return; }
   if (state === 'aim') { aimDrag = true; setTarget(e.clientX, e.clientY); try { cv.setPointerCapture(e.pointerId); } catch (_) {} return; }
@@ -1446,8 +1501,9 @@ function camGoal() {
 }
 function box(pts, pad, minW) { let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; for (const [x, y] of pts) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); } fitTo(x0 - pad, y0 - pad, x1 + pad, y1 + pad, minW); }
 function snapCam() { camGoal(); cam.x = camT.x; cam.y = camT.y; cam.s = camT.s; }
-let shake = 0;
+let shake = 0, lastShot = null, fly = null;
 function updCam(dt) {
+  if (fly) { camGoal(); fly.t += dt; const u = Math.min(1, fly.t / fly.dur), e = u < .25 ? 0 : (u - .25) / .75, k = e * e * (3 - 2 * e); cam.x = lerp(fly.x, camT.x, k); cam.y = lerp(fly.y, camT.y, k); cam.s = Math.exp(lerp(Math.log(fly.s), Math.log(camT.s), k)); if (u >= 1) fly = null; return; }
   if (shake > 0) { shake = Math.max(0, shake - dt); cam.x += (Math.random() - .5) * shake * 4 / Math.max(1, cam.s / 3); cam.y += (Math.random() - .5) * shake * 4 / Math.max(1, cam.s / 3); }
   camGoal();
   if (!cam.s) { snapCam(); return; }
@@ -1460,7 +1516,7 @@ function updCam(dt) {
 let last = performance.now();
 function frame(now) {
   const dt = Math.min(.04, (now - last) / 1000); last = now;
-  if (mode === 'play' && hole) update(dt);
+  if (mode === 'play' && hole) update(dt); else time += dt;
   render();
   requestAnimationFrame(frame);
 }
@@ -1573,10 +1629,29 @@ function facet(cx, cy, pts, base, amt, top) {
     ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = .08; ctx.stroke();
   }
 }
+let demo = null;
+function newDemo() {
+  const pool = COURSES.filter(c => c.th !== 'volcano' || Math.random() < .5), c = pool[Math.floor(Math.random() * pool.length)];
+  const hs = courseHoles(c.id, 18, 'sonnig'), h = hs.filter(x => x.par > 3)[Math.floor(Math.random() * 12)] || hs[0];
+  demo = { h, t0: time, c };
+}
+function renderDemo() {
+  if (!demo || time - demo.t0 > 70) newDemo();
+  const sv = { hole, ball, state, round, cx: cam.x, cy: cam.y, cs: cam.s, PAL };
+  hole = demo.h; ball = { x: -1e5, y: -1e5, z: 0, vx: 0, vy: 0 }; state = 'demo'; round = { mode: 'demo', holes: [hole] }; setPal(hole.th);
+  const u = ((time - demo.t0) / 70), p = pathAt(hole, hole.Lg * (.05 + u * .95));
+  cam.s = Math.max(W, H) / 230; cam.x = p.x + Math.sin(time * .1) * 12; cam.y = p.y;
+  try { updFauna(1 / 60); renderBody(); } catch (e) {}
+  hole = sv.hole; ball = sv.ball; state = sv.state; round = sv.round; cam.x = sv.cx; cam.y = sv.cy; cam.s = sv.cs; PAL = sv.PAL;
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+}
 function render() {
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   ctx.fillStyle = mode === 'play' ? PAL.deep : '#f2f0e8'; ctx.fillRect(0, 0, W, H);
-  if (mode !== 'play' || !hole) return;
+  if (mode !== 'play' || !hole) { renderDemo(); return; }
+  renderBody();
+}
+function renderBody() {
   const s = cam.s;
   ctx.setTransform(DPR * s, 0, 0, DPR * s, DPR * (W / 2 - cam.x * s), DPR * (H / 2 - cam.y * s));
   ctx.lineJoin = 'round'; ctx.lineCap = 'round';
@@ -1653,6 +1728,11 @@ function render() {
   const [pxn, pyn] = hole.pin, cupR = Math.max(CUP, 3.5 * px);
   ctx.fillStyle = 'rgba(0,0,0,.12)'; ctx.beginPath(); ctx.arc(pxn, pyn, cupR * 1.35, 0, TAU); ctx.fill();
   ctx.fillStyle = '#26302a'; ctx.beginPath(); ctx.arc(pxn, pyn, cupR, 0, TAU); ctx.fill();
+  // letzter Schlag als Spur
+  if (lastShot && lastShot.h === hole && (state === 'aim' || state === 'swing')) {
+    ctx.strokeStyle = 'rgba(255,255,255,.38)'; ctx.lineWidth = Math.max(.15, 1.6 * px); ctx.setLineDash([5 * px, 4 * px]); ctx.beginPath(); lastShot.pts.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.beginPath(); ctx.arc(lastShot.S[0], lastShot.S[1], 2.5 * px, 0, TAU); ctx.fill();
+  }
   // Zielhilfe (unter Bäumen nicht nötig, aber unter Ball)
   if (state === 'aim' || state === 'swing') drawAim();
   // Ball-Schatten
@@ -1709,6 +1789,7 @@ function render() {
   }
   // Partikel
   for (const p of parts) {
+    if (p.txt) continue;
     const f = p.life / p.max;
     ctx.globalAlpha = Math.min(1, f * 1.5);
     if (p.ring) { ctx.strokeStyle = p.c; ctx.lineWidth = .3; ctx.beginPath(); ctx.arc(p.x, p.y, p.r0 + (1 - f) * p.grow, 0, TAU); ctx.stroke(); }
@@ -1719,6 +1800,7 @@ function render() {
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   { const g = ctx.createRadialGradient(W / 2, H * .45, Math.min(W, H) * .35, W / 2, H * .45, Math.max(W, H) * .75); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(5,20,10,.35)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); }
   if ((WX[hole.wx] || {}).night) drawNight();
+  for (const p of parts) if (p.txt) { const f = p.life / p.max, [sx, sy] = toScreen(p.x, p.y), e = 1 - f; ctx.save(); ctx.globalAlpha = Math.min(1, f * 2.2); ctx.translate(sx, sy - 40 - e * 70); const sc = .6 + Math.min(1, e * 6) * .4; ctx.scale(sc, sc); ctx.font = '900 38px ' + FONTS; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineWidth = 7; ctx.strokeStyle = 'rgba(20,20,20,.55)'; ctx.strokeText(p.txt, 0, 0); ctx.fillStyle = '#ffd65c'; ctx.fillText(p.txt, 0, 0); ctx.restore(); }
   drawAmbient();
   const WXo = WX[hole.wx] || {};
   if (WXo.tint) { ctx.fillStyle = WXo.tint; ctx.fillRect(0, 0, W, H); }
@@ -1734,6 +1816,7 @@ function render() {
     ctx.stroke();
   }
   if (state === 'aim' || state === 'swing') drawTargetLabel();
+  if (lastShot && lastShot.h === hole && state === 'aim') { const [sx, sy] = toScreen(lastShot.end[0], lastShot.end[1]); ctx.font = '800 11.5px ' + FONTS; const t2 = 'letzter Schlag ' + lastShot.d + ' m', w2 = ctx.measureText(t2).width + 14; ctx.fillStyle = 'rgba(255,255,255,.88)'; rr(sx - w2 / 2, sy + 14, w2, 20, 10); ctx.fill(); ctx.fillStyle = '#1d2a22'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(t2, sx, sy + 24.5); }
   drawRingLabels();
   if (state === 'swing') drawMeter();
   if (state === 'flight' || state === 'roll') drawFlightInfo();
@@ -1938,6 +2021,7 @@ function updHud() {
 }
 function setScore(v, sub) {
   const el = $('#scoreT');
+  el.className = 'num ' + (/^−/.test(v) ? 'under' : /^\+/.test(v) ? 'over' : '');
   if (el.textContent !== v) { el.textContent = v; const p = $('#score'); p.classList.remove('pop'); void p.offsetWidth; p.classList.add('pop'); }
   $('#strokeT').textContent = sub;
 }
@@ -1992,8 +2076,10 @@ function holeDone(score) {
   const name = scoreName(score, hole.par);
   const last = hi === round.holes.length - 1;
   if (!last) saveCur();
-  showOv(`<div class="big" style="color:${d < 0 ? 'var(--acc)' : d > 0 ? 'var(--warn)' : 'var(--ink)'}">${name}</div>
-    <div class="sub">Loch ${hi + 1}/${round.holes.length} · ${score} ${score === 1 ? 'Schlag' : 'Schläge'} · Gesamt ${fmtD(totalDiff())}</div>
+  const tdf = totalDiff();
+  showOv(`<div class="hres"><div class="hsym">${scoreSym(score, hole.par).replace('class="sy ', 'class="sy xl ')}</div>
+      <div class="htx"><b class="${d < 0 ? 'under' : d > 0 ? 'over' : ''}">${name}</b><span>Loch ${hi + 1} von ${round.holes.length} · Par ${hole.par} · ${hole.len} m</span></div>
+      <div class="htot"><small>Gesamt</small><b class="${tdf < 0 ? 'under' : ''}">${fmtD(tdf)}</b></div></div>
     ${round.field ? `<div class="lbh">Leaderboard nach ${hi + 1} ${hi ? 'Löchern' : 'Loch'}</div>` + boardHtml(hi + 1) : cardHtml()}
     <div class="btns"><button class="btn" data-a="${last ? 'finish' : 'next'}">${last ? 'Turnier abschliessen' : 'Loch ' + (hi + 2) + ' →'}</button></div>`);
 }
@@ -2020,8 +2106,8 @@ function cardHtml() {
   const date = new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
   const nines = n > 9 ? paperNine(0, 9, 'OUT') + paperNine(9, n, 'IN') : paperNine(0, n, 'Σ');
   const foot = n > 9
-    ? `<div class="pf"><div><small>Out</small><b>${sum(0, 9) || '–'}</b></div><div><small>In</small><b>${sum(9, n) || '–'}</b></div><div class="all"><small>Gesamt</small><b>${played ? tot : '–'}</b><em>${played ? fmtD(toPar) : ''}</em></div></div>`
-    : `<div class="pf two"><div><small>Par</small><b>${par(0, n)}</b></div><div class="all"><small>Gesamt</small><b>${played ? tot : '–'}</b><em>${played ? fmtD(toPar) : ''}</em></div></div>`;
+    ? `<div class="pf"><div><small>Out</small><b>${sum(0, 9) || '–'}</b></div><div><small>In</small><b>${sum(9, n) || '–'}</b></div><div class="all"><small>Gesamt</small><b>${played ? tot : '–'}</b><em class="${toPar < 0 ? 'under' : ''}">${played ? fmtD(toPar) : ''}</em></div></div>`
+    : `<div class="pf two"><div><small>Par</small><b>${par(0, n)}</b></div><div class="all"><small>Gesamt</small><b>${played ? tot : '–'}</b><em class="${toPar < 0 ? 'under' : ''}">${played ? fmtD(toPar) : ''}</em></div></div>`;
   return `<div class="paper">
     <div class="ph"><b>Scorekarte</b><span>${round.label} · ${date}</span></div>
     <div class="pbody">${nines}</div>${foot}
@@ -2369,7 +2455,7 @@ const logo = `<svg viewBox="0 0 40 40"><polygon points="20,2 36,11 36,29 20,38 4
 const moneyHtml = () => `<div class="coins">${money(save.money)}</div>`;
 const back = t => `<div class="top"><button class="pill ib" data-go="home">‹</button><h2>${t}</h2>${moneyHtml()}</div>`;
 function showScreen(name) {
-  $('#caddie').classList.add('hidden');
+  $('#caddie').classList.add('hidden'); Snd.ambStop();
   mode = 'menu'; round = null; hole = null; timers = [];
   hud.classList.add('hidden'); panel.classList.add('hidden'); hideOv();
   SCREENS.forEach(id => $('#' + id).classList.toggle('hidden', id !== name));
@@ -2406,7 +2492,7 @@ function renderHome() {
     </div>
     <div class="card stat"><div><b>${save.rounds}</b><span>Runden</span></div><div><b>${save.birdies}</b><span>Birdies</span></div><div><b>${money(save.earnings)}</b><span>Preisgeld</span></div></div>
     <p class="help">Ziel antippen · Schläger, Draw/Fade, Spin wählen · „Schlagen“<br>1. Tipp stoppt die pendelnde Linie · 2. Tipp stoppt die Kraft<br>Auf dem Grün: goldener Ring = 1 Putt, weisser Ring = 2, sonst 3</p>
-    <p class="ver">Fairway · Version 1.7</p>
+    <p class="ver">Fairway · Version 1.8</p>
   </div>`;
 }
 function renderCareer() {
@@ -2466,7 +2552,7 @@ function renderShop() {
   </div>`;
 }
 document.addEventListener('click', e => {
-  if (e.target.closest('#mute')) { save.muted = !save.muted; persist(); renderHome(); return; }
+  if (e.target.closest('#mute')) { save.muted = !save.muted; persist(); if (save.muted) Snd.ambStop(); renderHome(); return; }
   const q = sel => e.target.closest(sel);
   const g = q('[data-go]'), ev = q('[data-ev]'), b = q('[data-buy]'), eq = q('[data-equip]'), sk = q('[data-skill]');
   const cu = q('[data-cup]'), cc = q('[data-cupclose]');
