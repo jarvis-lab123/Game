@@ -149,3 +149,11 @@ Lochlängen von 100 m (Par 3) bis 570 m (Par 5), bergauf/bergab mit „spielt wi
 
 `fairway-ios/` ist das fertige Xcode-Projekt (Capacitor) mit Icon, Splash, Haptik und Hochformat-Sperre.
 Bauen und Veröffentlichen auf einem Mac: siehe `fairway-ios/README.md`.
+
+## Tagwerk – Fokus-Tagesplan
+
+Eine Aufgabe zur Zeit, Abfahrts-Countdown, ablaufender Kreis, gedrückt halten zum Abhaken, kleine Belohnungen dazwischen.
+
+**Installieren:** In **Safari** `https://jarvis-lab123.github.io/Game/tagwerk/` öffnen → Teilen → „Zum Home-Bildschirm“.
+
+Neuer Tag: nur das `DAY`-Objekt oben im Script von `tagwerk/index.html` ändern.
