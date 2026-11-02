@@ -37,7 +37,12 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--ink);outline-of
 .lbl{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink2);font-weight:500}
 
 /* ---------- first screen ---------- */
-.hero{min-height:calc(100svh - 54px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:10px}
+.mini span{display:inline-block}
+.mini span.tick{animation:roll .45s var(--ease)}
+.bar .dim{color:var(--ink3)}
+.below{transition:opacity .6s var(--ease),transform .6s var(--ease)}
+.below.hide{opacity:0;transform:translateY(30px)}
+.hero{min-height:calc(100svh - 14px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:10px}
 .bar{display:flex;justify-content:space-between;align-items:center;padding-top:4px}
 .bar .lbl b{color:var(--ink);font-weight:500}
 .clock{font-family:var(--mono);font-weight:300;font-size:clamp(64px,21vw,104px);line-height:.9;letter-spacing:-.06em;display:flex;font-variant-numeric:tabular-nums;margin-top:10px}
@@ -52,11 +57,11 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--ink);outline-of
 @keyframes in{from{opacity:0;transform:translateY(22px) scale(.985);filter:blur(6px)}}
 @keyframes out{to{opacity:0;transform:translateY(-26px) scale(.97);filter:blur(8px)}}
 
-.task{font-size:clamp(26px,7.4vw,34px);font-weight:500;letter-spacing:-.03em;line-height:1.1;text-wrap:balance;margin:0;max-width:16ch}
+.task{font-size:clamp(36px,10.5vw,48px);font-weight:500;letter-spacing:-.04em;line-height:1.04;text-wrap:balance;margin:0;max-width:13ch}
 .hint{font-size:15px;color:var(--ink2);line-height:1.45;margin:0;max-width:32ch}
 
 /* the draining circle = hold button */
-.orb{position:relative;width:min(74vw,290px);aspect-ratio:1;max-width:100%;border-radius:50%;touch-action:none;outline-offset:8px}
+.orb{position:relative;width:min(80vw,320px);aspect-ratio:1;max-width:100%;border-radius:50%;touch-action:none;outline-offset:8px}
 .orb svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
 .orb .track{fill:none;stroke:var(--line);stroke-width:1.2}
 .orb .tk{stroke:var(--line);stroke-width:.4;stroke-linecap:round;transition:stroke .6s}
@@ -169,14 +174,12 @@ html,body{transition:background-color 1.2s var(--ease),color 1.2s var(--ease)}
 <canvas id="fx"></canvas>
 <div class="app">
   <section class="hero">
-    <div class="bar"><span class="lbl" id="date"></span><span class="lbl">Los um <b class="mono" id="leave"></b></span></div>
-    <div class="clock" id="clock"></div>
-    <div class="sub-row"><span class="lbl" id="clockLbl">bis du los musst</span><button class="noise" id="noise" aria-pressed="false"><i></i>Rauschen</button></div>
+    <div class="bar"><span class="lbl"><span id="clockLbl">Los um</span> <b class="mono" id="leave"></b> <span class="dim">· noch</span> <b class="mono mini" id="clock"></b></span><button class="noise" id="noise" aria-pressed="false"><i></i>Rauschen</button></div>
     <div class="stage" id="stage"></div>
     <div class="more" aria-hidden="true"><span>Mehr</span><svg viewBox="0 0 16 16"><path d="M4 6l4 4 4-4"/></svg></div>
   </section>
 
-  <section class="below">
+  <section class="below hide" id="below">
     <div class="sec"><span class="lbl">Dein Tag</span>
       <div><div class="segs" id="segs"></div><div class="ticks mono" id="ticks"></div></div>
       <div class="stats" id="stats"></div>
@@ -200,7 +203,7 @@ html,body{transition:background-color 1.2s var(--ease),color 1.2s var(--ease)}
 const DAY = {
   id: "2026-11-02",
   date: "2026-11-02",
-  start: "14:30",
+  start: "14:25",
   leave: "17:20",
   tasks: [
     { t:"Mittagessen",                         h:"In Ruhe essen. Handy weg.",                                     until:"15:05" },
@@ -291,7 +294,7 @@ function renderClock(){
   lastClock = str;
   const endOn = left > 0 && left < 30*60000, root = document.documentElement;
   if (endOn !== root.classList.contains("end")){ root.classList.toggle("end", endOn); if (endOn){ toast("Endspurt. Letzte 30 Minuten."); tone(523,.3,.04); tone(784,.4,.04,"sine",.15); } }
-  $("#clockLbl").textContent = left > 0 ? (now < T0 ? "bis du los musst · Start " + DAY.start : "bis du los musst") : "Zeit zu gehen";
+  $("#clockLbl").textContent = left > 0 ? "Los um" : "Zeit zu gehen";
 }
 
 /* ===== Bühne ===== */
@@ -557,12 +560,11 @@ $("#noise").onclick = () => {
 };
 
 /* ===== Start ===== */
-$("#date").textContent = new Date(DAY.date+"T12:00").toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"long"});
 $("#leave").textContent = DAY.leave;
 renderClock(); renderBelow(); showTask();
 setInterval(() => { renderClock(); tickTask(); moveNow(); const f = $("#focusN"); if (f) f.textContent = focusMin(); }, 1000);
 setInterval(save, 20000);
-addEventListener("scroll", () => document.querySelector(".more").classList.toggle("gone", scrollY > 40), { passive:true });
+addEventListener("scroll", () => { const s = scrollY > 40; document.querySelector(".more").classList.toggle("gone", s); if (s) $("#below").classList.remove("hide"); }, { passive:true });
 (async () => { try{ if ("wakeLock" in navigator) await navigator.wakeLock.request("screen"); }catch{} })();
 </script>
 
