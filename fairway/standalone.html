@@ -353,6 +353,27 @@ table.sc + table.sc{margin-top:-6px}
 .hero.th-heath,.resume.th-heath,.fin.th-heath{background:linear-gradient(135deg,#7a5f94,#3e2f52)}
 .course.th-snow:before{background:#cfe3f0}.course.th-volcano:before{background:#ff6a2e}.course.th-blossom:before{background:#f2a6c0}.course.th-savanna:before{background:#d9b04a}.course.th-heath:before{background:#a98bc4}
 .ev .no.th-snow{background:#2a4560}.ev .no.th-volcano{background:#4a1a12}.ev .no.th-blossom{background:#5a2a40}.ev .no.th-savanna{background:#5a4518}.ev .no.th-heath{background:#3e2f52}
+
+/* ---------- Caddie, Erfolge, Bälle ---------- */
+#caddie{position:fixed;left:50%;bottom:calc(var(--sb) + 246px);transform:translateX(-50%);width:min(92vw,420px);background:#f7f4ec;color:#1d2a22;border-radius:16px;padding:9px 13px 10px;box-shadow:0 8px 24px rgba(0,0,0,.3);font-size:13.5px;font-weight:600;line-height:1.35;z-index:3;pointer-events:none}
+#caddie b{display:block;font-size:11.5px;font-weight:900;color:#2f7d4f;text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px}
+#caddie:after{content:"";position:absolute;left:32px;bottom:-7px;width:14px;height:14px;background:#f7f4ec;transform:rotate(45deg)}
+#caddie.pop{animation:cadIn .4s cubic-bezier(.2,1.4,.4,1)}
+@keyframes cadIn{from{opacity:0;transform:translate(-50%,10px) scale(.95)}}
+#achb{position:fixed;left:50%;top:calc(var(--st) + 12px);transform:translate(-50%,-140%);z-index:50;display:flex;gap:12px;align-items:center;background:linear-gradient(135deg,#3a2f12,#1c1a10);border:1.5px solid #f2c14e;color:#fff;border-radius:18px;padding:10px 16px 10px 12px;box-shadow:0 12px 30px rgba(0,0,0,.4);pointer-events:none;min-width:250px}
+#achb.show{animation:achA 3.3s cubic-bezier(.2,.9,.3,1) both}
+@keyframes achA{0%{transform:translate(-50%,-140%)}12%,85%{transform:translate(-50%,0)}100%{transform:translate(-50%,-140%)}}
+#achb i{font-style:normal;font-size:30px;width:46px;height:46px;border-radius:14px;background:rgba(242,193,78,.18);display:grid;place-items:center}
+#achb small{display:block;font-size:10.5px;font-weight:900;color:#f2c14e;text-transform:uppercase;letter-spacing:.8px}#achb b{display:block;font-size:16px}#achb span{font-size:12px;font-weight:800;color:#ffe08a}
+.achsum{text-align:center}.achsum b{font-size:30px;font-weight:900}.achsum span{display:block;color:var(--soft);font-weight:700;font-size:13px}
+.achg{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ac{margin:0;text-align:center;padding:14px 10px;opacity:.55}
+.ac.got{opacity:1;border-color:rgba(242,193,78,.5);background:linear-gradient(160deg,#2c2a18,#1c2b22)}
+.ac i{font-style:normal;font-size:30px;display:block;margin-bottom:4px}.ac b{display:block;font-size:14px}.ac small{display:block;color:var(--soft);font-size:11.5px;font-weight:600;line-height:1.3;margin:3px 0 6px}.ac em{font-style:normal;font-size:11.5px;font-weight:900;color:#f2c14e}
+.balls{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:6px}
+.bl{margin:0;text-align:center;padding:12px 6px}.bl i{display:block;width:30px;height:30px;border-radius:50%;margin:2px auto 8px;border:1px solid rgba(255,255,255,.2)}
+.bl b{display:block;font-size:13px}.bl small{font-size:11.5px;font-weight:800;color:#f2c14e}.bl.eq{border-color:#4fb576}.bl.eq small{color:#9be07a}.bl.dis{opacity:.5}
+.grid2 .tile:nth-child(3),.grid2 .tile:nth-child(4){}
 #rot{position:fixed;inset:0;background:var(--bg);display:none;place-items:center;text-align:center;font-weight:800;font-size:18px;padding:30px;z-index:9}
 @media (orientation:landscape) and (max-height:500px){#rot{display:grid}}
 </style>
@@ -386,6 +407,8 @@ table.sc + table.sc{margin-top:-6px}
   <div class="pcard hidden" id="puttCard"><div id="puttT">Zurückziehen und loslassen zum Putten</div><button id="chipBtn" class="hidden">Doch chippen</button></div>
 </div>
 <div id="toast"></div>
+<div id="caddie" class="hidden"></div>
+<div id="achb"></div>
 <div id="intro"></div>
 <div id="confetti"></div>
 <div id="curtain"></div>
@@ -397,6 +420,7 @@ table.sc + table.sc{margin-top:-6px}
 <div id="cup" class="screen hidden"></div>
 <div id="stats" class="screen hidden"></div>
 <div id="courses" class="screen hidden"></div>
+<div id="ach" class="screen hidden"></div>
 <div id="ov" class="ov hidden"><div class="card" id="ovCard"></div></div>
 <div id="ios" class="hidden"><div class="iosc"><b>Fairway als App installieren</b><span>Tippe unten auf <svg class="sh" viewBox="0 0 24 24" width="17" height="17"><path d="M12 3v12M7.5 7.5 12 3l4.5 4.5" fill="none" stroke="#1a73e8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 11H6.5A1.5 1.5 0 0 0 5 12.5v7A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5v-7a1.5 1.5 0 0 0-1.5-1.5H16" fill="none" stroke="#1a73e8" stroke-width="2.2" stroke-linecap="round"/></svg> <em>Teilen</em> und dann auf <em>„Zum Home-Bildschirm“</em>. Danach startet Fairway im Vollbild – wie eine echte App, auch offline.</span><button id="iosX">Später</button></div></div>
 <div id="rot">Bitte dreh dein Handy ins Hochformat 📱</div>
@@ -472,6 +496,7 @@ const Snd = {
   splash() { this.noise(.5, .35, 700, 200); },
   sand() { this.noise(.18, .2, 1500, 600); },
   good() { [660, 880, 1320].forEach((f, i) => this.tone(f, .16, 'triangle', .15, 0, i * .09)); },
+  cheer() { if (!this.ac || save.muted) return; this.noise(1.6, .22, 900, 1400); for (let i = 0; i < 14; i++) setTimeout(() => this.noise(.05, .18, 1800 + Math.random() * 1500), 80 + Math.random() * 1200); },
   coin() { [990, 1480].forEach((f, i) => this.tone(f, .12, 'triangle', .13, 0, i * .08)); },
 };
 const buzz = ms => {
@@ -578,9 +603,62 @@ const THEMES = {
     tree: 'pine', cols: ['#3d6e45', '#466f3c'], deco: 'pine', decoD: .55, trees: .6, water: .8, waste: 1.2, ocean: 0, rocks: .2, elev: 7, wind: 1.3, wasteN: 'Heidekraut',
     wx: { windig: 3, 'bewölkt': 3, nebel: 2, sonnig: 1, regen: 1 }, sig: ['drive', 'peninsula', 'canyon'] },
 };
+for (const [k, v] of Object.entries({ park: 1, desert: 1, tropic: 1, snow: 1.5, links: .5, blossom: 1, volcano: 1.2 })) THEMES[k].wx.nacht = v;
 THEMES.park.sig = ['island', 'peninsula', 'drive']; THEMES.links.sig = ['drive', 'peninsula']; THEMES.desert.sig = ['canyon', 'drive'];
 THEMES.alpine.sig = ['canyon', 'island']; THEMES.tropic.sig = ['island', 'peninsula']; THEMES.autumn.sig = ['peninsula', 'drive', 'island'];
 THEMES.autumn.amb = 'leaf'; THEMES.tropic.amb = null; THEMES.links.wasteN = 'Dünen'; THEMES.desert.wasteN = 'Wüstensand';
+const ACH = [
+  { id: 'birdie', ic: '🐦', n: 'Erstes Birdie', d: 'Spiele dein erstes Birdie', r: 200 },
+  { id: 'eagle', ic: '🦅', n: 'Adlerauge', d: 'Spiele ein Eagle', r: 800 },
+  { id: 'hio', ic: '🎯', n: 'Hole-in-One!', d: 'Loche mit dem ersten Schlag', r: 3000 },
+  { id: 'chip', ic: '✨', n: 'Chip-in', d: 'Loche von ausserhalb des Grüns ein', r: 400 },
+  { id: 'birdie25', ic: '🪶', n: 'Birdie-Jäger', d: '25 Birdies insgesamt', r: 1500 },
+  { id: 'under', ic: '📉', n: 'Unter Par', d: 'Beende eine 18-Loch-Runde unter Par', r: 1000 },
+  { id: 'win', ic: '🏆', n: 'Erster Sieg', d: 'Gewinne ein Turnier', r: 1000 },
+  { id: 'major', ic: '👑', n: 'Major-Champion', d: 'Gewinne ein Grand-Slam-Major', r: 10000 },
+  { id: 'slam', ic: '💎', n: 'Grand Slam', d: 'Gewinne alle vier Majors', r: 50000 },
+  { id: 'cup', ic: '⚔️', n: 'Matchplay-König', d: 'Gewinne einen Matchplay Cup', r: 2000 },
+  { id: 'ctp', ic: '📍', n: 'Millimeterarbeit', d: 'Gold bei Closest to the Pin', r: 800 },
+  { id: 'ld', ic: '💥', n: 'Bombenabschlag', d: 'Gold bei Longest Drive', r: 800 },
+  { id: 'drive280', ic: '🚀', n: '280-m-Club', d: 'Schlage einen Drive über 280 m', r: 1500 },
+  { id: 'explorer', ic: '🧭', n: 'Weltenbummler', d: 'Spiele in allen 11 Landschaften', r: 3000 },
+  { id: 'night', ic: '🌙', n: 'Nachteule', d: 'Beende eine Runde unter Flutlicht', r: 600 },
+  { id: 'storm', ic: '🌪️', n: 'Sturmerprobt', d: 'Beende eine Runde im Sturm', r: 600 },
+  { id: 'island', ic: '🏝️', n: 'Inselhüpfer', d: 'Triff ein Inselgrün mit dem Abschlag', r: 500 },
+  { id: 'legend', ic: '🔥', n: 'Legende', d: 'Gewinne ein Turnier auf Stufe Legende', r: 8000 },
+  { id: 'lvl10', ic: '⭐', n: 'Aufsteiger', d: 'Erreiche Level 10', r: 1000 },
+  { id: 'million', ic: '💰', n: 'Millionär', d: 'Verdiene 1.000.000 $ Preisgeld', r: 25000 },
+  { id: 'scratch', ic: '🎖️', n: 'Scratch-Golfer', d: 'Erreiche Handicap 0 oder besser', r: 5000 },
+  { id: 'animals', ic: '🦌', n: 'Tierfreund', d: 'Erschrecke 25 Tiere mit deinem Ball', r: 300 },
+];
+const BALLS = [
+  { id: 'classic', n: 'Klassik', d: 'Der Ball, mit dem alles begann', p: 0, col: '#ffffff', tr: 'white' },
+  { id: 'gold', n: 'Goldball', d: 'Glänzt in der Sonne, glitzert im Flug', p: 1500, col: '#ffd65c', tr: 'gold' },
+  { id: 'neon', n: 'Neon', d: 'Leuchtet grün – perfekt für Nachtrunden', p: 4000, col: '#8dffa8', tr: 'neon', glow: '#5cff8a' },
+  { id: 'ice', n: 'Eiskristall', d: 'Hinterlässt eine frostige Spur', p: 5000, col: '#d4f1ff', tr: 'ice', glow: '#9fdcff' },
+  { id: 'fire', n: 'Feuerball', d: 'Zieht einen Flammenschweif hinter sich her', p: 9000, col: '#ffb36a', tr: 'fire', glow: '#ff6a2a' },
+  { id: 'rainbow', n: 'Regenbogen', d: 'Alle Farben auf einmal', p: 15000, col: '#ffffff', tr: 'rainbow' },
+  { id: 'galaxy', n: 'Galaxie', d: 'Ein Stück Nachthimmel mit Sternenstaub', p: 30000, col: '#7a5cff', tr: 'stars', glow: '#a48bff' },
+];
+const curBall = () => BALLS.find(b => b.id === save.ball) || BALLS[0];
+let achQ = [], achShow = false;
+function unlock(id) {
+  if (!save.ach) save.ach = {};
+  if (save.ach[id]) return;
+  const A = ACH.find(a => a.id === id); if (!A) return;
+  save.ach[id] = Date.now(); save.money += A.r; persist();
+  achQ.push(A); if (!achShow) nextAch();
+}
+function nextAch() {
+  const A = achQ.shift(); if (!A) { achShow = false; return; }
+  achShow = true; const el = $('#achb');
+  el.innerHTML = `<i>${A.ic}</i><div><small>Erfolg freigeschaltet</small><b>${A.n}</b><span>+${money(A.r)}</span></div>`;
+  el.classList.remove('show'); void el.offsetWidth; el.classList.add('show'); Snd.good(); buzz([15, 30, 15]);
+  setTimeout(nextAch, 3400);
+}
+const FAUNA = { park: ['deer', 'rabbit', 'duck'], links: ['rabbit', 'sheep', 'gull'], desert: ['camel', 'lizard'], alpine: ['ibex', 'deer'], tropic: ['flamingo', 'turtle'], autumn: ['deer', 'fox', 'duck'], snow: ['fox', 'deer'], volcano: ['goat'], blossom: ['crane', 'duck', 'rabbit'], savanna: ['giraffe', 'zebra'], heath: ['sheep', 'rabbit'] };
+const WATERFAUNA = ['duck', 'flamingo', 'crane', 'turtle'];
+const ANI = { deer: [1.5, '#9a6a3c', '#7a5230'], rabbit: [.55, '#b9a58a', '#a08c72'], duck: [.5, '#d8cfb8', '#2f7a4a'], fox: [.95, '#d9772b', '#3a2a20'], sheep: [1.15, '#f2efe6', '#3a3a3a'], camel: [2.6, '#c99a5a', '#a87c42'], giraffe: [2.4, '#e2b25a', '#8a5a2a'], zebra: [2, '#f4f4f0', '#222'], ibex: [1.2, '#8a7a66', '#5a4c3e'], goat: [1.1, '#d8d0c0', '#6a6050'], flamingo: [.95, '#f28aa8', '#2a2a2a'], crane: [1, '#f4f4f4', '#c0392b'], turtle: [.65, '#5f8a4a', '#8aa05a'], lizard: [.5, '#7a9a4a', '#5a7a3a'], gull: [.5, '#f6f6f6', '#e0b030'] };
 const SIGN = { island: 'Inselgrün', canyon: 'Schlucht-Carry', drive: 'Kurzes Par 4 – angreifbar', peninsula: 'Halbinsel-Grün' };
 const WX = {
   sonnig: { ic: '☀️', n: 'Sonnig', w: [0, 12] },
@@ -591,6 +669,7 @@ const WX = {
   nebel: { ic: '🌫️', n: 'Nebel', w: [0, 8], fog: 1 },
   hitze: { ic: '🔥', n: 'Hitze', w: [0, 10], carry: 1.04, roll: 1.25, tint: 'rgba(255,170,60,.07)' },
   abend: { ic: '🌇', n: 'Abendsonne', w: [0, 12], tint: 'rgba(255,130,50,.13)' },
+  nacht: { ic: '🌙', n: 'Nacht · Flutlicht', w: [0, 9], night: 1 },
   schnee: { ic: '🌨️', n: 'Schneefall', w: [2, 14], carry: .97, roll: .75, snow: 1, tint: 'rgba(225,235,245,.14)' },
 };
 const wxIc = x => (WX[x] || WX.sonnig).ic, wxN = x => (WX[x] || WX.sonnig).n;
@@ -791,6 +870,21 @@ function genHole(r, par, diff, wx = 'sonnig', opt = {}) {
   }
   for (let k = 0; k < 26 * T.decoD; k++) { const a = ri(0, TAU), rr2 = ri(OBW * .9, OBW + 40); const t = mkTree(T.deco, r, h.tee[0] + Math.cos(a) * rr2, h.tee[1] + Math.abs(Math.sin(a)) * rr2 + 10, T, true); if (!h.water.some(w => inWater1(w, t.x, t.y))) h.deco.push(t); }
   h.deco.sort((a, b) => a.y - b.y);
+  // Tiere je Landschaft
+  h.fauna = [];
+  { const F = FAUNA[th] || [], land = F.filter(k => !WATERFAUNA.includes(k)), wat = F.filter(k => WATERFAUNA.includes(k));
+    const nL = land.length ? 2 + Math.floor(r() * 4) : 0;
+    for (let k = 0, tries = 0; k < nL && tries < 40; tries++) {
+      const ss = ri(30, Lg), p = at(ss), side = sgn(), hw = Math.max(h.fwHalf(ss), 12), lat = hw + ri(6, 34);
+      if (lat > OBW - 5) continue;
+      const x = p.x + p.nx * side * lat, y = p.y + p.ny * side * lat;
+      if (h.water.some(w => inWater1(w, x, y)) || h.trees.some(t => hyp(t.x - x, t.y - y) < t.r + 1)) continue;
+      const kind = land[Math.floor(r() * land.length)], herd = ['sheep', 'zebra', 'deer', 'goat', 'ibex'].includes(kind) ? 1 + Math.floor(r() * 3) : 1;
+      for (let j = 0; j < herd; j++) h.fauna.push({ k: kind, x: x + ri(-4, 4), y: y + ri(-4, 4), a: ri(0, TAU) });
+      k++;
+    }
+    if (wat.length) for (const w of h.water) { if (!w.e || w.canyon || w.island) continue; const n2 = 1 + Math.floor(r() * 3); for (let j = 0; j < n2; j++) { const a = ri(0, TAU), q = Math.sqrt(r()) * .6, [ox, oy] = rot(Math.cos(a) * w.e.rx * q, Math.sin(a) * w.e.ry * q, w.e.a); h.fauna.push({ k: wat[Math.floor(r() * wat.length)], x: w.e.x + ox, y: w.e.y + oy, a: ri(0, TAU), water: 1 }); } }
+  }
   // Grenzen für die Übersicht
   let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
   for (const [x, y] of C) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
@@ -978,12 +1072,26 @@ function startRound(m, opts = {}) {
     holes = courseHoles(cid, nH, wx);
   }
   for (const h of holes) { h.wind.v0 *= DF().wind; h.wind.v = Math.round(h.wind.v0); }
+  if (m === 'tour' || m === 'match') holes.forEach((h, i) => { if (h.par === 3 || i === holes.length - 1 || h.sig) addCrowd(h, m === 'tour' && TOURS[opts.t].major); });
+  if (WX[wx] && WX[wx].night) holes.forEach(h => { h.lights = []; for (let ss = 0; ss <= h.Lg; ss += 95) { const p = pathAt(h, ss); for (const sd of [-1, 1]) { const lat = Math.max(h.fwHalf(ss), 14) + 14; h.lights.push([p.x + p.nx * sd * lat, p.y + p.ny * sd * lat]); } } h.lights.push([h.green.x + 18, h.green.y - 10], [h.green.x - 18, h.green.y - 10]); });
   Object.assign(round, { mode: m, label, wx, course: cid, th: CRS[cid].th, seed: courseSeed(cid), holes, scores: [], dm: DF().id });
   if (m === 'tour') round.field = genField(round.t, evSeed(round.t, round.e), round.holes);
   let start = 0;
   if (opts.resume) { round.scores = opts.resume.scores.slice(); round.hs = opts.resume.hs || []; start = round.scores.length; }
   enterPlay(); startHole(start);
 }
+function addCrowd(h, big) {
+  const G = h.green, pa = pathAt(h, h.Lg - 1), back = Math.atan2(pa.ty, pa.tx), n = big ? 90 : 50, R = Math.max(h.fringe.rx, h.fringe.ry);
+  const cols = ['#e8503a', '#3d82d6', '#f2c14e', '#ffffff', '#2f9a5c', '#9b59b6', '#1f2a22', '#ff8fb1'];
+  h.crowd = [];
+  for (let i = 0; i < n; i++) {
+    const a = back + (Math.random() - .5) * Math.PI * 1.45, rr2 = R + 7 + Math.random() * (big ? 9 : 6), x = G.x + Math.cos(a) * rr2, y = G.y + Math.sin(a) * rr2;
+    if (h.water.some(w => inWater1(w, x, y)) || h.bunkers.some(b => inE(x, y, b, 1)) || h.trees.some(t => hyp(t.x - x, t.y - y) < t.r)) continue;
+    h.crowd.push({ x, y, c: cols[i % cols.length], ph: Math.random() * TAU });
+  }
+  if (big) h.stand = { x: G.x + Math.cos(back) * (R + 20), y: G.y + Math.sin(back) * (R + 20), a: back + Math.PI / 2, w: 34, d: 7 };
+}
+let cheerT = -9;
 function saveCur() {
   if (!round || !['tour', 'free'].includes(round.mode)) return;
   save.cur = { mode: round.mode, t: round.t, e: round.e, course: round.course, n: round.holes.length, wx: round.wx, scores: round.scores.slice(), hs: round.hs || [] };
@@ -1003,6 +1111,25 @@ function startHole(i) {
   if (round.mini) intro(round.label, (round.mini.kind === 'ctp' ? 'Par 3 · ' + hole.len + ' m · 5 Bälle' : '5 Drives · nur Fairway zählt'), WXI[hole.wx] + (w.v ? ' ' + w.v + ' km/h' : ''));
   else intro(round.mode === 'match' && i >= 9 ? 'Stechen' : 'Loch ' + (i + 1), 'Par ' + hole.par + ' · ' + hole.len + ' m' + (Math.abs(hole.elev || 0) >= 4 ? (hole.elev > 0 ? ' · bergauf +' : ' · bergab −') + Math.abs(hole.elev) + ' m' : ''), (hole.sig ? '★ ' + SIGN[hole.sig] + ' · ' : i === 0 ? round.label + ' · ' : '') + WXI[hole.wx] + ' ' + wxN(hole.wx) + (w.v ? ' · Wind ' + w.v + ' km/h' : ' · windstill') + (round.mode === 'match' ? ' · ' + msText(round.ms) : ''));
 }
+function caddieTip() {
+  const el = $('#caddie'); if (!el) return;
+  if (state !== 'aim' || round.mini && strokes > 0 && Math.random() < .5) { el.classList.add('hidden'); return; }
+  const tips = [], S = [ball.x, ball.y], d = hyp(target[0] - S[0], target[1] - S[1]) || 1, ux = (target[0] - S[0]) / d, uy = (target[1] - S[1]) / d;
+  if (strokes === 0 && hole.sig) tips.push([9, { island: 'Inselgrün! Lieber etwas zu lang als zu kurz – hinter der Fahne ist mehr Platz.', canyon: 'Die Schlucht musst du überspielen. Nimm genug Schläger – zu kurz ist weg.', drive: 'Kurzes Par 4. Mit dem Driver bist du am Grün – aber das Wasser lauert.', peninsula: 'Das Grün ragt ins Wasser. Spiel lieber auf die trockene Seite.' }[hole.sig]]);
+  const [wx2, wy2] = wind(), along = (wx2 * ux + wy2 * uy), cross = (wx2 * -uy + wy2 * ux);
+  if (along < -12) tips.push([7, `Gegenwind ${Math.round(-along)} km/h – nimm lieber einen Schläger mehr.`]);
+  else if (along > 12) tips.push([5, `Rückenwind ${Math.round(along)} km/h – der Ball fliegt weiter als angezeigt.`]);
+  if (Math.abs(cross) > 10) tips.push([6, `Seitenwind von ${cross > 0 ? 'links' : 'rechts'} – halte etwas ${cross > 0 ? 'links' : 'rechts'} vom Ziel.`]);
+  for (const w of hole.water) { let hit = null; for (const [ox, oy] of [[12, 0], [-12, 0], [0, -14], [0, 12]]) { const qx = target[0] - uy * ox + ux * oy, qy = target[1] + ux * ox + uy * oy; if (inWater1(w, qx, qy)) { hit = ox > 0 ? 'rechts' : ox < 0 ? 'links' : oy < 0 ? 'vor' : 'hinter'; break; } } if (hit) { tips.push([8, `${w.canyon ? 'Schlucht' : THEMES[hole.th].lava ? 'Lava' : 'Wasser'} ${hit === 'vor' ? 'vor' : hit === 'hinter' ? 'hinter' : hit} dem Ziel – Vorsicht!`]); break; } }
+  const dz = elevDz(); if (Math.abs(dz) >= 6) tips.push([6, `${dz > 0 ? 'Bergauf' : 'Bergab'} – spielt ${Math.abs(Math.round(dz))} m ${dz > 0 ? 'länger' : 'kürzer'}.`]);
+  if (lie === 'sand') tips.push([8, 'Aus dem Bunker: ruhig durchschwingen, der Sand kostet Weite.']);
+  if (lie === 'rough') tips.push([4, 'Aus dem Rough fliegt der Ball kürzer und streut mehr.']);
+  if (lie === 'waste') tips.push([4, 'Lockerer Untergrund – der Ball kommt nicht ganz so weit.']);
+  if ((WX[hole.wx] || {}).night && strokes === 0 && hi === 0) tips.push([3, 'Nachtrunde! Die Flutlichter zeigen dir den Weg.']);
+  if (!tips.length) { el.classList.add('hidden'); return; }
+  tips.sort((a, b) => b[0] - a[0]);
+  el.innerHTML = '<b>🧢 Ole</b><span>' + tips[0][1] + '</span>'; el.classList.remove('hidden'); el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
+}
 function setupShot() {
   { const w = hole.wind; if (w.gust) { w.v = Math.max(0, Math.round(w.v0 * (1 + (Math.random() - .5) * 2 * w.gust))); w.a = w.a0 + (Math.random() - .5) * .45; } }
   lie = lieAt(hole, ball.x, ball.y);
@@ -1021,7 +1148,7 @@ function setupShot() {
     }
     clubI = autoClub(hyp(target[0] - ball.x, target[1] - ball.y));
   }
-  updHud(); updPanel();
+  updHud(); updPanel(); caddieTip();
 }
 function enterPutt() { autoPutt(); }
 function puttRings() {
@@ -1063,6 +1190,7 @@ function updAutoPutt(dt) {
 // ---------------- Schwung ----------------
 function startSwing() {
   if (state !== 'aim') return;
+  $('#caddie').classList.add('hidden');
   Snd.init(); overview = false;
   state = 'swing'; swing = { ph: 'dir', t: 0, p: 0, a: 0, ph0: Math.random(), pt: clamp(playsLike() / carry(CLUBS[clubI]), .05, 1) };
   updPanel();
@@ -1137,6 +1265,7 @@ function updFlight(dt) {
 }
 function land() {
   const f = flight; ball.z = 0;
+  scare(ball.x, ball.y, 18);
   const l = lieAt(hole, ball.x, ball.y);
   if (hyp(ball.x - hole.pin[0], ball.y - hole.pin[1]) < CUP * 1.2 && l !== 'water') { holed(); return; }
   if (l === 'water') { penaltyWater(f); return; }
@@ -1209,7 +1338,8 @@ function teeEval(pen) {
   if (hs.teeDone || round.mini) return; hs.teeDone = true;
   const l = lieAt(hole, ball.x, ball.y);
   if (hole.par >= 4) hs.fir = !pen && ['fairway', 'fringe', 'green'].includes(l);
-  if (!pen && hs.teeClub === 'D') hs.drive = Math.round(hyp(ball.x - hole.tee[0], ball.y - hole.tee[1]));
+  if (!pen && hs.teeClub === 'D') { hs.drive = Math.round(hyp(ball.x - hole.tee[0], ball.y - hole.tee[1])); if (hs.drive >= 280) unlock('drive280'); }
+  if (!pen && hole.sig === 'island' && (l === 'green' || l === 'fringe')) unlock('island');
 }
 function afterStop() {
   if (state === 'holed') return;
@@ -1225,6 +1355,7 @@ function holed() {
   if (state !== 'autoputt' && strokes > 1) { hs.chip = true; if (!round.mini) toast('Chip-in!', null, 1200); }
   state = 'holed'; ball.vx = ball.vy = 0; stateT = 0;
   Snd.plop(); buzz([20, 40, 30]);
+  if ((round.mode === 'tour' || round.mode === 'match') && (strokes - hole.par < 0 || hs.chip)) { cheerT = time; later(200, () => Snd.cheer()); }
   const d = strokes - hole.par;
   if (d < 0 || strokes === 1) later(250, () => Snd.good());
   for (let i = 0; i < 30; i++) { const a = Math.random() * TAU, s = 1 + Math.random() * 5; parts.push({ x: hole.pin[0], y: hole.pin[1], vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 1.1, max: 1.1, c: ['#ffffff', '#ffd54f', '#ff8a65', '#81d4fa'][i % 4], r: .25 + Math.random() * .25 }); }
@@ -1333,8 +1464,29 @@ function frame(now) {
   render();
   requestAnimationFrame(frame);
 }
+function scare(x, y, R) {
+  for (const a of hole.fauna || []) if (!a.gone && hyp(a.x - x, a.y - y) < R && !a.flee) {
+    const d = hyp(a.x - x, a.y - y) || 1; a.flee = a.water || a.k === 'gull' ? 4 : 2; a.fly = a.water || a.k === 'gull' || a.k === 'crane' || a.k === 'flamingo';
+    const sp = a.fly ? 11 : a.k === 'rabbit' || a.k === 'deer' || a.k === 'fox' ? 10 : 6; a.vx = (a.x - x) / d * sp; a.vy = (a.y - y) / d * sp; a.a = Math.atan2(a.vy, a.vx);
+    save.scared = (save.scared || 0) + 1; if (save.scared >= 25) unlock('animals');
+  }
+}
+function updFauna(dt) {
+  for (const a of hole.fauna || []) {
+    if (a.gone) continue;
+    if (a.flee > 0) { a.flee -= dt; a.x += a.vx * dt; a.y += a.vy * dt; if (a.fly) { a.z = (a.z || 0) + dt * 6; if (a.flee <= 0) a.gone = 1; } continue; }
+    a.t = (a.t || Math.random() * 5) - dt;
+    if (a.t <= 0) { a.t = 2 + Math.random() * 5; a.mv = Math.random() < .45; a.a += (Math.random() - .5) * 1.6; }
+    if (a.mv) { const sp = a.water ? .35 : .5; a.x += Math.cos(a.a) * sp * dt; a.y += Math.sin(a.a) * sp * dt; }
+  }
+  // Vogelschwarm über das Loch
+  if (!hole.flock || time > hole.flock.end) {
+    if (!hole.nextFlock) hole.nextFlock = time + 6 + Math.random() * 14;
+    if (time > hole.nextFlock) { const b = hole.box, fromL = Math.random() < .5, y0 = b[1] + Math.random() * (b[3] - b[1]); hole.flock = { x: fromL ? b[0] - 60 : b[2] + 60, y: y0, vx: (fromL ? 1 : -1) * (13 + Math.random() * 6), vy: (Math.random() - .5) * 6, n: 4 + Math.floor(Math.random() * 6), end: time + 30 }; hole.nextFlock = 0; }
+  } else { const f = hole.flock; const [wx2, wy2] = wind(); f.x += (f.vx + wx2 * .1) * dt; f.y += (f.vy + wy2 * .1) * dt; }
+}
 function update(dt) {
-  time += dt; stateT += dt; runTimers();
+  time += dt; stateT += dt; runTimers(); if (hole) updFauna(dt);
   if (state === 'swing') {
     swing.t += dt;
     if (swing.ph === 'power' && swing.t > meterT() * 2.2) { state = 'aim'; swing = null; updPanel(); toast('Abgebrochen', null, 700); }
@@ -1366,6 +1518,20 @@ function ellP(e, grow = 0, n = 16) { poly(ePts(e, n, grow)); }
 function waterPath(w) { if (w.e) ellP(w.e, 0, 18); else poly(w.p); }
 const LX = -.55, LY = -.83; // Lichtrichtung (von oben links)
 function shade(hex, k) { const n = parseInt(hex.slice(1), 16); let r = n >> 16, g = n >> 8 & 255, b = n & 255; const f = k >= 0 ? [255, 255, 255] : [0, 0, 0], t = Math.abs(k); r += (f[0] - r) * t; g += (f[1] - g) * t; b += (f[2] - b) * t; return `rgb(${r | 0},${g | 0},${b | 0})`; }
+function drawAnimal(a, px) {
+  const [L, c1, c2] = ANI[a.k], s0 = Math.max(1.4, 15 * px / L), Ls = L * s0, z = a.z || 0, bob = a.water && !a.fly ? Math.sin(time * 2 + a.x) * .05 : 0;
+  const x = a.x, y = a.y - z * .5;
+  ctx.fillStyle = 'rgba(0,0,0,' + (a.water ? .12 : .22) + ')'; ctx.beginPath(); ctx.ellipse(a.x + .2 + z * .3, a.y + .3 + z * .4, Ls * .5, Ls * .24, a.a, 0, TAU); ctx.fill();
+  ctx.save(); ctx.translate(x, y + bob); ctx.rotate(a.a);
+  if (a.fly) { const fl = Math.sin(time * 14) * .5; ctx.fillStyle = c1; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-Ls * .3, -Ls * (.7 + fl * .3)); ctx.lineTo(-Ls * .1, 0); ctx.lineTo(-Ls * .3, Ls * (.7 + fl * .3)); ctx.closePath(); ctx.fill(); }
+  ctx.fillStyle = c1; ctx.beginPath(); ctx.ellipse(0, 0, Ls * .5, Ls * (a.k === 'turtle' ? .38 : a.k === 'lizard' ? .12 : .22), 0, 0, TAU); ctx.fill();
+  if (a.k === 'zebra') { ctx.strokeStyle = '#222'; ctx.lineWidth = Ls * .06; for (let k = -2; k <= 2; k++) { ctx.beginPath(); ctx.moveTo(k * Ls * .15, -Ls * .2); ctx.lineTo(k * Ls * .15 + Ls * .05, Ls * .2); ctx.stroke(); } }
+  if (a.k === 'giraffe') { ctx.fillStyle = c2; for (let k = 0; k < 5; k++) { ctx.beginPath(); ctx.arc((k - 2) * Ls * .16, (k % 2 ? 1 : -1) * Ls * .07, Ls * .05, 0, TAU); ctx.fill(); } ctx.strokeStyle = c1; ctx.lineWidth = Ls * .1; ctx.beginPath(); ctx.moveTo(Ls * .4, 0); ctx.lineTo(Ls * .95, 0); ctx.stroke(); ctx.fillStyle = c1; ctx.beginPath(); ctx.arc(Ls * 1, 0, Ls * .1, 0, TAU); ctx.fill(); }
+  else if (a.k === 'turtle') { ctx.fillStyle = c2; ctx.beginPath(); ctx.arc(0, 0, Ls * .22, 0, TAU); ctx.fill(); ctx.fillStyle = c1; ctx.beginPath(); ctx.arc(Ls * .5, 0, Ls * .12, 0, TAU); ctx.fill(); }
+  else if (a.k === 'camel') { ctx.fillStyle = c2; ctx.beginPath(); ctx.arc(-Ls * .1, 0, Ls * .14, 0, TAU); ctx.arc(Ls * .15, 0, Ls * .12, 0, TAU); ctx.fill(); ctx.fillStyle = c1; ctx.beginPath(); ctx.arc(Ls * .62, 0, Ls * .1, 0, TAU); ctx.fill(); }
+  else { const hr = a.k === 'sheep' ? .15 : WATERFAUNA.includes(a.k) || a.k === 'gull' ? .13 : .14; ctx.fillStyle = c2; ctx.beginPath(); ctx.arc(Ls * .5, 0, Ls * hr, 0, TAU); ctx.fill(); if (a.k === 'rabbit') { ctx.fillStyle = c1; ctx.fillRect(Ls * .55, -Ls * .12, Ls * .25, Ls * .05); ctx.fillRect(Ls * .55, Ls * .07, Ls * .25, Ls * .05); } if (a.k === 'deer' || a.k === 'ibex') { ctx.strokeStyle = '#5a4030'; ctx.lineWidth = Ls * .04; ctx.beginPath(); ctx.moveTo(Ls * .55, -Ls * .05); ctx.lineTo(Ls * .7, -Ls * .22); ctx.moveTo(Ls * .55, Ls * .05); ctx.lineTo(Ls * .7, Ls * .22); ctx.stroke(); } if (a.k === 'fox') { ctx.fillStyle = c1; ctx.beginPath(); ctx.ellipse(-Ls * .6, 0, Ls * .22, Ls * .08, 0, 0, TAU); ctx.fill(); ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(-Ls * .8, 0, Ls * .05, 0, TAU); ctx.fill(); } }
+  ctx.restore();
+}
 function treeShadow(t) {
   const ox = t.x + t.h * .18, oy = t.y + t.h * .26;
   ctx.beginPath();
@@ -1494,10 +1660,18 @@ function render() {
   if (state !== 'holed' || stateT < .15) {
     ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(ball.x + ball.z * .3 + .1 * br * 2, ball.y + ball.z * .45 + .15 * br * 2, br, br * .8, 0, 0, TAU); ctx.fill();
   }
+  // Tribüne & Zuschauer
+  if (hole.stand) { const s2 = hole.stand; ctx.save(); ctx.translate(s2.x, s2.y); ctx.rotate(s2.a); ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(-s2.w / 2 + 1, -s2.d / 2 + 1.5, s2.w, s2.d); ctx.fillStyle = '#46566a'; ctx.fillRect(-s2.w / 2, -s2.d / 2, s2.w, s2.d); ctx.fillStyle = '#5c6f88'; for (let k = 0; k < 4; k++) ctx.fillRect(-s2.w / 2, -s2.d / 2 + k * s2.d / 4, s2.w, s2.d / 8);
+    for (let k = 0; k < 60; k++) { ctx.fillStyle = ['#e8503a', '#3d82d6', '#f2c14e', '#fff', '#2f9a5c'][k % 5]; ctx.beginPath(); ctx.arc(-s2.w / 2 + 1 + (k % 20) * (s2.w - 2) / 19, -s2.d / 2 + 1 + Math.floor(k / 20) * 2.4 + (time - cheerT < 2.5 ? Math.abs(Math.sin(time * 9 + k)) * -.6 : 0), .45, 0, TAU); ctx.fill(); } ctx.restore(); }
+  if (hole.crowd) { const jump = time - cheerT < 2.5; for (const c of hole.crowd) { const j = jump ? Math.abs(Math.sin(time * 10 + c.ph)) * .5 : Math.sin(time * 1.3 + c.ph) * .05; ctx.fillStyle = 'rgba(0,0,0,.2)'; ctx.beginPath(); ctx.ellipse(c.x + .25, c.y + .35, .5, .4, 0, 0, TAU); ctx.fill(); ctx.fillStyle = c.c; ctx.beginPath(); ctx.arc(c.x, c.y - j, .5, 0, TAU); ctx.fill(); ctx.fillStyle = '#f0c9a0'; ctx.beginPath(); ctx.arc(c.x, c.y - j - .1, .22, 0, TAU); ctx.fill(); } }
+  // Flutlichtmasten
+  if (hole.lights) for (const [lx, ly] of hole.lights) { ctx.fillStyle = 'rgba(0,0,0,.3)'; ctx.fillRect(lx + .4, ly + .6, 1.4, 1.4); ctx.fillStyle = '#3a4048'; ctx.fillRect(lx - .7, ly - .7, 1.4, 1.4); ctx.fillStyle = '#fff6c8'; ctx.beginPath(); ctx.arc(lx, ly, .45, 0, TAU); ctx.fill(); }
   // Bäume (Schatten, dann Kronen)
   ctx.fillStyle = PAL.treeS;
   for (const t of hole.trees) treeShadow(t);
   for (const t of hole.trees) drawTree(t);
+  // Tiere (über den Baumkronen, damit man sie sieht)
+  for (const a of hole.fauna || []) if (!a.gone) drawAnimal(a, px);
   // Fahne
   const fl = 30 * px, near = hyp(ball.x - pxn, ball.y - pyn) < 6 && state !== 'aim';
   if (state !== 'holed') {
@@ -1509,12 +1683,28 @@ function render() {
     ctx.fillStyle = '#e8503a'; ctx.beginPath(); ctx.moveTo(pxn, pyn - fl); ctx.lineTo(pxn + wd * fl * .5, pyn - fl * .87 + flap); ctx.lineTo(pxn, pyn - fl * .72); ctx.fill();
     ctx.globalAlpha = 1;
   }
+  // Vögel (fliegen über allem)
+  if (hole.flock && time < hole.flock.end) { const f = hole.flock, ang = Math.atan2(f.vy, f.vx), sc = Math.max(1, 5 * px);
+    for (let i = 0; i < f.n; i++) { const row = Math.ceil(i / 2), side = i % 2 ? 1 : -1, ox = -row * 2.6, oy = side * row * 2.2, [rx, ry] = rot(ox, oy, ang), x = f.x + rx, y = f.y + ry, fl = Math.sin(time * 12 + i) * .6 * sc;
+      ctx.strokeStyle = 'rgba(0,0,0,.18)'; ctx.lineWidth = .35 * sc; ctx.beginPath(); ctx.moveTo(x + 5 - .8 * sc, y + 7 - fl); ctx.lineTo(x + 5, y + 7); ctx.lineTo(x + 5 + .8 * sc, y + 7 - fl); ctx.stroke();
+      ctx.strokeStyle = '#2a2a2a'; ctx.lineWidth = .3 * sc; ctx.beginPath(); ctx.moveTo(x - .9 * sc, y - fl); ctx.lineTo(x, y); ctx.lineTo(x + .9 * sc, y - fl); ctx.stroke(); } }
   // Spur
-  for (let i = 0; i < trail.length; i++) { const [tx, ty, tz] = trail[i], f = i / trail.length; ctx.fillStyle = 'rgba(255,255,255,' + f * .5 + ')'; ctx.beginPath(); ctx.arc(tx, ty - tz * .55, br * f * .8, 0, TAU); ctx.fill(); }
+  { const B = curBall(), n = trail.length;
+    for (let i = 0; i < n; i++) { const [tx, ty, tz] = trail[i], f = i / n, x = tx, y = ty - tz * .55; let c, r2 = br * f * .8;
+      if (B.tr === 'gold') c = `rgba(255,${200 + (i % 3) * 18},80,${f * .7})`;
+      else if (B.tr === 'neon') { c = `rgba(110,255,150,${f * .8})`; r2 *= 1.2; }
+      else if (B.tr === 'ice') c = `rgba(200,240,255,${f * .75})`;
+      else if (B.tr === 'fire') { c = `rgba(255,${Math.round(80 + f * 140)},${Math.round(f * 60)},${f * .85})`; r2 = br * (.5 + f * .9); }
+      else if (B.tr === 'rainbow') { c = `hsla(${(i * 22 + time * 200) % 360},90%,62%,${f * .85})`; r2 = br * f * 1.05; }
+      else if (B.tr === 'stars') { c = i % 3 ? `rgba(164,139,255,${f * .7})` : `rgba(255,255,255,${f})`; r2 = i % 3 ? br * f * .8 : br * .35; }
+      else c = 'rgba(255,255,255,' + f * .5 + ')';
+      ctx.fillStyle = c; ctx.beginPath(); ctx.arc(x, y, Math.max(.05, r2), 0, TAU); ctx.fill(); } }
   // Ball
   if (state !== 'holed' || stateT < .15) {
     const by = ball.y - ball.z * .55;
-    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(ball.x, by, br, 0, TAU); ctx.fill();
+    const B = curBall();
+    if (B.glow || (WX[hole.wx] || {}).night) { const gg = ctx.createRadialGradient(ball.x, by, 0, ball.x, by, br * 3.2); gg.addColorStop(0, (B.glow || '#ffffff') + '88'); gg.addColorStop(1, (B.glow || '#ffffff') + '00'); ctx.fillStyle = gg; ctx.beginPath(); ctx.arc(ball.x, by, br * 3.2, 0, TAU); ctx.fill(); }
+    ctx.fillStyle = B.col; ctx.beginPath(); ctx.arc(ball.x, by, br, 0, TAU); ctx.fill();
     ctx.strokeStyle = 'rgba(0,0,0,.18)'; ctx.lineWidth = Math.max(.04, .8 * px); ctx.stroke();
   }
   // Partikel
@@ -1528,6 +1718,7 @@ function render() {
   // Bildschirm-Overlays
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   { const g = ctx.createRadialGradient(W / 2, H * .45, Math.min(W, H) * .35, W / 2, H * .45, Math.max(W, H) * .75); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(5,20,10,.35)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); }
+  if ((WX[hole.wx] || {}).night) drawNight();
   drawAmbient();
   const WXo = WX[hole.wx] || {};
   if (WXo.tint) { ctx.fillStyle = WXo.tint; ctx.fillRect(0, 0, W, H); }
@@ -1566,6 +1757,29 @@ function drawRingLabels() {
     ctx.fillStyle = 'rgba(17,28,22,.82)'; rr(sx - w / 2, sy - 10, w, 20, 10); ctx.fill();
     ctx.fillStyle = c; ctx.fillText(t, sx, sy + .5);
   }
+}
+let nightC = null;
+function drawNight() {
+  if (!nightC) nightC = document.createElement('canvas');
+  if (nightC.width !== W || nightC.height !== H) { nightC.width = W; nightC.height = H; }
+  const n = nightC.getContext('2d');
+  n.globalCompositeOperation = 'source-over'; n.clearRect(0, 0, W, H);
+  n.fillStyle = 'rgba(6,12,34,.8)'; n.fillRect(0, 0, W, H);
+  // Sterne
+  for (let i = 0; i < 70; i++) { const x = (i * 137.5) % W, y = (i * 71.3 + (i % 7) * 13) % H, tw = .35 + .35 * Math.sin(time * 2 + i); n.fillStyle = 'rgba(255,255,255,' + tw + ')'; n.fillRect(x, y, 1.4, 1.4); }
+  // Nordlicht im Winterland
+  if (hole.th === 'snow') for (let b = 0; b < 3; b++) { n.strokeStyle = b === 1 ? 'rgba(170,90,255,.16)' : 'rgba(80,255,170,.18)'; n.lineWidth = 26 - b * 6; n.beginPath(); for (let x = -20; x <= W + 20; x += 12) n.lineTo(x, H * (.16 + b * .07) + Math.sin(x * .012 + time * .4 + b) * 26); n.stroke(); }
+  n.globalCompositeOperation = 'destination-out';
+  const light = (x, y, r, a) => { const [sx, sy] = toScreen(x, y), rr = Math.max(8, r * cam.s); const g = n.createRadialGradient(sx, sy, 0, sx, sy, rr); g.addColorStop(0, 'rgba(0,0,0,' + a + ')'); g.addColorStop(.55, 'rgba(0,0,0,' + a * .7 + ')'); g.addColorStop(1, 'rgba(0,0,0,0)'); n.fillStyle = g; n.beginPath(); n.arc(sx, sy, rr, 0, TAU); n.fill(); };
+  light(ball.x, ball.y, Math.max(16, 70 / cam.s), .95);
+  light(hole.pin[0], hole.pin[1], 26, .92); light(hole.tee[0], hole.tee[1], 20, .8);
+  for (const [lx, ly] of hole.lights || []) light(lx, ly, 34, .6);
+  if (state === 'aim' || state === 'swing') light(target[0], target[1], 12, .5);
+  if (THEMES[hole.th].lava) for (const w of hole.water) if (w.e) light(w.e.x, w.e.y, Math.max(w.e.rx, w.e.ry) * 1.3, .7);
+  n.globalCompositeOperation = 'source-over';
+  ctx.drawImage(nightC, 0, 0, W, H);
+  // leuchtende Fahne
+  const [fx, fy] = toScreen(hole.pin[0], hole.pin[1]); const g2 = ctx.createRadialGradient(fx, fy - 18, 0, fx, fy - 18, 26); g2.addColorStop(0, 'rgba(255,120,90,.45)'); g2.addColorStop(1, 'rgba(255,120,90,0)'); ctx.fillStyle = g2; ctx.beginPath(); ctx.arc(fx, fy - 18, 26, 0, TAU); ctx.fill();
 }
 function drawAmbient() {
   const T = THEMES[hole.th], W2 = WX[hole.wx] || {}, kind = W2.snow ? 'snow' : T.amb; if (!kind || kind === 'heat') return;
@@ -1828,6 +2042,9 @@ function finishRound() {
   save.rounds++;
   if (save.best == null || d < save.best) save.best = d;
   const rinfo = recordRound();
+  save.themes = save.themes || {}; save.themes[round.th] = 1; if (Object.keys(save.themes).length >= Object.keys(THEMES).length) unlock('explorer');
+  if (round.holes.length === 18 && d < 0) unlock('under');
+  if ((WX[round.wx] || {}).night) unlock('night'); if (round.wx === 'sturm') unlock('storm');
   if (round.mode === 'tour') {
     const { t, e } = round; delete save.cur; const rows = board(round.holes.length), me = rows.find(r => r.you), place = me.place;
     const purse = TOURS[t].purse[e];
@@ -1835,6 +2052,8 @@ function finishRound() {
     xp += Math.max(0, 13 - place) * 12 * (t + 1);
     const key = t + '-' + e, prev = save.results[key];
     if (!prev || place < prev.place) save.results[key] = { place, d };
+    if (place === 1) { unlock('win'); if (TOURS[t].major) unlock('major'); if (round.dm === 'legend') unlock('legend');
+      if (TOURS[t].major && TOURS[t].ev.every((_, k) => k === e || (save.results[t + '-' + k] && save.results[t + '-' + k].place === 1))) unlock('slam'); }
     if (place === 1) { save.wins++; if (save.tourOpen < t + 1 && t + 1 < TOURS.length) { save.tourOpen = t + 1; extra = '🔓 ' + TOURS[t + 1].n + ' freigeschaltet!'; } }
     head = place === 1 ? 'Turniersieg!' : (me.pos[0] === 'T' ? 'Geteilter ' : '') + place + '. Platz';
     if (place === 1 && TOURS[t].major) extra = '👑 Major-Sieg: ' + TOURS[t].ev[e] + '!';
@@ -1842,6 +2061,7 @@ function finishRound() {
   } else { delete save.cur; cash = round.scores.reduce((a, s, i) => a + xpFor(s, round.holes[i].par) * 3, 0); xp = Math.round(xp * .6); head = 'Runde beendet'; }
   save.money += cash; save.earnings += cash;
   const ups = addXp(xp); persist();
+  if (save.lvl >= 10) unlock('lvl10'); if (save.earnings >= 1e6) unlock('million'); { const hc = hcpIndex(); if (hc != null && hc <= 0) unlock('scratch'); }
   if (round.mode === 'tour' && board(round.holes.length).find(r => r.you).place <= 3) confetti(board(round.holes.length).find(r => r.you).place === 1 ? 120 : 50);
   later(300, () => Snd.coin());
   if (ups) later(700, () => Snd.good());
@@ -1864,6 +2084,7 @@ function finishRound() {
 function recordHole(score) {
   if (round.mini) return;
   const S = save.st, d = score - hole.par;
+  if (d === -1) unlock('birdie'); if (d <= -2 && score > 1) unlock('eagle'); if (score === 1) unlock('hio'); if (hs.chip && score > 1) unlock('chip'); if (save.birdies >= 25) unlock('birdie25');
   round.hs = round.hs || []; round.hs[hi] = { ...hs, score, par: hole.par };
   S.holes++; S.swings += hs.swings; S.perfect += hs.perfect; S.pen += hs.pen;
   if (hole.par >= 4) { S.firN++; if (hs.fir) S.fir++; }
@@ -2001,7 +2222,7 @@ function miniFinish() {
   const rec = save.records[k], newRec = best != null && (rec == null || (k === 'ctp' ? best < rec : best > rec));
   if (newRec) save.records[k] = best;
   save.money += cash; save.earnings += cash; const ups = addXp(xp); save.rounds++; persist();
-  if (medal === 0) confetti(90);
+  if (medal === 0) { confetti(90); unlock(k); }
   later(300, () => Snd.coin());
   const fmtV = v => v == null ? '–' : k === 'ctp' ? v.toFixed(1).replace('.', ',') + ' m' : v + ' m';
   const mi = ['🥇', '🥈', '🥉', '🎯'][medal], mn = ['Gold', 'Silber', 'Bronze', 'Keine Medaille'][medal];
@@ -2076,7 +2297,7 @@ function matchEnd() {
     c.out = true; cash = CUPS[c.c].prize[c.r];
     while (c.rounds[c.r].length > 1) { nextRound(c); c.rounds[c.r].forEach(x => simMatch(x, c.players)); }
     msg = 'Aus im ' + RNDN[c.r_out = c.rounds.findIndex(r => r.includes(m))] + '. Preisgeld ' + money(cash);
-  } else if (c.r === 2) { c.done = true; cash = CUPS[c.c].prize[3]; save.cupWins = (save.cupWins || 0) + 1; msg = '🏆 Cup gewonnen! Preisgeld ' + money(cash); }
+  } else if (c.r === 2) { c.done = true; cash = CUPS[c.c].prize[3]; save.cupWins = (save.cupWins || 0) + 1; unlock('cup'); msg = '🏆 Cup gewonnen! Preisgeld ' + money(cash); }
   else { nextRound(c); msg = 'Weiter ins ' + RNDN[c.r] + '!'; }
   if (c.out || c.done) { cash = Math.round(cash * DF().cash); c.cash = cash; save.money += cash; save.earnings += cash; }
   const ups = addXp(xp); save.rounds++; persist();
@@ -2140,18 +2361,19 @@ $('#ov').addEventListener('click', e => {
   });
 });
 
-function enterPlay() { mode = 'play'; $('#ios').classList.add('hidden'); SCREENS.forEach(id => $('#' + id).classList.add('hidden')); hud.classList.remove('hidden'); panel.classList.remove('hidden'); }
+function enterPlay() { $('#caddie').classList.add('hidden'); mode = 'play'; $('#ios').classList.add('hidden'); SCREENS.forEach(id => $('#' + id).classList.add('hidden')); hud.classList.remove('hidden'); panel.classList.remove('hidden'); }
 
 // ---------------- Menüs ----------------
-const SCREENS = ['home', 'career', 'player', 'shop', 'cup', 'stats', 'courses'];
+const SCREENS = ['home', 'career', 'player', 'shop', 'cup', 'stats', 'courses', 'ach'];
 const logo = `<svg viewBox="0 0 40 40"><polygon points="20,2 36,11 36,29 20,38 4,29 4,11" fill="#3b9a62"/><polygon points="20,2 36,11 20,20" fill="#4fb576"/><polygon points="4,29 20,20 20,38" fill="#2f7d4f"/><path d="M17 9v19" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/><path d="M17 9l9 3.5-9 3.5z" fill="#e8503a"/></svg>`;
 const moneyHtml = () => `<div class="coins">${money(save.money)}</div>`;
 const back = t => `<div class="top"><button class="pill ib" data-go="home">‹</button><h2>${t}</h2>${moneyHtml()}</div>`;
 function showScreen(name) {
+  $('#caddie').classList.add('hidden');
   mode = 'menu'; round = null; hole = null; timers = [];
   hud.classList.add('hidden'); panel.classList.add('hidden'); hideOv();
   SCREENS.forEach(id => $('#' + id).classList.toggle('hidden', id !== name));
-  ({ home: renderHome, career: renderCareer, player: renderPlayer, shop: renderShop, cup: renderCup, stats: renderStats, courses: renderCourses })[name]();
+  ({ home: renderHome, career: renderCareer, player: renderPlayer, shop: renderShop, cup: renderCup, stats: renderStats, courses: renderCourses, ach: renderAch })[name]();
   const el = $('#' + name); el.classList.remove('enter'); void el.offsetWidth; el.classList.add('enter'); el.scrollTop = 0;
 }
 function renderHome() {
@@ -2178,12 +2400,13 @@ function renderHome() {
     <div class="sech">Dein Spieler</div>
     <div class="grid2">
       <button class="card tile" data-go="player"><span>🏌️</span><b>Skills</b><small>${save.sp ? save.sp + (save.sp === 1 ? ' Punkt' : ' Punkte') + ' frei' : 'Werte ansehen'}</small>${save.sp ? '<i class="badge">' + save.sp + '</i>' : ''}</button>
-      <button class="card tile" data-go="shop"><span>🛍️</span><b>Ausrüstung</b><small>Schläger kaufen</small></button>
+      <button class="card tile" data-go="shop"><span>🛍️</span><b>Ausrüstung</b><small>Schläger & Bälle</small></button>
+      <button class="card tile" data-go="ach"><span>🏅</span><b>Erfolge</b><small>${Object.keys(save.ach || {}).length} / ${ACH.length}</small></button>
+      <button class="card tile" data-go="stats"><span>📊</span><b>Statistiken</b><small>HCP ${fmtH(hcpIndex())}</small></button>
     </div>
-    <button class="card wide" data-go="stats"><span>📊</span><div><b>Statistiken & Handicap</b><small>HCP ${fmtH(hcpIndex())} · Fairways ${pct(save.st.fir, save.st.firN)} · GIR ${pct(save.st.gir, save.st.girN)} · ${avg(save.st.putts, save.st.holes / 9)} Putts</small></div><em>›</em></button>
     <div class="card stat"><div><b>${save.rounds}</b><span>Runden</span></div><div><b>${save.birdies}</b><span>Birdies</span></div><div><b>${money(save.earnings)}</b><span>Preisgeld</span></div></div>
     <p class="help">Ziel antippen · Schläger, Draw/Fade, Spin wählen · „Schlagen“<br>1. Tipp stoppt die pendelnde Linie · 2. Tipp stoppt die Kraft<br>Auf dem Grün: goldener Ring = 1 Putt, weisser Ring = 2, sonst 3</p>
-    <p class="ver">Fairway · Version 1.6</p>
+    <p class="ver">Fairway · Version 1.7</p>
   </div>`;
 }
 function renderCareer() {
@@ -2209,6 +2432,13 @@ function renderCourses() {
       ${cs.map(c => { const i = cInfo(c.id); return `<button class="card course th-${th}" data-course="${c.id}"><div class="cc"><b>${c.n}</b><small>${c.loc} · Par ${i.par} · ${(i.len / 1000).toFixed(1).replace('.', ',')} km · Ø ${i.elev} m Höhe</small></div><div class="stars">${'★'.repeat(1 + Math.round(c.d * 4))}<i>${'★'.repeat(5 - 1 - Math.round(c.d * 4))}</i></div></button>`; }).join('')}`).join('')}
   </div>`;
 }
+function renderAch() {
+  const got = save.ach || {}, n = ACH.filter(a => got[a.id]).length;
+  $('#ach').innerHTML = `<div class="wrap">${back('Erfolge')}
+    <div class="card achsum"><b>${n} / ${ACH.length}</b><span>freigeschaltet</span><div class="xpb"><i style="width:${n / ACH.length * 100}%"></i></div></div>
+    <div class="achg">${ACH.map(a => `<div class="card ac ${got[a.id] ? 'got' : ''}"><i>${got[a.id] ? a.ic : '🔒'}</i><b>${a.n}</b><small>${a.d}</small><em>${got[a.id] ? new Date(got[a.id]).toLocaleDateString('de-DE') : '+' + money(a.r)}</em></div>`).join('')}</div>
+  </div>`;
+}
 function renderPlayer() {
   const st = stats();
   $('#player').innerHTML = `<div class="wrap">${back('Spieler')}
@@ -2226,6 +2456,9 @@ function statLine(slot, m) {
 }
 function renderShop() {
   $('#shop').innerHTML = `<div class="wrap">${back('Ausrüstung')}
+    <div class="tourh"><b>✨ Bälle & Spuren</b><span>rein optisch</span></div>
+    <div class="balls">${BALLS.map(B => { const own = (save.balls || ['classic']).includes(B.id), eq = curBall().id === B.id, can = save.money >= B.p;
+      return `<button class="card bl ${eq ? 'eq' : ''} ${!own && !can ? 'dis' : ''}" data-ball="${B.id}"><i style="background:${B.tr === 'rainbow' ? 'conic-gradient(#ff5a5a,#ffd65c,#5cc685,#5ab4ff,#a48bff,#ff5a5a)' : B.col};box-shadow:0 0 ${B.glow ? 14 : 0}px ${B.glow || 'transparent'}"></i><b>${B.n}</b><small>${eq ? 'Aktiv' : own ? 'Auswählen' : money(B.p)}</small></button>`; }).join('')}</div>
     ${Object.entries(GEAR).map(([slot, G]) => `<div class="tourh"><b>${G.ic} ${G.n}</b><span>${G.clubs.length > 1 ? G.clubs.join(' · ') : ''}</span></div>
       ${G.m.map((m, i) => { const own = save.owned[slot].includes(i), eq = save.gear[slot] === i, can = save.money >= m.p;
         const btn = eq ? `<button class="sbtn on" disabled>Im Bag</button>` : own ? `<button class="sbtn" data-equip="${slot}-${i}">Einpacken</button>` : `<button class="sbtn ${can ? '' : 'dis'}" data-buy="${slot}-${i}" ${can ? '' : 'disabled'}>${money(m.p)}</button>`;
@@ -2238,6 +2471,8 @@ document.addEventListener('click', e => {
   const g = q('[data-go]'), ev = q('[data-ev]'), b = q('[data-buy]'), eq = q('[data-equip]'), sk = q('[data-skill]');
   const cu = q('[data-cup]'), cc = q('[data-cupclose]');
   if (q('#resetStats')) { if (q('#resetStats').dataset.ok) { save.st = newSt(); save.hist = []; save.hcpHist = []; persist(); renderStats(); } else { q('#resetStats').dataset.ok = 1; q('#resetStats').textContent = 'Wirklich zurücksetzen? Nochmal tippen'; } return; }
+  const bb = q('[data-ball]');
+  if (bb) { const B = BALLS.find(x => x.id === bb.dataset.ball); save.balls = save.balls || ['classic']; if (!save.balls.includes(B.id)) { if (save.money < B.p) { Snd.tick(); return; } save.money -= B.p; save.balls.push(B.id); Snd.coin(); } save.ball = B.id; persist(); buzz(15); renderShop(); return; }
   const dfb = q('[data-diff]');
   if (dfb) { save.diffMode = dfb.dataset.diff; persist(); Snd.tick(); buzz(10); renderHome(); return; }
   const crs = q('[data-course]');
@@ -2259,7 +2494,7 @@ document.addEventListener('click', e => {
 window.__fw = {
   get state() { return state; }, get ball() { return ball; }, get hole() { return hole; }, get strokes() { return strokes; }, get round() { return round; }, get lie() { return lie; }, get save() { return save; },
   get target() { return target; }, set target(v) { target = v; }, get club() { return clubI; }, set club(v) { clubI = v; },
-  startRound, genCourse, lieAt, board, hcpIndex, renderStats, courseHoles, resume: () => resumeRound(), startHoleAt: i => startHole(i), update, autoClub, carry: c => carry(CLUBS[c]),
+  startRound, genCourse, lieAt, board, hcpIndex, renderStats, courseHoles, resume: () => resumeRound(), startHoleAt: i => startHole(i), showScreenX: n => showScreen(n), unlockX: id => unlock(id), update, autoClub, carry: c => carry(CLUBS[c]),
   hit(p, a) { startSwing(); swing.p = p; swing.a = a; swing.ph = 'done'; hitBall(); },
   putt(dx, dy, v) { const l = hyp(dx, dy); doPutt({ dx: dx / l, dy: dy / l, v, p: 1 }); },
   run(maxT = 30) { for (let t = 0; t < maxT && !['aim', 'putt', 'wait', 'holed'].includes(state); t += 1 / 60) update(1 / 60); for (let i = 0; i < 200 && state === 'wait'; i++) { update(1 / 60); } },

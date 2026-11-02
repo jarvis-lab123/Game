@@ -109,7 +109,7 @@ Schlichtes 2D-Minigolf im Ordner `plopp/`. Ein Finger: zurückziehen, zielen, lo
 
 ---
 
-# 🏌️ Fairway – Golf-Karriere (Handy, Hochformat) · Version 1.6
+# 🏌️ Fairway – Golf-Karriere (Handy, Hochformat) · Version 1.7
 
 2D-Golf von oben im Low-Poly-Stil im Ordner `fairway/`: Ballflug mit Höhe, Wind, Wetter, Bäume, Bunker, Wasser, Aus und Putt-Ringe auf geneigten Grüns.
 
@@ -123,6 +123,10 @@ Lochlängen von 100 m (Par 3) bis 570 m (Par 5), bergauf/bergab mit „spielt wi
 - **Closest to the Pin:** 5 Bälle auf ein Par 3, Medaillen nach Abstand zur Fahne.
 - **Longest Drive:** 5 Drives, nur das Fairway zählt.
 - **Plätze / Freies Spiel:** jeden Platz mit 9 oder 18 Löchern spielen.
+
+**Lebendige Plätze:** Tiere je Landschaft (Enten, Rehe, Hasen, Schafe, Füchse, Steinböcke, Kamele, Giraffen, Zebras, Flamingos, Kraniche, Schildkröten …), die vor deinem Ball flüchten, und Vogelschwärme mit Schatten. Turniere mit Zuschauern und Tribüne, Jubel bei Birdies.
+**Nachtgolf:** Wetterlage „Nacht · Flutlicht“ mit Lichtkegeln, Sternen und Nordlicht im Winterland.
+**Caddie Ole:** Tipps zu Wind, Hindernissen, Höhe und Lage. **Erfolge:** 22 Abzeichen mit Prämien. **Bälle & Spuren:** Gold, Neon, Eis, Feuer, Regenbogen, Galaxie.
 
 **Schwierigkeit:** Leicht, Normal, Profi, Legende (Schwungtempo, Streuung, Wind, Putt-Ringe, Gegner, Preisgeld).
 
