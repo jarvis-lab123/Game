@@ -109,20 +109,22 @@ Schlichtes 2D-Minigolf im Ordner `plopp/`. Ein Finger: zurückziehen, zielen, lo
 
 ---
 
-# 🏌️ Fairway – Golf-Karriere (Handy, Hochformat) · Version 1.2
+# 🏌️ Fairway – Golf-Karriere (Handy, Hochformat) · Version 1.6
 
 2D-Golf von oben im Low-Poly-Stil im Ordner `fairway/`: Ballflug mit Höhe, Wind, Wetter, Bäume, Bunker, Wasser, Aus und Putt-Ringe auf geneigten Grüns.
 
-**Plätze & Landschaften:** 14 Plätze (Par 72, je 18 Löcher) in 6 Landschaften – Parkland, Links (Meer, Dünen, Stechginster, viel Wind), Wüste (Kakteen, Waste Areas, Hitze), Alpen (Kiefern, Felsen, bis ±34 m Höhenunterschied), Tropen (Palmen, türkises Meer) und Herbstwald.
+**Plätze & Landschaften:** 24 Plätze (Par 72, je 18 Löcher) in 11 Landschaften – Parkland, Links, Wüste, Alpen, Tropen, Herbstwald, Winterland, Vulkan (Lava!), Kirschblüte, Savanne und Heide. Jeder Platz hat Signature-Löcher: Inselgrün, Schlucht-Carry, Halbinsel-Grün oder angreifbares kurzes Par 4. Dazu fallende Blüten, Laub, Schnee und Glutfunken.
 Lochlängen von 100 m (Par 3) bis 570 m (Par 5), bergauf/bergab mit „spielt wie“-Distanz und Höhenlinien.
 **Wetter:** sonnig, bewölkt, windig, Sturm (mit Böen), Regen, Nebel, Hitze, Abendsonne – je nach Landschaft unterschiedlich häufig.
 
 **Spielmodi**
-- **Karriere:** Amateur Tour → Challenge Tour → World Tour, je 4 Turniere über 18 Löcher (Runde wird gespeichert und lässt sich fortsetzen) gegen 11 Gegner mit Live-Leaderboard und Preisgeld. Finale: das Major „The Crown“.
+- **Karriere:** Amateur Tour → Challenge Tour → Continental Tour → World Tour → Grand Slam (4 Majors), je 4 Turniere über 18 Löcher (Runde wird gespeichert und lässt sich fortsetzen) gegen 11 Gegner mit Live-Leaderboard und Preisgeld. Finale: das Major „The Crown“.
 - **Matchplay Cup:** 1 gegen 1, Loch für Loch, K.-o.-Turnierbaum mit 8 Spielern (Viertelfinale, Halbfinale, Finale, Stechen bei Gleichstand). Bronze, Silber und Gold Cup.
 - **Closest to the Pin:** 5 Bälle auf ein Par 3, Medaillen nach Abstand zur Fahne.
 - **Longest Drive:** 5 Drives, nur das Fairway zählt.
 - **Plätze / Freies Spiel:** jeden Platz mit 9 oder 18 Löchern spielen.
+
+**Schwierigkeit:** Leicht, Normal, Profi, Legende (Schwungtempo, Streuung, Wind, Putt-Ringe, Gegner, Preisgeld).
 
 **Fortschritt:** XP und Level mit Skillpunkten (Kraft, Präzision, Spin, Putten, Nerven), Ausrüstung (Driver, Hölzer, Eisen, Wedges, Putter in je 5 Modellen).
 
