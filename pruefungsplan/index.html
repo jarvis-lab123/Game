@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="de"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Prüfungsplan</title>
+<meta name="theme-color" content="#f4f4f2">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Prüfungen">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@300;400;500&display=swap">
+<style>
+:root{
+  --bg:#f4f4f2; --paper:#fff; --ink:#0d0d0d; --ink2:#7c7c78; --ink3:#b9b9b4; --line:#e4e4e0; --warn:#c2410c;
+  --sans:"Geist",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+  --mono:"Geist Mono",ui-monospace,"SF Mono",Menlo,monospace;
+  --ease:cubic-bezier(.2,.8,.2,1); --spring:cubic-bezier(.3,1.5,.5,1);
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{background:var(--bg);margin:0}
+body{color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;
+  padding:calc(14px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) calc(48px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));
+  overflow-x:hidden}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent;text-align:left}
+button:focus-visible{outline:2px solid var(--ink);outline-offset:3px;border-radius:8px}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.lbl{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink2);font-weight:500}
+.app{max-width:460px;margin:0 auto}
+.grid{display:flex;flex-direction:column;gap:44px}
+.col{display:flex;flex-direction:column;gap:44px;min-width:0}
+@media (min-width:900px){
+  .app{max-width:1060px}
+  .grid{display:grid;grid-template-columns:400px 1fr;gap:72px;align-items:start}
+  .col.l{position:sticky;top:24px}
+}
+.bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
+.bar .lbl b{color:var(--ink);font-weight:500}
+.sync{display:flex;gap:7px;align-items:center}
+.sync i{width:7px;height:7px;border-radius:50%;background:var(--ink3)}
+.sync.on i{background:var(--ink)}
+.sync.err i{background:var(--warn)}
+
+/* hero */
+.hero{display:flex;flex-direction:column;gap:18px;animation:in .6s var(--ease) both}
+@keyframes in{from{opacity:0;transform:translateY(18px);filter:blur(6px)}}
+.hero .when{font-family:var(--mono);font-weight:300;font-size:clamp(64px,19vw,96px);line-height:.9;letter-spacing:-.06em}
+.hero .when small{font-size:.32em;letter-spacing:-.02em;color:var(--ink2);margin-left:.15em}
+.hero h1{font-size:clamp(32px,9vw,44px);font-weight:500;letter-spacing:-.04em;line-height:1.04;margin:0;text-wrap:balance}
+.hero h1 span{color:var(--ink2);font-weight:400}
+.ringrow{display:flex;gap:20px;align-items:center}
+.ring{width:118px;height:118px;flex:none;position:relative}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring .tr{fill:none;stroke:var(--line);stroke-width:5}
+.ring .pr{fill:none;stroke:var(--ink);stroke-width:5;stroke-linecap:round;transition:stroke-dashoffset 1s var(--ease)}
+.ring .sl{fill:none;stroke:var(--ink3);stroke-width:1.5;stroke-dasharray:1 3}
+.ring .c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring .c b{font-family:var(--mono);font-weight:300;font-size:30px;letter-spacing:-.04em;line-height:1}
+.ring .c span{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink2);margin-top:4px}
+.verdict{display:flex;flex-direction:column;gap:6px;font-size:15px;line-height:1.4}
+.verdict b{font-weight:500;font-size:17px}
+.verdict.bad b{color:var(--warn)}
+.verdict span{color:var(--ink2)}
+
+/* sections */
+.sec{display:flex;flex-direction:column;gap:10px}
+.sec[hidden]{display:none}
+.sec>.lbl{padding:0 4px;display:flex;justify-content:space-between}
+.rows{display:flex;flex-direction:column}
+.row{display:grid;grid-template-columns:22px 1fr auto;gap:12px;align-items:center;padding:13px 4px;border-top:1px solid var(--line);font-size:15.5px;width:100%;line-height:1.3}
+.row:first-child{border-top:0}
+.row .ck{width:18px;height:18px;border-radius:50%;border:1.3px solid var(--ink3);display:grid;place-items:center;transition:background .2s,border-color .2s}
+.row.d .ck{background:var(--ink);border-color:var(--ink)}
+.row.d .ck::after{content:"";width:7px;height:4px;border-left:1.4px solid #fff;border-bottom:1.4px solid #fff;transform:rotate(-45deg) translate(1px,-1px)}
+.row.d .tx{color:var(--ink3);text-decoration:line-through}
+.row.d .tx em{color:var(--ink3)}
+.row .tx em{font-style:normal;color:var(--ink2);font-size:13px;display:block;margin-bottom:2px;letter-spacing:.02em}
+.row .mn{font-size:13px;color:var(--ink2)}
+.row.late .ck{border-color:var(--warn)}
+.row.late .mn{color:var(--warn)}
+.row.pop .ck{animation:pop .5s var(--spring)}
+@keyframes pop{40%{transform:scale(1.35)}}
+.empty{font-size:14px;color:var(--ink3);padding:6px 4px;line-height:1.45}
+.sum{font-size:13px;color:var(--ink2);padding:2px 4px 0}
+
+/* exams */
+.ex{border-top:1px solid var(--line)}
+.ex:first-child{border-top:0}
+.exh{display:grid;grid-template-columns:74px 1fr auto;gap:4px 14px;align-items:baseline;width:100%;padding:16px 4px 14px}
+.exh .dt{font-size:13px;color:var(--ink2)}
+.exh .nm{font-size:17px;font-weight:500;letter-spacing:-.015em;min-width:0}
+.exh .nm span{font-weight:400;color:var(--ink2)}
+.exh .in{font-size:13px;color:var(--ink2);white-space:nowrap}
+.exh .in.soon{color:var(--ink);font-weight:500}
+.exh .meta{grid-column:2/4;display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--ink2)}
+.exh .meta .bad{color:var(--warn)}
+.segs{grid-column:2/4;height:4px;display:flex;gap:3px;margin-top:6px}
+.segs i{flex:1;height:100%;background:var(--line);border-radius:2px;transition:background .5s}
+.segs i.d{background:var(--ink)}
+.segs i.l{background:var(--warn);opacity:.55}
+.exb{display:grid;grid-template-rows:0fr;transition:grid-template-rows .45s var(--ease)}
+.exb>div{overflow:hidden}
+.ex.open .exb{grid-template-rows:1fr}
+.exb .inner{padding:0 4px 18px 92px}
+@media (max-width:520px){.exb .inner{padding-left:4px}}
+.info{font-size:14px;color:var(--ink2);line-height:1.45;margin:0 0 6px}
+.exb .row{grid-template-columns:22px 62px 1fr auto;font-size:14.5px;padding:11px 0}
+.exb .row .sd{font-size:12.5px;color:var(--ink2)}
+.tag{display:inline-block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--ink3);border-radius:999px;padding:2px 8px;color:var(--ink2);margin-left:6px;vertical-align:2px;font-weight:500}
+
+/* log + grades */
+.day{display:grid;grid-template-columns:74px 1fr;gap:14px;padding:12px 4px;border-top:1px solid var(--line);font-size:14.5px;line-height:1.5}
+.day:first-child{border-top:0}
+.day .dt{font-size:13px;color:var(--ink2);padding-top:1px}
+.day ul{margin:0;padding:0;list-style:none}
+.day li span{color:var(--ink2)}
+.gr{display:grid;grid-template-columns:74px 1fr auto;gap:14px;padding:12px 4px;border-top:1px solid var(--line);align-items:baseline;font-size:15px}
+.gr:first-child{border-top:0}
+.gr .dt{font-size:13px;color:var(--ink2)}
+.gr .n{font-family:var(--mono);font-size:18px;font-weight:400;letter-spacing:-.03em}
+.gr .n.low{color:var(--warn)}
+.gr small{color:var(--ink2);font-size:12.5px}
+.avg{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border-radius:18px;overflow:hidden;margin-bottom:6px}
+.avg div{background:var(--bg);padding:14px;display:flex;flex-direction:column;gap:6px}
+.avg b{font-family:var(--mono);font-weight:300;font-size:28px;letter-spacing:-.04em;line-height:1}
+.foot{text-align:center;font-size:12px;color:var(--ink3);padding-top:36px}
+
+.vk{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:4px 0 8px;font-size:14px}
+.vk input{width:96px;font:inherit;font-family:var(--mono);font-size:15px;background:var(--paper);color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:8px 14px}
+.vk input:focus{outline:2px solid var(--ink);outline-offset:2px}
+.vk .note{font-size:12.5px;color:var(--ink2)}
+.ga{display:grid;grid-template-columns:1fr;gap:22px}
+@media (min-width:760px){.ga{grid-template-columns:minmax(260px,.9fr) 1.1fr;align-items:center}}
+.ga .num{font-family:var(--mono);font-weight:300;font-size:clamp(72px,20vw,108px);letter-spacing:-.07em;line-height:.85}
+.ga .num.low{color:var(--warn)}
+.ga .sub{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px}
+.tiles4{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border-radius:16px;overflow:hidden;margin-top:18px}
+.tiles4 div{background:var(--paper);padding:12px 10px;display:flex;flex-direction:column;gap:5px}
+.tiles4 b{font-family:var(--mono);font-weight:300;font-size:22px;letter-spacing:-.04em;line-height:1}
+.tiles4 b.low{color:var(--warn)}
+.tiles4 span{font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink2);font-weight:500}
+.fgauge{position:relative;height:6px;border-radius:3px;background:var(--line);margin:2px 0 4px}
+.fgauge .b{position:absolute;top:0;bottom:0;border-radius:3px;background:#dcdcd7}
+.fgauge .f{position:absolute;top:0;bottom:0;left:0;border-radius:3px;background:var(--ink);transition:width 1s var(--ease)}
+.fgauge .f.low{background:var(--warn)}
+.fgauge .m4{position:absolute;top:-4px;bottom:-4px;width:1.5px;background:var(--warn)}
+
+/* wide sections */
+.wide{display:flex;flex-direction:column;gap:44px;margin-top:64px}
+.wide h2{font-size:clamp(26px,7vw,34px);font-weight:500;letter-spacing:-.035em;margin:0 4px;line-height:1.05}
+.wide h2 span{color:var(--ink2);font-weight:400}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.card{background:var(--paper);border-radius:20px;padding:18px 18px 16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.card.full{grid-column:1/-1}
+.card .hd{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.card .hd b{font-size:17px;font-weight:500;letter-spacing:-.015em}
+.card .note{font-size:13px;color:var(--ink2);line-height:1.45;margin:0}
+.chart{width:100%;display:block;overflow:visible}
+.chart text{font-family:var(--sans);fill:var(--ink2);font-size:11px}
+.chart text.m{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.chart text.k{fill:var(--ink);font-size:12px;font-weight:500}
+.chart .gl{stroke:var(--line);stroke-width:1}
+.chart .now{stroke:var(--ink);stroke-width:1.5}
+.chart [data-tip]{cursor:default}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--ink2)}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.big{display:flex;gap:18px;align-items:baseline;flex-wrap:wrap}
+.big b{font-family:var(--mono);font-weight:300;font-size:42px;letter-spacing:-.05em;line-height:1}
+.big b.low{color:var(--warn)}
+.big span{font-size:12px;color:var(--ink2);letter-spacing:.06em;text-transform:uppercase;font-weight:500}
+.tgt{display:flex;align-items:center;gap:2px;border:1px solid var(--line);border-radius:999px;padding:2px}
+.tgt button{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:16px;color:var(--ink2);text-align:center}
+.tgt button:active{background:var(--line)}
+.tgt span{font-family:var(--mono);font-size:13px;min-width:62px;text-align:center}
+.need{display:grid;grid-template-columns:1fr auto;gap:6px 12px;font-size:14px;line-height:1.35;border-top:1px solid var(--line);padding-top:12px}
+.need .v{font-family:var(--mono);font-size:15px;text-align:right}
+.need .v.bad{color:var(--warn)}
+.chip{display:inline-block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:3px 9px;font-weight:500;background:var(--bg);color:var(--ink)}
+.chip.bad{background:#fbe9e1;color:var(--warn)}
+.chip.ok{background:var(--ink);color:#fff}
+.prio{display:grid;grid-template-columns:22px 1fr;gap:4px 12px;padding:12px 0;border-top:1px solid var(--line);align-items:center}
+.prio:first-of-type{border-top:0}
+.prio .r{font-family:var(--mono);font-size:13px;color:var(--ink2)}
+.prio .t{font-size:15px;font-weight:500}
+.prio .t span{font-weight:400;color:var(--ink2)}
+.prio .bar{grid-column:2;height:4px;background:var(--line);border-radius:2px;overflow:hidden}
+.prio .bar i{display:block;height:100%;background:var(--ink);border-radius:2px;transition:width .8s var(--ease)}
+.prio .why{grid-column:2;display:flex;gap:6px;flex-wrap:wrap}
+#tip{position:fixed;z-index:50;pointer-events:none;background:var(--ink);color:#fff;font-size:12.5px;line-height:1.35;padding:7px 10px;border-radius:10px;max-width:240px;opacity:0;transform:translate(-50%,calc(-100% - 12px));transition:opacity .15s;white-space:pre-line}
+#tip.show{opacity:1}
+
+#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:30}
+.toast{position:fixed;left:50%;top:calc(14px + env(safe-area-inset-top,0px));transform:translate(-50%,-160%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:999px;font-size:14px;transition:transform .5s var(--spring);z-index:40;white-space:nowrap;max-width:calc(100vw - 32px);overflow:hidden;text-overflow:ellipsis}
+.toast.show{transform:translate(-50%,0)}
+.skel{height:14px;border-radius:7px;background:var(--line);margin:14px 4px;animation:sk 1.4s ease-in-out infinite}
+@keyframes sk{50%{opacity:.4}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* App-Installation */
+.inst{background:var(--paper);border-radius:20px;padding:16px 18px;margin:0 0 28px;display:flex;flex-direction:column;gap:10px;font-size:14px;line-height:1.45}
+.inst .hd{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.inst .hd b{font-size:16px;font-weight:500;letter-spacing:-.01em}
+.inst .x{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;color:var(--ink2);font-size:18px;text-align:center}
+.inst ol{margin:0;padding-left:20px;color:var(--ink2)}
+.inst ol b{color:var(--ink);font-weight:500}
+.inst .tabs{display:flex;gap:6px;flex-wrap:wrap}
+.inst .tabs button{font-size:12px;letter-spacing:.06em;text-transform:uppercase;font-weight:500;border-radius:999px;padding:5px 11px;background:var(--bg);color:var(--ink2)}
+.inst .tabs button.on{background:var(--ink);color:#fff}
+.inst p{margin:0;color:var(--ink2);font-size:13px}
+
+/* Eintragen */
+.addbtn{font-size:12px;letter-spacing:.09em;text-transform:uppercase;font-weight:500;color:var(--ink)}
+.addf{display:grid;grid-template-columns:1fr 1fr;gap:8px;background:var(--paper);border-radius:18px;padding:14px;margin-bottom:6px}
+.addf[hidden]{display:none}
+.addf label{display:flex;flex-direction:column;gap:4px;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink2);font-weight:500;min-width:0}
+.addf label.w{grid-column:1/-1}
+.addf input,.addf select,.gin{font:inherit;font-size:15px;letter-spacing:0;text-transform:none;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:9px 11px;width:100%;min-width:0}
+.addf input:focus,.addf select:focus,.gin:focus{outline:2px solid var(--ink);outline-offset:1px}
+.addf .go{grid-column:1/-1;display:flex;gap:8px;justify-content:flex-end}
+.addf .go button{border-radius:999px;padding:9px 16px;font-size:14px;font-weight:500;text-align:center}
+.addf .go .ok{background:var(--ink);color:#fff}
+.addf .go .no{color:var(--ink2)}
+.gin{width:68px;padding:5px 8px;font-family:var(--mono);font-size:14px;text-align:center}
+</style>
+</head>
+<body>
+<canvas id="fx"></canvas>
+<div class="app">
+  <div class="bar"><span class="lbl" id="today"></span><span class="lbl sync" id="sync"><i></i><span>Lade</span></span></div>
+  <div class="inst" id="inst" hidden>
+    <div class="hd"><b>Als App aufs Handy</b><button class="x" id="instX" aria-label="Ausblenden">×</button></div>
+    <div class="tabs"><button data-os="ios">iPhone</button><button data-os="and">Android</button><button data-os="pc">PC / Mac</button></div>
+    <ol id="instSteps"></ol>
+    <p>Die App ist immer diese Seite: Prüfungen, Noten und Lernpläne trägt Claude ein, sobald du ihm schreibst. Sie kommen nach etwa einer Minute auf allen Geräten an. Abhaken bleibt auf dem Gerät, auf dem du es machst.</p>
+  </div>
+  <div class="grid">
+    <div class="col l">
+      <section class="hero" id="hero"><div class="skel" style="width:60%"></div><div class="skel"></div></section>
+      <section class="sec"><span class="lbl"><span>Heute lernen</span><span class="mono" id="todayMin"></span></span><div class="rows" id="todayList"></div><div class="sum" id="todaySum"></div></section>
+      <section class="sec" id="lateSec" hidden><span class="lbl"><span>Nachholen</span><span class="mono" id="lateN"></span></span><div class="rows" id="lateList"></div></section>
+    </div>
+    <div class="col r">
+      <section class="sec"><span class="lbl"><span>Kommende Prüfungen</span><span>Neues? Schreib's Claude</span></span>
+        <div id="exList"><div class="skel"></div><div class="skel"></div><div class="skel"></div></div></section>
+      <section class="sec"><span class="lbl">Lernlog · was du wann gemacht hast</span><div id="log"></div></section>
+      <section class="sec"><span class="lbl">Geschrieben &amp; Noten</span><div id="grades"></div></section>
+    </div>
+  </div>
+  <div class="wide">
+    <h2>Planung <span>wann, wie viel, was zuerst</span></h2>
+    <div class="cards">
+      <div class="card full"><div class="hd"><b>Zeitplan</b><span class="lbl">Start bis Prüfung</span></div>
+        <div id="gantt"></div>
+        <div class="legend"><span><i style="background:var(--ink)"></i>erledigt</span><span><i style="border:1.5px solid var(--ink3);background:var(--paper)"></i>geplant</span><span><i style="background:var(--warn)"></i>verpasst</span><span><i style="background:var(--ink);border-radius:1px;width:3px"></i>Prüfung</span></div></div>
+      <div class="card full"><div class="hd"><b>Lernlast pro Tag</b><span class="lbl">nächste 4 Wochen</span></div><div id="load"></div><p class="note" id="loadNote"></p></div>
+      <div class="card"><div class="hd"><b>Zeitaufwand</b><span class="lbl">pro Prüfung</span></div><div id="effort"></div></div>
+      <div class="card"><div class="hd"><b>Prioritäten</b><span class="lbl">jetzt zuerst</span></div><div id="prio"></div></div>
+    </div>
+    <h2>Noten <span>pro Fach, Ziel und was du brauchst</span></h2>
+    <div class="cards">
+      <div class="card full" id="avgCard"></div>
+      <div class="card full"><div class="hd"><b>Überblick</b><span class="lbl">Schnitt vs. Ziel</span></div><div id="overview"></div>
+        <div class="legend"><span><i style="background:var(--ink)"></i>Schnitt</span><span><i style="background:#e9e9e5;border-radius:2px"></i>Wunschbereich</span><span><i style="border:1.5px dashed var(--warn);background:none"></i>Grenze 4</span></div></div>
+    </div>
+    <div class="cards" id="faecher"></div>
+  </div>
+  <div class="foot">Neues? Schreib es Claude, es erscheint hier automatisch. Wer im Plan ist, braucht keinen Spicker.</div>
+</div>
+<div class="toast" id="toast"></div><div id="tip"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const pad = n => String(n).padStart(2,"0");
+const iso = d => d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const today = () => iso(new Date());
+const P = s => new Date(s+"T12:00:00");
+const dDiff = s => Math.round((P(s) - P(today()))/864e5);
+const WD = ["So","Mo","Di","Mi","Do","Fr","Sa"];
+const fmt = s => { const d = P(s); return WD[d.getDay()]+" "+pad(d.getDate())+"."+pad(d.getMonth()+1)+"."; };
+const inTxt = n => n === 0 ? "heute" : n === 1 ? "morgen" : n < 0 ? "vorbei" : "in " + n + " T";
+const hm = m => m >= 60 ? Math.floor(m/60) + " h" + (m%60 ? " " + m%60 : "") : m + " min";
+
+let EX = [], D = {}, db = null, progRef = null, loaded = false, open = new Set();
+try{ D = JSON.parse(localStorage.getItem("pp-done")) || {}; open = new Set(JSON.parse(localStorage.getItem("pp-open")) || []); }catch{}
+
+function sync(state, txt){ const s = $("#sync"); s.className = "lbl sync " + state; s.lastElementChild.textContent = txt; }
+let tT; function toast(m){ const t = $("#toast"); t.textContent = m; t.classList.add("show"); clearTimeout(tT); tT = setTimeout(()=>t.classList.remove("show"), 2400); }
+
+/* sound + confetti */
+let AC;
+function tone(f,d=.12,v=.04,w=0){ try{ AC = AC || new (window.AudioContext||window.webkitAudioContext)(); const o = AC.createOscillator(), g = AC.createGain(), t = AC.currentTime + w;
+  o.frequency.setValueAtTime(f,t); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(v,t+.01); g.gain.exponentialRampToValueAtTime(.0001,t+d); o.connect(g).connect(AC.destination); o.start(t); o.stop(t+d+.02);}catch{} }
+const fx = $("#fx"), g = fx.getContext("2d"); let PT = [], raf = 0;
+function burst(x,y,n=40){ if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const r = devicePixelRatio||1; fx.width = innerWidth*r; fx.height = innerHeight*r;
+  for (let i=0;i<n;i++){ const a = Math.random()*6.28, s = 2+Math.random()*7; PT.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-3,l:1,z:1.2+Math.random()*3,q:Math.random()<.4,r:Math.random()*6}); }
+  if (!raf) step(); }
+function step(){ const r = devicePixelRatio||1; g.setTransform(r,0,0,r,0,0); g.clearRect(0,0,innerWidth,innerHeight); PT = PT.filter(p=>p.l>0);
+  for (const p of PT){ p.vx*=.96; p.vy=p.vy*.96+.18; p.x+=p.vx; p.y+=p.vy; p.l-=.018; p.r+=.1; g.globalAlpha=Math.max(0,p.l); g.fillStyle="#0d0d0d";
+    if (p.q){ g.save(); g.translate(p.x,p.y); g.rotate(p.r); g.fillRect(-p.z,-p.z/2,p.z*2,p.z); g.restore(); } else { g.beginPath(); g.arc(p.x,p.y,p.z,0,7); g.fill(); } }
+  raf = PT.length ? requestAnimationFrame(step) : (g.clearRect(0,0,innerWidth,innerHeight),0); }
+
+/* model */
+const isUp = e => !e.note && e.status !== "geschrieben" && (!e.datum || e.datum >= today());
+/* Haken hängen am Datum der Einheit, nicht an ihrer Position: wenn Claude den Plan
+   ergänzt oder umstellt, bleiben erledigte Einheiten erledigt. */
+const key = (e,i) => { const ss = e.sessions || [], d = (ss[i] && ss[i].d) || ""; let j = 0;
+  for (let k = 0; k < i; k++) if (ss[k].d === d) j++; return e.id + "@" + d + (j ? "#" + j : ""); };
+function migrate(){
+  let ch = false; const out = {};
+  for (const [k,v] of Object.entries(D)){ const m = k.match(/^(.*)~(\d+)$/), e = m && EX.find(x => x.id === m[1]);
+    if (e && (e.sessions || [])[+m[2]]){ out[key(e,+m[2])] = v; ch = true; } else out[k] = v; }
+  if (ch){ D = out; persist(); }
+}
+function stats(e){
+  const T = today(), ss = sess(e);
+  let done = 0, due = 0, dueDone = 0, min = 0, minDone = 0;
+  ss.forEach((s,i) => { const k = D[key(e,i)]; min += s.min||0; if (k){ done++; minDone += s.min||0; } if (s.d <= T){ due++; if (k) dueDone++; } });
+  const start = ss.length ? ss.map(s=>s.d).sort()[0] : null;
+  return { total:ss.length, done, due, behind: due - dueDone, min, minDone, start, pct: ss.length ? done/ss.length : 0, soll: ss.length ? due/ss.length : 0 };
+}
+let VK = {}, vkRef = null;
+try{ VK = JSON.parse(localStorage.getItem("pp-vk")) || {}; }catch{}
+const r5 = v => Math.round(v/5)*5, clamp = (v,a,b) => Math.min(b, Math.max(a, v));
+function sess(e){
+  const ss = e.sessions || [];
+  if (!e.voki) return ss;
+  const n = +VK[e.id] || 0, N = ss.length;
+  if (!n) return ss.map(s => ({ ...s, min: Math.max(s.min||0, 30) }));
+  const L = Math.max(1, Math.ceil(N/2)), R = N - L, per = Math.ceil(n/L);
+  const RT = ["Alle Wörter: Selbsttest, Fehlerliste machen","Fehlerliste lernen","Selbsttest komplett","Nur noch die Fehler"];
+  const rt = R >= 4 ? RT.concat(Array(R-4).fill("Selbsttest + Fehler")) : R === 3 ? [RT[0],RT[2],RT[3]] : R === 2 ? [RT[0],RT[3]] : R === 1 ? [RT[0]] : [];
+  return ss.map((s,i) => {
+    if (i < L){ const a = i*per + 1, b = Math.min(n, (i+1)*per);
+      return { d:s.d, t:"Wörter " + a + "–" + b + " neu lernen" + (i ? " + 1–" + (a-1) + " wiederholen" : ""), min: clamp(r5(per*0.75 + (a-1)*0.12), 20, 90) }; }
+    const k = i - L; return { d:s.d, t:rt[k], min: clamp(r5(n*(k === 0 ? 0.3 : 0.18)), 20, 75) };
+  });
+}
+const sorted = () => EX.slice().sort((a,b) => (a.datum||"9999") < (b.datum||"9999") ? -1 : 1);
+
+/* render */
+function render(){
+  const T = today();
+  $("#today").innerHTML = "Prüfungsplan · <b>" + fmt(T) + "</b>";
+  if (!loaded) return;
+  const up = sorted().filter(isUp);
+  renderHero(up.find(e => e.datum));
+  renderToday(up);
+  renderExams(up);
+  renderLog();
+  renderGrades();
+  renderPlan(up);
+  renderNoten();
+}
+
+/* ===== Diagramme ===== */
+let TG = {}, tgRef = null;
+const DEF_T = 4.5;
+const tgt = f => typeof TG[f] === "number" ? TG[f] : DEF_T;
+const addD = (s,n) => { const d = P(s); d.setDate(d.getDate()+n); return iso(d); };
+const between = (a,b) => Math.round((P(b)-P(a))/864e5);
+const wOf = e => typeof e.w === "number" ? e.w : 1;
+const short = (s,n) => s.length > n ? s.slice(0,n-1) + "…" : s;
+const cw = id => Math.max(260, Math.floor($(id).clientWidth || 320));
+
+function renderPlan(up){
+  const T = today(), ex = up.filter(e => e.datum);
+  /* Gantt */
+  if (!ex.length){ $("#gantt").innerHTML = `<div class="empty">Keine Termine.</div>`; }
+  else {
+    const W = cw("#gantt"), L = W < 480 ? 104 : 150, R = 10, top = 22, rh = 36;
+    const a0 = addD(T,-2), last = ex.map(e => e.datum).sort().pop(), N = between(a0,last) + 2;
+    const X = d => L + (between(a0,d)/N) * (W-L-R), H = top + ex.length*rh + 4;
+    let s = "";
+    for (let i = 0; i <= N; i++){ const d = addD(a0,i); if (P(d).getDay() === 1){ const x = X(d);
+      s += `<line class="gl" x1="${x}" x2="${x}" y1="${top-6}" y2="${H}"/><text class="m" x="${x+3}" y="11">${d.slice(8)}.${d.slice(5,7)}.</text>`; } }
+    ex.forEach((e,r) => {
+      const y = top + r*rh + rh/2, st = stats(e), sx = X(st.start && st.start > a0 ? st.start : a0), ex_ = X(e.datum);
+      s += `<text class="k" x="0" y="${y-3}">${esc(e.fach)}</text><text x="0" y="${y+11}">${esc(short(e.was, L < 120 ? 15 : 24))}</text>`;
+      s += `<line x1="${sx}" x2="${ex_}" y1="${y}" y2="${y}" stroke="var(--line)" stroke-width="2" stroke-linecap="round"/>`;
+      sess(e).forEach((x,i) => { if (x.d < a0) return; const dn = D[key(e,i)], late = !dn && x.d < T, cx = X(x.d);
+        s += `<circle cx="${cx}" cy="${y}" r="4" fill="${dn ? "var(--ink)" : late ? "var(--warn)" : "var(--paper)"}" stroke="${dn ? "var(--ink)" : late ? "var(--warn)" : "var(--ink3)"}" stroke-width="1.5"/>
+          <circle cx="${cx}" cy="${y}" r="10" fill="transparent" data-tip="${esc(fmt(x.d) + " · " + e.fach + "\n" + x.t + " · " + (x.min||0) + " min" + (dn ? "\n✓ erledigt" : late ? "\nverpasst" : ""))}"/>`; });
+      s += `<rect x="${ex_-1.5}" y="${y-10}" width="3" height="20" rx="1.5" fill="var(--ink)"/><rect x="${ex_-8}" y="${y-12}" width="16" height="24" fill="transparent" data-tip="${esc("Prüfung " + fmt(e.datum) + "\n" + e.fach + " · " + e.was + "\nStart " + (st.start ? fmt(st.start) : "–"))}"/>`;
+    });
+    const nx = X(T); s += `<line class="now" x1="${nx}" x2="${nx}" y1="${top-8}" y2="${H}"/><text x="${nx+3}" y="${H+12}" style="fill:var(--ink);font-weight:500">heute</text>`;
+    $("#gantt").innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H+16}" width="${W}" height="${H+16}">${s}</svg>`;
+  }
+
+  /* Lernlast pro Tag */
+  { const W = cw("#load"), H = 150, top = 16, bot = 30, days = 28, gap = 2;
+    const per = [], exDays = {};
+    up.forEach(e => { if (e.datum) (exDays[e.datum] = exDays[e.datum] || []).push(e.fach); });
+    for (let i = 0; i < days; i++){ const d = addD(T,i); let tot = 0, dn = 0, items = [];
+      up.forEach(e => sess(e).forEach((x,k) => { if (x.d === d){ tot += x.min||0; if (D[key(e,k)]) dn += x.min||0; items.push(e.fach + ": " + x.t); } }));
+      per.push({d,tot,dn,items}); }
+    const mx = Math.max(60, ...per.map(p => p.tot)), bw = (W - gap*(days-1)) / days, Y = v => top + (H-top-bot) * (1 - v/mx);
+    let s = "";
+    [60,120].filter(v => v <= mx).forEach(v => { s += `<line class="gl" x1="0" x2="${W}" y1="${Y(v)}" y2="${Y(v)}"/><text class="m" x="0" y="${Y(v)-4}">${v/60} h</text>`; });
+    per.forEach((p,i) => { const x = i*(bw+gap), base = Y(0);
+      if (p.tot){ const h1 = base - Y(p.tot), h2 = base - Y(p.dn), r = Math.min(4, bw/2);
+        s += `<path d="M${x},${base} v${-(h1-r)} q0,${-r} ${r},${-r} h${bw-2*r} q${r},0 ${r},${r} v${h1-r} z" fill="${p.dn >= p.tot ? "var(--ink)" : "var(--ink3)"}"/>`;
+        if (p.dn && p.dn < p.tot) s += `<rect x="${x}" y="${base-h2}" width="${bw}" height="${h2}" fill="var(--ink)"/>`; }
+      if (exDays[p.d]) s += `<path d="M${x+bw/2-4},${base+12} l4,-6 l4,6 z" fill="var(--ink)"/>`;
+      if (i % 7 === 0) s += `<text class="m" x="${x}" y="${H-2}">${fmt(p.d)}</text>`;
+      s += `<rect x="${x-1}" y="${top}" width="${bw+2}" height="${H-top-8}" fill="transparent" data-tip="${esc(fmt(p.d) + (exDays[p.d] ? "  ▲ Prüfung " + exDays[p.d].join(", ") : "") + "\n" + (p.tot ? hm(p.tot) + (p.dn ? " · " + hm(p.dn) + " erledigt" : "") + "\n" + p.items.join("\n") : "nichts geplant"))}"/>`; });
+    s += `<line x1="0" x2="${W}" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--ink3)" stroke-width="1"/>`;
+    $("#load").innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">${s}</svg>`;
+    const peak = per.reduce((a,b) => b.tot > a.tot ? b : a, per[0]), week = per.slice(0,7).reduce((a,p) => a + p.tot, 0);
+    $("#loadNote").textContent = `Diese Woche: ${hm(week)}. Härtester Tag: ${fmt(peak.d)} mit ${hm(peak.tot)}. ▲ = Prüfungstag. Antippen für Details.`; }
+
+  /* Zeitaufwand */
+  { const rows = up.filter(e => sess(e).length).map(e => ({e, s:stats(e)})), mx = Math.max(...rows.map(r => r.s.min), 1);
+    $("#effort").innerHTML = rows.map(({e,s}) => `<div class="prio" style="grid-template-columns:1fr auto" data-tip="${esc(e.fach + " · " + e.was + "\n" + hm(s.minDone) + " von " + hm(s.min) + " erledigt")}">
+      <span class="t">${esc(e.fach)} <span>${esc(short(e.was,22))}</span></span><span class="r">${hm(s.min)}</span>
+      <span class="bar" style="grid-column:1/-1;background:var(--line)"><i style="width:${s.min/mx*100}%;background:var(--ink3);position:relative"><i style="position:absolute;inset:0;width:${s.min ? s.minDone/s.min*100 : 0}%;background:var(--ink)"></i></i></span></div>`).join("") || `<div class="empty">Keine Pläne.</div>`; }
+
+  /* Prioritäten */
+  { const avgs = fachStats();
+    const rows = up.filter(e => sess(e).length).map(e => {
+      const s = stats(e), n = e.datum ? Math.max(1, dDiff(e.datum)) : 200, restH = (s.min - s.minDone)/60, fa = avgs[e.fach], why = [];
+      let f = 1;
+      if (fa && fa.avg !== null && fa.avg < 4){ f *= 1.6; why.push(["bad","Schnitt " + fa.avg.toFixed(2)]); }
+      else if (fa && fa.avg !== null && fa.avg < tgt(e.fach)){ f *= 1.25; why.push(["","unter Ziel"]); }
+      if (s.behind > 0){ f *= 1.4; why.push(["bad", s.behind + " im Rückstand"]); }
+      if (n <= 7) why.push(["ok", inTxt(n)]); else if (e.datum) why.push(["", inTxt(n)]);
+      if (wOf(e) < 1) why.push(["", "zählt " + wOf(e)]);
+      const score = wOf(e) * (restH + .5) / Math.sqrt(n) * f;
+      return {e, score, why}; }).sort((a,b) => b.score - a.score).slice(0,6);
+    const mx = rows.length ? rows[0].score : 1;
+    $("#prio").innerHTML = rows.map((r,i) => `<div class="prio"><span class="r">${i+1}</span><span class="t">${esc(r.e.fach)} <span>${esc(short(r.e.was,22))}</span></span>
+      <span class="bar"><i style="width:${r.score/mx*100}%"></i></span><span class="why">${r.why.map(([c,t]) => `<span class="chip ${c}">${esc(t)}</span>`).join("")}</span></div>`).join("") || `<div class="empty">Nichts offen.</div>`; }
+}
+
+function fachStats(){
+  const F = {};
+  EX.forEach(e => { const f = F[e.fach] = F[e.fach] || { g:[], up:[], open:0 };
+    if (typeof e.note === "number") f.g.push(e); else if (isUp(e)) f.up.push(e); else f.open++; });
+  Object.entries(F).forEach(([name,f]) => {
+    f.g.sort((a,b) => (a.datum||"9") < (b.datum||"9") ? -1 : 1); f.up.sort((a,b) => (a.datum||"9") < (b.datum||"9") ? -1 : 1);
+    const W = f.g.reduce((a,e) => a + wOf(e), 0), S = f.g.reduce((a,e) => a + e.note*wOf(e), 0), U = f.up.reduce((a,e) => a + wOf(e), 0);
+    f.avg = W ? S/W : null; f.W = W; f.S = S; f.U = U;
+    const req = t => U ? (t*(W+U) - S)/U : null;
+    f.req = req(tgt(name)); f.req4 = req(4);
+  });
+  return F;
+}
+function chance(r){
+  if (r === null) return ["","–"];
+  if (r <= 1) return ["ok","sicher"];
+  if (r <= 4) return ["ok","locker machbar"];
+  if (r <= 4.75) return ["","realistisch"];
+  if (r <= 5.5) return ["","ambitioniert"];
+  if (r <= 6) return ["bad","sehr schwer"];
+  return ["bad","nicht mehr drin"];
+}
+const g1 = v => Math.max(1, v).toFixed(2);
+
+function renderNoten(){
+  const F = fachStats(), names = Object.keys(F).sort((a,b) => (F[a].avg ?? 9) - (F[b].avg ?? 9));
+  renderAvg(F);
+  /* Überblick: Punkt-Diagramm */
+  { const W = cw("#overview"), L = W < 480 ? 92 : 140, R = 30, rh = 30, top = 18, H = top + names.length*rh;
+    const X = v => L + (v-1)/5 * (W-L-R);
+    let s = "";
+    [1,2,3,4,5,6].forEach(v => { s += `<line class="gl" x1="${X(v)}" x2="${X(v)}" y1="${top-6}" y2="${H}"/><text class="m" x="${X(v)}" y="10" text-anchor="middle">${v}</text>`; });
+    s += `<line x1="${X(4)}" x2="${X(4)}" y1="${top-6}" y2="${H}" stroke="var(--warn)" stroke-width="1.5" stroke-dasharray="3 3"/>`;
+    names.forEach((n,i) => { const f = F[n], y = top + i*rh + rh/2, t = tgt(n);
+      s += `<text class="k" x="0" y="${y+4}">${esc(short(n, L < 120 ? 12 : 20))}</text>`;
+      s += `<rect x="${X(t)}" y="${y-7}" width="${X(6)-X(t)}" height="14" rx="4" fill="#e9e9e5"/>`;
+      if (f.avg !== null){ s += `<circle cx="${X(f.avg)}" cy="${y}" r="6" fill="${f.avg < 4 ? "var(--warn)" : "var(--ink)"}" stroke="var(--paper)" stroke-width="2"/><text class="m" x="${X(f.avg) + (f.avg > 5.4 ? -10 : 10)}" y="${y+4}" text-anchor="${f.avg > 5.4 ? "end" : "start"}" style="fill:var(--ink)">${f.avg.toFixed(2)}</text>`; }
+      else s += `<text x="${X(1)+4}" y="${y+4}">noch keine Note</text>`;
+      s += `<rect x="0" y="${y-rh/2}" width="${W}" height="${rh}" fill="transparent" data-tip="${esc(n + "\nSchnitt " + (f.avg !== null ? f.avg.toFixed(2) : "–") + " · Ziel " + t.toFixed(2) + (f.req !== null ? "\nbrauchst im Schnitt " + g1(f.req) + " in den nächsten " + f.up.length : ""))}"/>`; });
+    $("#overview").innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H+4}" width="${W}" height="${H+4}">${s}</svg>`; }
+
+  /* Karten pro Fach */
+  $("#faecher").innerHTML = names.map(n => {
+    const f = F[n], t = tgt(n), [cc, ct] = chance(f.req), nx = f.up[0];
+    return `<div class="card" data-fach="${esc(n)}">
+      <div class="hd"><b>${esc(n)}</b><span class="tgt"><button data-t="-" aria-label="Ziel runter">−</button><span>Ziel ${t.toFixed(2)}</span><button data-t="+" aria-label="Ziel rauf">+</button></span></div>
+      <div class="big"><b class="${f.avg !== null && f.avg < 4 ? "low" : ""}">${f.avg !== null ? f.avg.toFixed(2) : "–"}</b><span>Schnitt${f.g.length ? " · " + f.g.length + (f.g.length === 1 ? " Note" : " Noten") : ""}${f.open ? " · " + f.open + " offen" : ""}</span></div>
+      ${f.avg !== null ? `<div class="fgauge" data-tip="${esc("Schnitt " + f.avg.toFixed(2) + " · Ziel " + t.toFixed(2))}"><span class="b" style="left:${(t-1)/5*100}%;right:0"></span><span class="f ${f.avg < 4 ? "low" : ""}" style="width:${(f.avg-1)/5*100}%"></span><span class="m4" style="left:60%"></span></div>` : ""}
+      <div class="fchart"></div>
+      ${f.up.length ? `<div class="need">
+        <span>Für Ziel ${t.toFixed(2)} brauchst du ${f.up.length > 1 ? "im Schnitt" : ""}</span><span class="v ${f.req > 6 ? "bad" : ""}">${g1(f.req)}</span>
+        <span>Damit es für eine 4 reicht</span><span class="v ${f.req4 > 4 ? "bad" : ""}">${g1(f.req4)}</span>
+        <span>Chance aufs Ziel</span><span><span class="chip ${cc}">${ct}</span></span>
+        <span style="grid-column:1/-1;color:var(--ink2);font-size:13px">Nächste: ${esc(nx.was)}${nx.datum ? " · " + fmt(nx.datum) : " · " + esc(nx.ca || "Termin offen")} · zählt ${wOf(nx)}</span>
+      </div>` : `<p class="note">Keine Prüfung mehr geplant.</p>`}
+    </div>`; }).join("");
+  document.querySelectorAll("#faecher .card").forEach(c => drawFach(c, F[c.dataset.fach], tgt(c.dataset.fach)));
+}
+
+function meanOf(F){ const v = Object.values(F).map(f => f.avg).filter(a => a !== null); return v.length ? v.reduce((a,b) => a+b, 0)/v.length : null; }
+function renderAvg(F){
+  const box = $("#avgCard"), m = meanOf(F), list = Object.entries(F).filter(([,f]) => f.avg !== null);
+  if (m === null){ box.innerHTML = `<div class="hd"><b>Schnitt aller Fächer</b></div><div class="empty">Noch keine Noten.</div>`; return; }
+  const under = list.filter(([,f]) => f.avg < 4), best = list.reduce((a,b) => b[1].avg > a[1].avg ? b : a), worst = list.reduce((a,b) => b[1].avg < a[1].avg ? b : a);
+  const tg = list.reduce((a,[n]) => a + tgt(n), 0) / list.length;
+  /* Verlauf: Schnitt aller Fächer nach jeder Note */
+  const gs = EX.filter(e => typeof e.note === "number").sort((a,b) => (a.datum||"9") < (b.datum||"9") ? -1 : 1);
+  const steps = gs.map((e,i) => { const acc = {}; gs.slice(0,i+1).forEach(x => { const a = acc[x.fach] = acc[x.fach] || {S:0,W:0}; a.S += x.note*wOf(x); a.W += wOf(x); });
+    const v = Object.values(acc).map(a => a.S/a.W); return { e, v: v.reduce((p,q) => p+q, 0)/v.length }; });
+  const prev = steps.length > 1 ? steps[steps.length-2].v : null, dlt = prev !== null ? m - prev : null;
+  box.innerHTML = `<div class="ga">
+    <div>
+      <span class="lbl">Schnitt aller Fächer</span>
+      <div class="num ${m < 4 ? "low" : ""}" style="margin-top:12px">${m.toFixed(2)}</div>
+      <div class="sub">${m >= tg ? `<span class="chip ok">über Ziel</span>` : m >= 4 ? `<span class="chip">unter Ziel ${tg.toFixed(2)}</span>` : `<span class="chip bad">unter 4</span>`}
+        ${dlt !== null ? `<span class="chip ${dlt < 0 ? "bad" : ""}">${dlt >= 0 ? "▲ +" : "▼ "}${dlt.toFixed(2)} seit letzter Note</span>` : ""}</div>
+      <div class="tiles4">
+        <div><b>${gs.length}</b><span>Noten</span></div>
+        <div><b class="${under.length ? "low" : ""}">${under.length}</b><span>unter 4</span></div>
+        <div><b>${best[1].avg.toFixed(1)}</b><span>${esc(short(best[0],9))}</span></div>
+        <div><b class="${worst[1].avg < 4 ? "low" : ""}">${worst[1].avg.toFixed(1)}</b><span>${esc(short(worst[0],9))}</span></div>
+      </div>
+    </div>
+    <div class="avgchart"></div>
+  </div>`;
+  const c = box.querySelector(".avgchart"), W = Math.max(260, c.clientWidth || 320), H = 200, L = 22, R = 12, top = 10, bot = 22;
+  const n = steps.length, X = i => n === 1 ? L + (W-L-R)/2 : L + i*(W-L-R)/(n-1), Y = v => top + (H-top-bot)*(6-v)/5;
+  let s = `<rect x="${L}" y="${Y(6)}" width="${W-L-R}" height="${Y(tg)-Y(6)}" rx="6" fill="#efefeb"/>`;
+  [1,2,3,4,5,6].forEach(v => { s += `<line class="gl" x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}"/><text class="m" x="0" y="${Y(v)+4}">${v}</text>`; });
+  s += `<line x1="${L}" x2="${W-R}" y1="${Y(4)}" y2="${Y(4)}" stroke="var(--warn)" stroke-width="1.2" stroke-dasharray="3 3"/>`;
+  if (n > 1){ const pts = steps.map((p,i) => X(i) + "," + Y(p.v)).join(" ");
+    s += `<polygon points="${X(0)},${Y(1)} ${pts} ${X(n-1)},${Y(1)}" fill="var(--ink)" opacity=".05"/><polyline points="${pts}" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`; }
+  steps.forEach((p,i) => { const x = X(i), y = Y(p.v), last = i === n-1;
+    s += `<circle cx="${x}" cy="${y}" r="${last ? 6 : 3.5}" fill="${p.v < 4 ? "var(--warn)" : "var(--ink)"}" stroke="var(--paper)" stroke-width="2"/>`;
+    if (last) s += `<text class="m" x="${x - 10}" y="${y - 12}" text-anchor="end" style="fill:var(--ink);font-size:13px">${p.v.toFixed(2)}</text>`;
+    if (i === 0 || last || n <= 8) s += `<text class="m" x="${x}" y="${H-4}" text-anchor="middle">${p.e.datum ? p.e.datum.slice(8) + "." + p.e.datum.slice(5,7) : "?"}</text>`;
+    s += `<circle cx="${x}" cy="${y}" r="12" fill="transparent" data-tip="${esc("Schnitt " + p.v.toFixed(2) + "\nnach " + p.e.fach + " " + p.e.note.toFixed(1) + (p.e.datum ? " · " + fmt(p.e.datum) : ""))}"/>`; });
+  c.innerHTML = `<div class="lbl" style="margin-bottom:8px">Verlauf nach jeder Note</div><svg class="chart" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">${s}</svg>`;
+}
+
+function drawFach(card, f, t){
+  const box = card.querySelector(".fchart"), W = Math.max(240, box.clientWidth || 280), H = 120, L = 22, R = 10, top = 8, bot = 18;
+  const pts = f.g.map(e => ({e, v:e.note, real:true})).concat(f.req !== null ? f.up.map(e => ({e, v:Math.min(6, Math.max(1, f.req)), real:false})) : []);
+  if (!pts.length){ box.innerHTML = ""; return; }
+  const n = pts.length, X = i => n === 1 ? L + (W-L-R)/2 : L + i*(W-L-R)/(n-1), Y = v => top + (H-top-bot) * (6 - v)/5;
+  let s = `<rect x="${L}" y="${Y(6)}" width="${W-L-R}" height="${Y(t)-Y(6)}" rx="4" fill="#efefeb"/>`;
+  [2,4,6].forEach(v => { s += `<text class="m" x="0" y="${Y(v)+4}">${v}</text>`; });
+  s += `<line x1="${L}" x2="${W-R}" y1="${Y(4)}" y2="${Y(4)}" stroke="var(--warn)" stroke-width="1.2" stroke-dasharray="3 3"/>`;
+  const real = pts.filter(p => p.real), ri = real.length;
+  if (ri > 1) s += `<polyline points="${real.map((p,i) => X(i) + "," + Y(p.v)).join(" ")}" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linejoin="round"/>`;
+  if (ri && n > ri) s += `<polyline points="${pts.slice(ri-1).map((p,i) => X(ri-1+i) + "," + Y(p.v)).join(" ")}" fill="none" stroke="var(--ink3)" stroke-width="1.5" stroke-dasharray="4 4"/>`;
+  pts.forEach((p,i) => { const x = X(i), y = Y(p.v);
+    s += p.real ? `<circle cx="${x}" cy="${y}" r="4.5" fill="${p.v < 4 ? "var(--warn)" : "var(--ink)"}" stroke="var(--paper)" stroke-width="2"/>`
+                : `<circle cx="${x}" cy="${y}" r="4.5" fill="var(--paper)" stroke="var(--ink3)" stroke-width="1.5" stroke-dasharray="2 2"/>`;
+    s += `<text class="m" x="${x}" y="${H-3}" text-anchor="middle">${p.e.datum ? p.e.datum.slice(8) + "." + p.e.datum.slice(5,7) : "?"}</text>`;
+    s += `<circle cx="${x}" cy="${y}" r="12" fill="transparent" data-tip="${esc((p.real ? "Note " + p.v.toFixed(1) : "brauchst " + g1(f.req)) + "\n" + p.e.was + (p.e.datum ? " · " + fmt(p.e.datum) : "") + "\nzählt " + wOf(p.e))}"/>`; });
+  box.innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">${s}</svg>`;
+}
+
+/* Voki-Wörter */
+let vkWriting = false, vkDirty = false;
+document.addEventListener("change", async ev => {
+  const i = ev.target.closest && ev.target.closest("[data-vk]"); if (!i) return;
+  const n = Math.round(+i.value); if (n > 0) VK = { ...VK, [i.dataset.vk]: Math.min(2000, n) }; else { VK = { ...VK }; delete VK[i.dataset.vk]; }
+  try{ localStorage.setItem("pp-vk", JSON.stringify(VK)); }catch{}
+  render(); toast(n > 0 ? n + " Wörter: Plan angepasst" : "Wörterzahl entfernt"); tone(880,.1);
+  if (!vkRef) return; if (vkWriting){ vkDirty = true; return; }
+  vkWriting = true; try{ do { vkDirty = false; await vkRef.set({ ...VK }); } while (vkDirty); }catch{ toast("Nicht gespeichert"); } vkWriting = false;
+});
+
+/* Tooltip */
+const tip = $("#tip");
+function showTip(ev){ const t = ev.target.closest && ev.target.closest("[data-tip]");
+  if (!t){ tip.classList.remove("show"); return; }
+  tip.textContent = t.dataset.tip; tip.classList.add("show");
+  const x = Math.min(innerWidth - 130, Math.max(130, ev.clientX)); tip.style.left = x + "px"; tip.style.top = ev.clientY + "px"; }
+document.addEventListener("pointermove", showTip);
+document.addEventListener("pointerdown", showTip);
+addEventListener("scroll", () => tip.classList.remove("show"), {passive:true});
+let rzT; addEventListener("resize", () => { clearTimeout(rzT); rzT = setTimeout(render, 150); });
+
+/* Ziel ändern */
+let tgWriting = false, tgDirty = false;
+document.addEventListener("click", async ev => {
+  const b = ev.target.closest(".tgt button"); if (!b) return;
+  const f = b.closest(".card").dataset.fach, v = Math.min(6, Math.max(1, tgt(f) + (b.dataset.t === "+" ? .25 : -.25)));
+  TG = { ...TG, [f]: v }; try{ localStorage.setItem("pp-tg", JSON.stringify(TG)); }catch{}
+  render(); tone(b.dataset.t === "+" ? 880 : 660, .08);
+  if (!tgRef) return;
+  if (tgWriting){ tgDirty = true; return; }
+  tgWriting = true;
+  try{ do { tgDirty = false; await tgRef.set({ ...TG }); } while (tgDirty); }catch{ toast("Ziel nicht gespeichert"); }
+  tgWriting = false;
+});
+try{ TG = JSON.parse(localStorage.getItem("pp-tg")) || {}; }catch{}
+
+function renderHero(e){
+  const h = $("#hero");
+  if (!e){ h.innerHTML = `<span class="lbl">Nächste Prüfung</span><h1>Nichts in Sicht.</h1><p class="verdict"><span>Geniess es. Kurz.</span></p>`; return; }
+  const s = stats(e), n = dDiff(e.datum), C = 2*Math.PI*52;
+  const bad = s.behind > 0;
+  const verdict = !s.total ? `<b>Noch kein Lernplan.</b><span>Sag Claude, was drankommt.</span>`
+    : s.done === s.total ? `<b>Plan durch.</b><span>Jetzt nur noch wiederholen und schlafen.</span>`
+    : bad ? `<b>${s.behind} ${s.behind === 1 ? "Einheit" : "Einheiten"} im Rückstand.</b><span>Genau so fängt Spicken an. Heute aufholen.</span>`
+    : `<b>Im Plan.</b><span>${s.total - s.done} Einheiten offen · noch ${hm(s.min - s.minDone)}</span>`;
+  h.innerHTML = `
+    <span class="lbl">Nächste Prüfung · ${fmt(e.datum)}${e.zeit ? " · " + esc(e.zeit) : ""}</span>
+    <div class="when">${n <= 0 ? "heute" : n}<small>${n === 1 ? "Tag" : n > 1 ? "Tage" : ""}</small></div>
+    <h1>${esc(e.fach)} <span>${esc(e.was)}</span></h1>
+    <div class="ringrow">
+      <div class="ring"><svg viewBox="0 0 120 120"><circle class="tr" cx="60" cy="60" r="52"/>
+        <circle class="sl" cx="60" cy="60" r="58" stroke-dashoffset="0" style="stroke-dasharray:${(C*58/52*s.soll).toFixed(1)} 999"/>
+        <circle class="pr" cx="60" cy="60" r="52" stroke-dasharray="${C}" stroke-dashoffset="${C*(1-s.pct)}"/></svg>
+        <div class="c"><b>${Math.round(s.pct*100)}%</b><span>bereit</span></div></div>
+      <div class="verdict ${bad ? "bad" : ""}">${verdict}</div>
+    </div>`;
+}
+
+function sessRow(e,i,s,{late=false,showDate=false}={}){
+  const k = key(e,i), d = !!D[k];
+  return `<button class="row ${d?"d":""} ${late&&!d?"late":""}" data-k="${esc(k)}">
+    <span class="ck"></span>${showDate ? `<span class="sd mono">${fmt(s.d)}</span>` : ""}
+    <span class="tx">${showDate ? "" : `<em>${esc(e.fach)} · ${esc(e.was)}</em>`}${esc(s.t)}</span>
+    <span class="mn mono">${late&&!d ? fmt(s.d).slice(3) : (s.min||"") + (s.min ? "′" : "")}</span></button>`;
+}
+
+function renderToday(up){
+  const T = today(), td = [], late = [];
+  up.forEach(e => sess(e).forEach((s,i) => { if (s.d === T) td.push([e,i,s]); else if (s.d < T && !D[key(e,i)]) late.push([e,i,s]); }));
+  const tot = td.reduce((a,[,,s]) => a + (s.min||0), 0), left = td.reduce((a,[e,i,s]) => a + (D[key(e,i)] ? 0 : s.min||0), 0);
+  $("#todayMin").textContent = td.length ? hm(tot) : "";
+  $("#todayList").innerHTML = td.length ? td.map(([e,i,s]) => sessRow(e,i,s)).join("") : `<div class="empty">Heute nichts geplant. Freier Tag oder Vorsprung holen.</div>`;
+  $("#todaySum").textContent = td.length ? (left ? "Noch " + hm(left) + " offen." : "Alles erledigt für heute. Stark.") : "";
+  $("#lateSec").hidden = !late.length;
+  $("#lateN").textContent = late.length ? late.length + " offen" : "";
+  $("#lateList").innerHTML = late.map(([e,i,s]) => sessRow(e,i,s,{late:true})).join("");
+}
+
+function renderExams(up){
+  $("#exList").innerHTML = up.length ? up.map(e => {
+    const s = stats(e), n = e.datum ? dDiff(e.datum) : null, T = today();
+    const segs = sess(e).map((x,i) => `<i class="${D[key(e,i)] ? "d" : x.d < T ? "l" : ""}"></i>`).join("");
+    const startTxt = !s.start ? "Plan fehlt" : s.start > T ? "Start " + fmt(s.start) : s.done ? s.done + "/" + s.total + " erledigt" : "läuft seit " + fmt(s.start);
+    return `<div class="ex ${open.has(e.id) ? "open" : ""}" data-id="${esc(e.id)}">
+      <button class="exh" aria-expanded="${open.has(e.id)}">
+        <span class="dt mono">${e.datum ? fmt(e.datum) : esc(e.ca || "offen")}</span>
+        <span class="nm">${esc(e.fach)} <span>${esc(e.was)}</span></span>
+        <span class="in mono ${n !== null && n <= 3 ? "soon" : ""}">${n === null ? (e.ca ? "später" : "–") : inTxt(n)}</span>
+        <span class="meta"><span>${startTxt}</span>${s.min ? `<span>${hm(s.min)} total</span>` : ""}<span>Gewicht ${e.gewicht ? esc(e.gewicht) : "?"}</span>${s.behind > 0 ? `<span class="bad">${s.behind} im Rückstand</span>` : ""}</span>
+        ${segs ? `<span class="segs">${segs}</span>` : ""}
+      </button>
+      <div class="exb"><div><div class="inner">
+        ${e.info ? `<p class="info">${esc(e.info)}</p>` : ""}
+        ${e.voki ? `<label class="vk"><span>Wie viele Wörter?</span><input type="number" inputmode="numeric" min="1" max="2000" placeholder="z.B. 120" data-vk="${esc(e.id)}" value="${VK[e.id] || ""}"><span class="note">${VK[e.id] ? "Plan ist darauf abgestimmt" : "dann passt sich der Plan an"}</span></label>` : ""}
+        ${e.deadline ? `<p class="info"><b style="color:var(--ink);font-weight:500">Deadline:</b> ${esc(e.deadline)}</p>` : ""}
+        <div class="rows">${sess(e).map((x,i) => sessRow(e,i,x,{showDate:true,late:x.d<T})).join("") || `<div class="empty">Noch keine Lerneinheiten.</div>`}</div>
+      </div></div></div>
+    </div>`; }).join("") : `<div class="empty">Keine Prüfungen eingetragen.</div>`;
+}
+
+function renderLog(){
+  const by = {}, idx = {};
+  EX.forEach(e => sess(e).forEach((s,i) => idx[key(e,i)] = [e,s]));
+  Object.entries(D).forEach(([k,t]) => { if (!idx[k] || !t) return; const d = String(t).slice(0,10); (by[d] = by[d] || []).push(idx[k]); });
+  const days = Object.keys(by).sort().reverse();
+  $("#log").innerHTML = days.length ? days.slice(0,21).map(d => `<div class="day"><span class="dt mono">${fmt(d)}</span><ul>${by[d].map(([e,s]) => `<li>${esc(s.t)} <span>· ${esc(e.fach)}${s.min ? " · " + s.min + "′" : ""}</span></li>`).join("")}</ul></div>`).join("")
+    : `<div class="empty">Noch leer. Jede abgehakte Einheit landet hier mit Datum.</div>`;
+}
+
+function renderGrades(){
+  const past = sorted().filter(e => !isUp(e)).reverse();
+  const graded = past.filter(e => typeof e.note === "number");
+  /* gleicher Wert wie "Schnitt aller Fächer" unten (Mittel der Fachschnitte) */
+  const avg = meanOf(fachStats()), below = graded.filter(e => e.note < 4).length;
+  $("#grades").innerHTML = (graded.length ? `<div class="avg"><div><b>${avg.toFixed(2)}</b><span class="lbl">Schnitt Fächer</span></div><div><b>${below}</b><span class="lbl">unter 4</span></div></div>` : "") +
+    (past.length ? past.map(e => `<div class="gr"><span class="dt mono">${e.datum ? fmt(e.datum) : "offen"}</span>
+      <span>${esc(e.fach)} <small>${esc(e.was)}${e.gewicht ? " · " + esc(e.gewicht) : ""}</small></span>
+      <span class="n ${typeof e.note === "number" && e.note < 4 ? "low" : ""}">${typeof e.note === "number" ? e.note.toFixed(1) : e.status === "eingezogen" ? `<small>eingezogen</small>` : `<small>Note offen</small>`}</span></div>`).join("")
+    : `<div class="empty">Noch nichts geschrieben.</div>`);
+}
+
+/* interaction */
+document.addEventListener("click", ev => {
+  const r = ev.target.closest(".row[data-k]");
+  if (r){ const k = r.dataset.k, was = !!D[k];
+    if (was) delete D[k]; else { const n = new Date(); D[k] = iso(n) + " " + pad(n.getHours()) + ":" + pad(n.getMinutes()); }
+    persist(); render();
+    const nr = document.querySelector(`.row[data-k="${CSS.escape(k)}"]`); if (nr){ nr.classList.add("pop"); }
+    if (!was){ const b = r.getBoundingClientRect(); burst(b.left + 14, b.top + b.height/2, 34); tone(659,.25); tone(988,.3,.04,.07);
+      const eid = k.slice(0, k.lastIndexOf("@")), e = EX.find(x => x.id === eid); if (e){ const s = stats(e); if (s.done === s.total) toast(e.fach + ": Plan komplett durch."); else if (s.behind === 0 && s.due) toast("Im Plan. Weiter so."); } }
+    else tone(330,.08);
+    return; }
+  const h = ev.target.closest(".exh");
+  if (h){ const id = h.parentElement.dataset.id; open.has(id) ? open.delete(id) : open.add(id); h.parentElement.classList.toggle("open"); h.setAttribute("aria-expanded", open.has(id));
+    try{ localStorage.setItem("pp-open", JSON.stringify([...open])); }catch{} }
+});
+
+/* Abhaken: lokal auf diesem Gerät. SEED = was Claude in data.json als erledigt führt,
+   OV = deine Änderungen hier (Zeitstempel = erledigt, 0 = wieder offen). */
+let SEED = {}, OV = { ...D };
+function persist(){
+  OV = {};
+  new Set([...Object.keys(SEED), ...Object.keys(D)]).forEach(k => {
+    if (D[k] && D[k] !== SEED[k]) OV[k] = D[k]; else if (!D[k] && SEED[k]) OV[k] = 0; });
+  try{ localStorage.setItem("pp-done", JSON.stringify(OV)); }catch{}
+}
+
+/* Installations-Hinweis */
+(() => {
+  const box = $("#inst"); let hide = false;
+  try{ hide = localStorage.getItem("pp-inst") === "x"; }catch{}
+  const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+  if (hide || standalone) return;
+  const S = {
+    ios: ["Diese Seite in <b>Safari</b> öffnen.","Unten auf <b>Teilen</b> tippen (Quadrat mit Pfeil).","<b>Zum Home-Bildschirm</b> wählen, Name „Prüfungsplan“, <b>Hinzufügen</b>."],
+    and: ["Diese Seite in <b>Chrome</b> öffnen.","Oben rechts auf <b>⋮</b> tippen.","<b>Zum Startbildschirm hinzufügen</b> bzw. <b>App installieren</b> wählen."],
+    pc: ["In <b>Chrome</b> oder <b>Edge</b> öffnen.","In der Adressleiste auf das <b>Installieren</b>-Symbol klicken (oder ⋮ → <b>Streamen, speichern, teilen</b> → <b>Seite als App installieren</b>).","Danach startet der Plan wie eine eigene App."] };
+  const ua = navigator.userAgent, def = /iPhone|iPad|iPod/.test(ua) ? "ios" : /Android/.test(ua) ? "and" : "pc";
+  const show = os => { box.querySelectorAll(".tabs button").forEach(b => b.classList.toggle("on", b.dataset.os === os)); $("#instSteps").innerHTML = S[os].map(s => `<li>${s}</li>`).join(""); };
+  box.querySelectorAll(".tabs button").forEach(b => b.addEventListener("click", () => show(b.dataset.os)));
+  $("#instX").addEventListener("click", () => { box.hidden = true; try{ localStorage.setItem("pp-inst","x"); }catch{} });
+  show(def); box.hidden = false;
+})();
+
+/* boot: Daten kommen aus data.json (wird von Claude gepflegt) */
+let lastRaw = "", lastLoad = 0;
+function applyData(j){
+  EX = Array.isArray(j.exams) ? j.exams.filter(e => e && e.id && e.fach) : [];
+  SEED = j.done || {};
+  let tgl = {}, vkl = {}; try{ tgl = JSON.parse(localStorage.getItem("pp-tg")) || {}; vkl = JSON.parse(localStorage.getItem("pp-vk")) || {}; }catch{}
+  TG = { ...(j.targets || {}), ...tgl }; VK = { ...(j.voki || {}), ...vkl };
+  D = {}; Object.entries({ ...SEED, ...OV }).forEach(([k,v]) => { if (v) D[k] = v; });
+  migrate(); loaded = true;
+}
+async function load(){
+  if (Date.now() - lastLoad < 4000) return; lastLoad = Date.now();
+  try{
+    const r = await fetch("data.json?t=" + Date.now(), { cache: "no-store" });
+    if (!r.ok) throw new Error(r.status);
+    const raw = await r.text(), j = JSON.parse(raw);
+    if (raw !== lastRaw){ const first = !lastRaw; lastRaw = raw; try{ localStorage.setItem("pp-data", raw); }catch{}
+      applyData(j);
+      const ae = document.activeElement; if (!ae || !ae.dataset || !ae.dataset.vk) render();
+      if (!first) toast("Plan aktualisiert"); }
+    sync("on", "Aktuell");
+  }catch{
+    if (!lastRaw){ let c = null; try{ c = localStorage.getItem("pp-data"); }catch{}
+      if (c){ lastRaw = c; try{ applyData(JSON.parse(c)); }catch{} }
+      loaded = true; render();
+      if (!c) $("#exList").innerHTML = `<div class="empty">Keine Daten. Einmal mit Internet öffnen.</div>`; }
+    sync("err", "Offline");
+  }
+}
+render(); load();
+setInterval(() => { const t = today(); if (t !== window.__d){ window.__d = t; render(); } if (document.visibilityState === "visible") load(); }, 60000); window.__d = today();
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible"){ render(); load(); } });
+addEventListener("online", load);
+if ("serviceWorker" in navigator) addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+</script>
+</body></html>

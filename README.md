@@ -156,3 +156,11 @@ Eine Aufgabe zur Zeit, Abfahrts-Countdown, ablaufender Kreis, gedrückt halten z
 **Installieren:** In **Safari** `https://jarvis-lab123.github.io/Game/tagwerk/` öffnen → Teilen → „Zum Home-Bildschirm“.
 
 Neuer Tag: nur das `DAY`-Objekt oben im Script von `tagwerk/index.html` ändern.
+
+## Prüfungsplan
+
+Kommende Prüfungen, Lernplan für heute, Rückstand, Noten pro Fach mit Ziel und „was brauche ich noch“, Zeitplan und Lernlast als Diagramme.
+
+**Installieren:** In **Safari** `https://jarvis-lab123.github.io/Game/pruefungsplan/` öffnen → Teilen → „Zum Home-Bildschirm“ (Android: Chrome → ⋮ → „App installieren“).
+
+**Daten:** alles steht in `pruefungsplan/data.json` (Prüfungen, Noten, Lernpläne, Ziele). Die App lädt die Datei beim Öffnen und jede Minute neu, Änderungen kommen also ohne App-Update auf allen Geräten an. Abhaken wird pro Gerät gespeichert. Achtung: das Repo ist öffentlich, die Datei damit auch.

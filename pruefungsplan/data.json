@@ -1,0 +1,548 @@
+{
+ "_hinweis": "Wird von Claude gepflegt. Pruefungen, Noten, Lernplaene. done = erledigte Einheiten (id@datum).",
+ "stand": "2026-11-03",
+ "targets": {
+  "Deutsch": 5,
+  "Geschichte": 5
+ },
+ "voki": {},
+ "done": {
+  "chemie-nachhol@2026-11-03": "2026-11-03 09:55",
+  "chemie-nachhol@2026-11-04": "2026-11-03 09:56"
+ },
+ "exams": [
+  {
+   "id": "g-engl-voki-1",
+   "datum": "2026-09-09",
+   "fach": "Englisch",
+   "gewicht": "0.25",
+   "note": 4,
+   "status": "note",
+   "w": 0.25,
+   "was": "Vokabeln"
+  },
+  {
+   "id": "g-mathe-1",
+   "datum": "2026-09-11",
+   "fach": "Mathe",
+   "gewicht": "1",
+   "note": 3.6,
+   "status": "note",
+   "w": 1,
+   "was": "Test 1"
+  },
+  {
+   "id": "g-deutsch-1",
+   "datum": "2026-09-16",
+   "fach": "Deutsch",
+   "gewicht": "1",
+   "note": 5.1,
+   "status": "note",
+   "w": 1,
+   "was": "Test"
+  },
+  {
+   "id": "g-swr-1",
+   "datum": "2026-09-17",
+   "fach": "Wirtschaft & Recht",
+   "gewicht": "1",
+   "note": 3.7,
+   "status": "note",
+   "w": 1,
+   "was": "Test"
+  },
+  {
+   "id": "g-engl-gramm",
+   "datum": "2026-09-23",
+   "fach": "Englisch",
+   "gewicht": "1",
+   "note": 4.2,
+   "status": "note",
+   "w": 1,
+   "was": "Grammatik"
+  },
+  {
+   "id": "geo-demografie",
+   "datum": "2026-10-23",
+   "fach": "Geografie",
+   "gewicht": "1",
+   "status": "geschrieben",
+   "w": 1,
+   "was": "Demografie"
+  },
+  {
+   "id": "g-geschichte",
+   "datum": "2026-10-26",
+   "fach": "Geschichte",
+   "gewicht": "1",
+   "note": 4.9,
+   "status": "note",
+   "w": 1,
+   "was": "Industrialisierung + Soziale Frage"
+  },
+  {
+   "id": "informatik",
+   "datum": "2026-11-02",
+   "fach": "Informatik",
+   "gewicht": "1",
+   "status": "geschrieben",
+   "w": 1,
+   "was": "Kryptografie"
+  },
+  {
+   "id": "mathe-2",
+   "datum": "2026-11-10",
+   "fach": "Mathe",
+   "gewicht": "1",
+   "info": "Elementare Funktionen, Transformationen, D/W, Asymptoten, Umkehrbarkeit, Symmetrie, Polstellen, Verknüpfungen. Lernshow: Funktionen · Mathe Test 2.",
+   "sessions": [
+    {
+     "d": "2026-11-03",
+     "min": 45,
+     "t": "Elementare Funktionen + Definitions-/Wertebereich"
+    },
+    {
+     "d": "2026-11-04",
+     "min": 45,
+     "t": "Transformationen: verschieben, strecken, spiegeln"
+    },
+    {
+     "d": "2026-11-05",
+     "min": 45,
+     "t": "Asymptoten und Polstellen"
+    },
+    {
+     "d": "2026-11-06",
+     "min": 40,
+     "t": "Symmetrie und Umkehrbarkeit"
+    },
+    {
+     "d": "2026-11-07",
+     "min": 40,
+     "t": "Verknüpfungen von Funktionen"
+    },
+    {
+     "d": "2026-11-08",
+     "min": 45,
+     "t": "Probetest unter Zeitdruck"
+    },
+    {
+     "d": "2026-11-09",
+     "min": 30,
+     "t": "Fehler korrigieren + Formelblatt aus dem Kopf"
+    }
+   ],
+   "status": "offen",
+   "w": 1,
+   "was": "Test 2 · Funktionen",
+   "zeit": "8:00–8:45"
+  },
+  {
+   "id": "deutsch-vortrag",
+   "datum": "2026-11-11",
+   "deadline": "Mo 09.11., 18:xx Uhr: Präsentation abgeben",
+   "fach": "Deutsch",
+   "gewicht": "1",
+   "sessions": [
+    {
+     "d": "2026-11-04",
+     "min": 45,
+     "t": "Thema und Gliederung festlegen, Quellen sammeln"
+    },
+    {
+     "d": "2026-11-05",
+     "min": 45,
+     "t": "Inhalt in Stichworten ausformulieren"
+    },
+    {
+     "d": "2026-11-06",
+     "min": 30,
+     "t": "Folien Teil 1"
+    },
+    {
+     "d": "2026-11-07",
+     "min": 45,
+     "t": "Folien fertig + Stichwortkarten"
+    },
+    {
+     "d": "2026-11-08",
+     "min": 20,
+     "t": "Probelauf laut mit Stoppuhr"
+    },
+    {
+     "d": "2026-11-09",
+     "min": 15,
+     "t": "Letzter Check und Präsentation abgeben"
+    },
+    {
+     "d": "2026-11-10",
+     "min": 20,
+     "t": "Generalprobe laut"
+    }
+   ],
+   "status": "offen",
+   "w": 1,
+   "was": "Vortrag"
+  },
+  {
+   "id": "physik-1",
+   "datum": "2026-11-11",
+   "fach": "Physik",
+   "gewicht": "1",
+   "info": "Stoffumfang noch klären.",
+   "sessions": [
+    {
+     "d": "2026-11-05",
+     "min": 15,
+     "t": "Stoff klären: Lernziele und Heft checken"
+    },
+    {
+     "d": "2026-11-06",
+     "min": 40,
+     "t": "Theorie Teil 1 verstehen"
+    },
+    {
+     "d": "2026-11-07",
+     "min": 40,
+     "t": "Theorie Teil 2 verstehen"
+    },
+    {
+     "d": "2026-11-08",
+     "min": 40,
+     "t": "Aufgaben rechnen ohne nachzuschauen"
+    },
+    {
+     "d": "2026-11-09",
+     "min": 30,
+     "t": "Formeln auswendig + Fehler korrigieren"
+    },
+    {
+     "d": "2026-11-10",
+     "min": 40,
+     "t": "Probetest"
+    }
+   ],
+   "status": "offen",
+   "w": 1,
+   "was": "Test 1"
+  },
+  {
+   "id": "bio-hk1",
+   "datum": "2026-11-16",
+   "fach": "Biologie",
+   "gewicht": "1",
+   "info": "Stoffumfang noch klären.",
+   "sessions": [
+    {
+     "d": "2026-11-11",
+     "min": 15,
+     "t": "Stoff klären + Unterlagen sortieren"
+    },
+    {
+     "d": "2026-11-12",
+     "min": 45,
+     "t": "Theorie Teil 1"
+    },
+    {
+     "d": "2026-11-13",
+     "min": 45,
+     "t": "Theorie Teil 2"
+    },
+    {
+     "d": "2026-11-14",
+     "min": 40,
+     "t": "Begriffe und Abbildungen lernen"
+    },
+    {
+     "d": "2026-11-15",
+     "min": 45,
+     "t": "Probetest + Lücken schliessen"
+    }
+   ],
+   "status": "offen",
+   "w": 1,
+   "was": "Prüfung HK1"
+  },
+  {
+   "id": "englisch-voki",
+   "datum": "2026-11-18",
+   "fach": "Englisch",
+   "gewicht": "0.25",
+   "sessions": [
+    {
+     "d": "2026-11-12",
+     "min": 30,
+     "t": "Vokabeln Block 1"
+    },
+    {
+     "d": "2026-11-13",
+     "min": 30,
+     "t": "Block 2 + Block 1 wiederholen"
+    },
+    {
+     "d": "2026-11-14",
+     "min": 30,
+     "t": "Block 3 + wiederholen"
+    },
+    {
+     "d": "2026-11-15",
+     "min": 30,
+     "t": "Selbsttest alle, Fehlerliste"
+    },
+    {
+     "d": "2026-11-16",
+     "min": 30,
+     "t": "Fehlerliste lernen"
+    },
+    {
+     "d": "2026-11-17",
+     "min": 30,
+     "t": "Nur noch die Fehler"
+    }
+   ],
+   "status": "offen",
+   "voki": true,
+   "w": 0.25,
+   "was": "Vokabeln"
+  },
+  {
+   "id": "franz-voki",
+   "datum": "2026-11-26",
+   "fach": "Französisch",
+   "gewicht": "0.25",
+   "info": "Schwächstes Fach: täglich kurz statt einmal lang. Liste und Umfang beim Lehrer holen.",
+   "sessions": [
+    {
+     "d": "2026-11-14",
+     "min": 20,
+     "t": "Liste holen + Block 1 lernen"
+    },
+    {
+     "d": "2026-11-17",
+     "min": 20,
+     "t": "Block 2 neu + Block 1 wiederholen"
+    },
+    {
+     "d": "2026-11-19",
+     "min": 20,
+     "t": "Block 3 neu + wiederholen"
+    },
+    {
+     "d": "2026-11-21",
+     "min": 20,
+     "t": "Block 4 neu + wiederholen"
+    },
+    {
+     "d": "2026-11-22",
+     "min": 20,
+     "t": "Selbsttest alle, Fehlerliste machen"
+    },
+    {
+     "d": "2026-11-23",
+     "min": 20,
+     "t": "Fehlerliste lernen"
+    },
+    {
+     "d": "2026-11-24",
+     "min": 20,
+     "t": "Selbsttest komplett"
+    },
+    {
+     "d": "2026-11-25",
+     "min": 15,
+     "t": "Nur noch die Fehler"
+    }
+   ],
+   "status": "offen",
+   "voki": true,
+   "w": 0.25,
+   "was": "Vokabeln",
+   "zeit": "13:25–14:10"
+  },
+  {
+   "id": "englisch-animal-farm",
+   "datum": "2026-12-02",
+   "fach": "Englisch",
+   "gewicht": "1",
+   "info": "Buch muss bis dahin gelesen sein.",
+   "sessions": [
+    {
+     "d": "2026-11-18",
+     "min": 40,
+     "t": "Kapitel 1–2 lesen"
+    },
+    {
+     "d": "2026-11-20",
+     "min": 40,
+     "t": "Kapitel 3–4 lesen"
+    },
+    {
+     "d": "2026-11-22",
+     "min": 40,
+     "t": "Kapitel 5–6 lesen"
+    },
+    {
+     "d": "2026-11-24",
+     "min": 40,
+     "t": "Kapitel 7–8 lesen"
+    },
+    {
+     "d": "2026-11-27",
+     "min": 40,
+     "t": "Kapitel 9–10 lesen"
+    },
+    {
+     "d": "2026-11-29",
+     "min": 40,
+     "t": "Figuren und Symbolik: wer steht für wen"
+    },
+    {
+     "d": "2026-12-01",
+     "min": 40,
+     "t": "Probetest: Fragen zu Inhalt und Themen"
+    }
+   ],
+   "status": "offen",
+   "w": 1,
+   "was": "Buchtest Animal Farm"
+  },
+  {
+   "id": "franz-muendlich",
+   "datum": "2026-12-03",
+   "fach": "Französisch",
+   "gewicht": "1",
+   "info": "Format und Thema noch klären.",
+   "sessions": [
+    {
+     "d": "2026-11-21",
+     "min": 15,
+     "t": "Format und Thema klären"
+    },
+    {
+     "d": "2026-11-23",
+     "min": 30,
+     "t": "Stichworte und Kernsätze schreiben"
+    },
+    {
+     "d": "2026-11-26",
+     "min": 20,
+     "t": "Kernsätze laut üben"
+    },
+    {
+     "d": "2026-11-28",
+     "min": 20,
+     "t": "Frei sprechen ohne Zettel"
+    },
+    {
+     "d": "2026-11-30",
+     "min": 25,
+     "t": "Typische Fragen vorbereiten"
+    },
+    {
+     "d": "2026-12-01",
+     "min": 25,
+     "t": "Probe laut: aufnehmen und anhören"
+    },
+    {
+     "d": "2026-12-02",
+     "min": 20,
+     "t": "Generalprobe"
+    }
+   ],
+   "status": "offen",
+   "w": 1,
+   "was": "Mündliche Prüfung",
+   "zeit": "13:25–14:10"
+  },
+  {
+   "id": "franz-nachhol",
+   "datum": "2026-12-05",
+   "fach": "Französisch",
+   "gewicht": "1",
+   "info": "Stoff wie Test vom 29.10. (Pronomen und Fantôme). Lernshows dazu gibt es schon.",
+   "sessions": [
+    {
+     "d": "2026-11-27",
+     "min": 40,
+     "t": "Grammatik: Pronomen wiederholen"
+    },
+    {
+     "d": "2026-11-28",
+     "min": 30,
+     "t": "Übungen Pronomen"
+    },
+    {
+     "d": "2026-11-29",
+     "min": 30,
+     "t": "Leseverständnis üben (Fantôme)"
+    },
+    {
+     "d": "2026-11-30",
+     "min": 30,
+     "t": "Grammatik: Fehlerstellen"
+    },
+    {
+     "d": "2026-12-02",
+     "min": 30,
+     "t": "Leseverständnis Text 2"
+    },
+    {
+     "d": "2026-12-03",
+     "min": 40,
+     "t": "Probetest"
+    },
+    {
+     "d": "2026-12-04",
+     "min": 30,
+     "t": "Fehler + kurze Repetition"
+    }
+   ],
+   "status": "offen",
+   "w": 1,
+   "was": "Nachholprüfung Grammatik + Leseverständnis"
+  },
+  {
+   "id": "chemie-nachhol",
+   "ca": "Juli 27",
+   "datum": null,
+   "fach": "Chemie",
+   "gewicht": "1",
+   "info": "Test vom 03.11. eingezogen. Nachholen voraussichtlich im Juli 2027, genauer Termin offen.",
+   "sessions": [
+    {
+     "d": "2026-11-03",
+     "min": 5,
+     "t": "Mit Lehrer klären: Nachholtermin und Konsequenzen"
+    },
+    {
+     "d": "2026-11-04",
+     "min": 30,
+     "t": "Zusammenfassung schreiben, solange der Stoff frisch ist"
+    },
+    {
+     "d": "2027-06-14",
+     "min": 45,
+     "t": "Zusammenfassung wiederholen"
+    },
+    {
+     "d": "2027-06-21",
+     "min": 45,
+     "t": "Aufgaben rechnen + Probetest"
+    }
+   ],
+   "status": "offen",
+   "w": 1,
+   "was": "Nachholtest"
+  },
+  {
+   "id": "g-franz-voki-1",
+   "datum": null,
+   "fach": "Französisch",
+   "gewicht": "0.25",
+   "note": 2,
+   "status": "note",
+   "w": 0.25,
+   "was": "Vokabeln (Nachholprüfung)"
+  }
+ ]
+}
