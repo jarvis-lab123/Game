@@ -201,18 +201,6 @@ button:focus-visible{outline:2px solid var(--ink);outline-offset:3px;border-radi
 @keyframes sk{50%{opacity:.4}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
-/* App-Installation */
-.inst{background:var(--paper);border-radius:20px;padding:16px 18px;margin:0 0 28px;display:flex;flex-direction:column;gap:10px;font-size:14px;line-height:1.45}
-.inst .hd{display:flex;justify-content:space-between;align-items:center;gap:12px}
-.inst .hd b{font-size:16px;font-weight:500;letter-spacing:-.01em}
-.inst .x{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;color:var(--ink2);font-size:18px;text-align:center}
-.inst ol{margin:0;padding-left:20px;color:var(--ink2)}
-.inst ol b{color:var(--ink);font-weight:500}
-.inst .tabs{display:flex;gap:6px;flex-wrap:wrap}
-.inst .tabs button{font-size:12px;letter-spacing:.06em;text-transform:uppercase;font-weight:500;border-radius:999px;padding:5px 11px;background:var(--bg);color:var(--ink2)}
-.inst .tabs button.on{background:var(--ink);color:#fff}
-.inst p{margin:0;color:var(--ink2);font-size:13px}
-
 /* Eintragen */
 .addbtn{font-size:12px;letter-spacing:.09em;text-transform:uppercase;font-weight:500;color:var(--ink)}
 .addf{display:grid;grid-template-columns:1fr 1fr;gap:8px;background:var(--paper);border-radius:18px;padding:14px;margin-bottom:6px}
@@ -232,12 +220,6 @@ button:focus-visible{outline:2px solid var(--ink);outline-offset:3px;border-radi
 <canvas id="fx"></canvas>
 <div class="app">
   <div class="bar"><span class="lbl" id="today"></span><span class="lbl sync" id="sync"><i></i><span>Lade</span></span></div>
-  <div class="inst" id="inst" hidden>
-    <div class="hd"><b>Als App aufs Handy</b><button class="x" id="instX" aria-label="Ausblenden">×</button></div>
-    <div class="tabs"><button data-os="ios">iPhone</button><button data-os="and">Android</button><button data-os="pc">PC / Mac</button></div>
-    <ol id="instSteps"></ol>
-    <p>Die App ist immer diese Seite: Prüfungen, Noten und Lernpläne trägt Claude ein, sobald du ihm schreibst. Sie kommen nach etwa einer Minute auf allen Geräten an. Abhaken bleibt auf dem Gerät, auf dem du es machst.</p>
-  </div>
   <div class="grid">
     <div class="col l">
       <section class="hero" id="hero"><div class="skel" style="width:60%"></div><div class="skel"></div></section>
@@ -705,22 +687,7 @@ function persist(){
   try{ localStorage.setItem("pp-done", JSON.stringify(OV)); }catch{}
 }
 
-/* Installations-Hinweis */
-(() => {
-  const box = $("#inst"); let hide = false;
-  try{ hide = localStorage.getItem("pp-inst") === "x"; }catch{}
-  const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
-  if (hide || standalone) return;
-  const S = {
-    ios: ["Diese Seite in <b>Safari</b> öffnen.","Unten auf <b>Teilen</b> tippen (Quadrat mit Pfeil).","<b>Zum Home-Bildschirm</b> wählen, Name „Prüfungsplan“, <b>Hinzufügen</b>."],
-    and: ["Diese Seite in <b>Chrome</b> öffnen.","Oben rechts auf <b>⋮</b> tippen.","<b>Zum Startbildschirm hinzufügen</b> bzw. <b>App installieren</b> wählen."],
-    pc: ["In <b>Chrome</b> oder <b>Edge</b> öffnen.","In der Adressleiste auf das <b>Installieren</b>-Symbol klicken (oder ⋮ → <b>Streamen, speichern, teilen</b> → <b>Seite als App installieren</b>).","Danach startet der Plan wie eine eigene App."] };
-  const ua = navigator.userAgent, def = /iPhone|iPad|iPod/.test(ua) ? "ios" : /Android/.test(ua) ? "and" : "pc";
-  const show = os => { box.querySelectorAll(".tabs button").forEach(b => b.classList.toggle("on", b.dataset.os === os)); $("#instSteps").innerHTML = S[os].map(s => `<li>${s}</li>`).join(""); };
-  box.querySelectorAll(".tabs button").forEach(b => b.addEventListener("click", () => show(b.dataset.os)));
-  $("#instX").addEventListener("click", () => { box.hidden = true; try{ localStorage.setItem("pp-inst","x"); }catch{} });
-  show(def); box.hidden = false;
-})();
+
 
 /* boot: Daten kommen aus data.json (wird von Claude gepflegt) */
 let lastRaw = "", lastLoad = 0;
