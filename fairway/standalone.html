@@ -526,6 +526,7 @@ const Snd = {
   cheer() { if (!this.ac || save.muted) return; this.noise(1.6, .22, 900, 1400); for (let i = 0; i < 14; i++) setTimeout(() => this.noise(.05, .18, 1800 + Math.random() * 1500), 80 + Math.random() * 1200); },
   amb: null,
   ambSet(cfg) {
+    return;
     if (!this.ac || save.muted) { this.ambStop(); return; }
     if (!this.amb) {
       const ac = this.ac, len = ac.sampleRate * 3, buf = ac.createBuffer(1, len, ac.sampleRate), d = buf.getChannelData(0);
@@ -676,7 +677,6 @@ const ACH = [
   { id: 'lvl10', ic: '⭐', n: 'Aufsteiger', d: 'Erreiche Level 10', r: 1000 },
   { id: 'million', ic: '💰', n: 'Millionär', d: 'Verdiene 1.000.000 $ Preisgeld', r: 25000 },
   { id: 'scratch', ic: '🎖️', n: 'Scratch-Golfer', d: 'Erreiche Handicap 0 oder besser', r: 5000 },
-  { id: 'animals', ic: '🦌', n: 'Tierfreund', d: 'Erschrecke 25 Tiere mit deinem Ball', r: 300 },
 ];
 const BALLS = [
   { id: 'classic', n: 'Klassik', d: 'Der Ball, mit dem alles begann', p: 0, col: '#ffffff', tr: 'white' },
@@ -919,7 +919,7 @@ function genHole(r, par, diff, wx = 'sonnig', opt = {}) {
   h.deco.sort((a, b) => a.y - b.y);
   // Tiere je Landschaft
   h.fauna = [];
-  { const F = FAUNA[th] || [], land = F.filter(k => !WATERFAUNA.includes(k)), wat = F.filter(k => WATERFAUNA.includes(k));
+  if (false) { const F = FAUNA[th] || [], land = F.filter(k => !WATERFAUNA.includes(k)), wat = F.filter(k => WATERFAUNA.includes(k));
     const nL = land.length ? 2 + Math.floor(r() * 4) : 0;
     for (let k = 0, tries = 0; k < nL && tries < 40; tries++) {
       const ss = ri(30, Lg), p = at(ss), side = sgn(), hw = Math.max(h.fwHalf(ss), 12), lat = hw + ri(6, 34);
@@ -1162,7 +1162,7 @@ function startHole(i) {
   else intro(round.mode === 'match' && i >= 9 ? 'Stechen' : 'Loch ' + (i + 1), 'Par ' + hole.par + ' · ' + hole.len + ' m' + (Math.abs(hole.elev || 0) >= 4 ? (hole.elev > 0 ? ' · bergauf +' : ' · bergab −') + Math.abs(hole.elev) + ' m' : ''), (hole.sig ? '★ ' + SIGN[hole.sig] + ' · ' : i === 0 ? round.label + ' · ' : '') + WXI[hole.wx] + ' ' + wxN(hole.wx) + (w.v ? ' · Wind ' + w.v + ' km/h' : ' · windstill') + (round.mode === 'match' ? ' · ' + msText(round.ms) : ''));
 }
 function caddieTip() {
-  const el = $('#caddie'); if (!el) return;
+  const el = $('#caddie'); if (!el) return; el.classList.add('hidden'); return;
   if (state !== 'aim' || round.mini && strokes > 0 && Math.random() < .5) { el.classList.add('hidden'); return; }
   const tips = [], S = [ball.x, ball.y], d = hyp(target[0] - S[0], target[1] - S[1]) || 1, ux = (target[0] - S[0]) / d, uy = (target[1] - S[1]) / d;
   if (strokes === 0 && hole.sig) tips.push([9, { island: 'Inselgrün! Lieber etwas zu lang als zu kurz – hinter der Fahne ist mehr Platz.', canyon: 'Die Schlucht musst du überspielen. Nimm genug Schläger – zu kurz ist weg.', drive: 'Kurzes Par 4. Mit dem Driver bist du am Grün – aber das Wasser lauert.', peninsula: 'Das Grün ragt ins Wasser. Spiel lieber auf die trockene Seite.' }[hole.sig]]);
@@ -1536,6 +1536,7 @@ function updFauna(dt) {
     if (a.mv) { const sp = a.water ? .35 : .5; a.x += Math.cos(a.a) * sp * dt; a.y += Math.sin(a.a) * sp * dt; }
   }
   // Vogelschwarm über das Loch
+  if (true) return;
   if (!hole.flock || time > hole.flock.end) {
     if (!hole.nextFlock) hole.nextFlock = time + 6 + Math.random() * 14;
     if (time > hole.nextFlock) { const b = hole.box, fromL = Math.random() < .5, y0 = b[1] + Math.random() * (b[3] - b[1]); hole.flock = { x: fromL ? b[0] - 60 : b[2] + 60, y: y0, vx: (fromL ? 1 : -1) * (13 + Math.random() * 6), vy: (Math.random() - .5) * 6, n: 4 + Math.floor(Math.random() * 6), end: time + 30 }; hole.nextFlock = 0; }
@@ -2492,7 +2493,7 @@ function renderHome() {
     </div>
     <div class="card stat"><div><b>${save.rounds}</b><span>Runden</span></div><div><b>${save.birdies}</b><span>Birdies</span></div><div><b>${money(save.earnings)}</b><span>Preisgeld</span></div></div>
     <p class="help">Ziel antippen · Schläger, Draw/Fade, Spin wählen · „Schlagen“<br>1. Tipp stoppt die pendelnde Linie · 2. Tipp stoppt die Kraft<br>Auf dem Grün: goldener Ring = 1 Putt, weisser Ring = 2, sonst 3</p>
-    <p class="ver">Fairway · Version 1.8</p>
+    <p class="ver">Fairway · Version 1.9</p>
   </div>`;
 }
 function renderCareer() {
