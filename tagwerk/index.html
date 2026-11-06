@@ -201,20 +201,22 @@ html,body{transition:background-color 1.2s var(--ease),color 1.2s var(--ease)}
 <script>
 /* ===== Tagesdaten: für einen neuen Tag nur DAY ändern ===== */
 const DAY = {
-  id: "2026-11-02",
-  date: "2026-11-02",
-  start: "14:25",
-  leave: "17:20",
+  id: "2026-11-07",
+  date: "2026-11-07",
+  start: "07:30",
+  leave: "10:00",
   tasks: [
-    { t:"Mittagessen",                         h:"In Ruhe essen. Handy weg.",                                     until:"15:05" },
-    { t:"Unterlagen bereitlegen",              h:"Heft, Blätter, Stift. Themen in sicher und unsicher sortieren.", until:"15:15" },
-    { t:"Unsichere Themen verstehen, Teil 1",  h:"Das schwierigste Thema zuerst. Laut erklären, bis es sitzt.",     until:"15:40" },
-    { t:"Unsichere Themen verstehen, Teil 2",  h:"Die restlichen unsicheren Themen.",                               until:"15:58" },
-    { t:"Aufgaben rechnen",                    h:"Fünf Aufgaben aus Heft oder Buch. Ohne nachzuschauen.",            until:"16:22" },
-    { t:"Fehler korrigieren",                  h:"Jeden Fehler verstehen und einmal richtig nachrechnen.",           until:"16:37" },
-    { t:"Definitionen auswendig lernen",       h:"Begriffe und Formeln, die du morgen sicher brauchst.",             until:"17:00" },
-    { t:"Spickzettel aus dem Kopf schreiben",  h:"Eine Seite, alles was du weisst. Danach Lücken nachschauen.",      until:"17:15" },
-    { t:"Tasche packen",                       h:"Stifte, Taschenrechner, Unterlagen. Dann los.",                    until:"17:20" }
+    { t:"Aufstehen & warm frühstücken",  h:"Warmes Frühstück, viel trinken. Kurz das Wetter checken.",                                   until:"08:05" },
+    { t:"Anziehen & Tasche checken",     h:"4er Eisen raus. Mütze, 3 Handschuhe, Handwärmer, Riegel, Wasser, Birdie Book.",             until:"08:20" },
+    { t:"Fahrt nach Chalampé",           h:"Ruhige Musik. Im Kopf: Das 5er ist mein Standard. Bogey mit Schlag = 2 Punkte.",          until:"08:50" },
+    { t:"Anmelden & Platzregel",         h:"Scorekarte holen. Fragen: Gibt es Aus zwischen den Bahnen? Wenn ja: Driver gestrichen.",   until:"09:00" },
+    { t:"Aufwärmen",                     h:"Hüften, Schultern, Ausfallschritte, 10 langsame Probeschwünge.",                           until:"09:10" },
+    { t:"Range: Rhythmus finden",        h:"8 Wedges, 6× 8er, 6× 6er, 6× 5er. Locker, kein einziger Kraftschlag.",                     until:"09:22" },
+    { t:"Range: Holz- & Driver-Test",    h:"6× 5er Holz: 5 von 6 = frei. 6× Driver: 6 von 6 gerade, kein Hook = frei. Im Birdie Book ankreuzen.", until:"09:30" },
+    { t:"Abschläge simulieren",          h:"6 Bälle mit voller Routine: Loch 1, 2 und 7.",                                             until:"09:35" },
+    { t:"Chip & Run",                    h:"Flach rollen lassen. Wie schnell ist das Grün heute?",                                      until:"09:45" },
+    { t:"Putten",                        h:"Lange Putts fürs Tempo. Zum Schluss 10× 1 m, mit Erfolg aufhören.",                          until:"09:53" },
+    { t:"Zum ersten Tee",                h:"3× atmen: 4 s ein, 6 s aus. Der erste Schlag ist nur für den Rhythmus.",                   until:"10:00" }
   ]
 };
 
@@ -481,7 +483,7 @@ function showFinal(){
   swap(`<div class="view final">
     <span class="lbl">Alles erledigt</span>
     <div class="big">Fertig.</div>
-    <p class="hint">${early >= 0 ? early + " Minuten vor der Abfahrt." : "Geschafft."} Morgen schreibst du das ohne Spicker.</p>
+    <p class="hint">${early >= 0 ? early + " Minuten vor der Abfahrt." : "Geschafft."} Jetzt nur noch: Ruhe und Rhythmus. Viel Erfolg.</p>
     <button class="btn ghost" id="toR">Beleg ansehen</button>
   </div>`, () => { $("#toR").onclick = () => $("#receipt").scrollIntoView({ behavior:"smooth", block:"center" }); burst(innerWidth*.3, innerHeight*.4, 80); burst(innerWidth*.7, innerHeight*.4, 80); });
 }
@@ -512,7 +514,7 @@ function renderBelow(){
     <hr><div class="tot"><span>ERLEDIGT</span><span>${n}/${TASKS.length}</span></div>
     <div class="tot"><span>STAND</span><span>${lead == null ? "±0" : (lead > 0 ? "+" : "") + lead} min</span></div>
     <div class="tot"><span>GESAMMELT</span><span>${S.got.length}</span></div><hr>
-    <div class="rh">${n === TASKS.length ? "ALLES ERLEDIGT. VIEL ERFOLG MORGEN." : "NOCH " + (TASKS.length - n) + " OFFEN"}</div>`;
+    <div class="rh">${n === TASKS.length ? "ALLES ERLEDIGT. AB AUFS ERSTE TEE." : "NOCH " + (TASKS.length - n) + " OFFEN"}</div>`;
 
   $("#parked").innerHTML = S.parked.length ? S.parked.map((p,i) => `<button class="row ${p.d?"d":""}" data-p="${i}"><span class="c"></span><span class="n">${esc(p.t)}</span><span class="tm">${p.d?"erledigt":"später"}</span></button>`).join("")
     : `<div class="empty">Leer. Wenn dir beim Lernen was einfällt, park es mit „Gedanke parken“.</div>`;
