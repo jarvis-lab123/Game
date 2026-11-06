@@ -164,3 +164,35 @@ Kommende Prüfungen, Lernplan für heute, Rückstand, Noten pro Fach mit Ziel un
 **Installieren:** In **Safari** `https://jarvis-lab123.github.io/Game/pruefungsplan/` öffnen → Teilen → „Zum Home-Bildschirm“ (Android: Chrome → ⋮ → „App installieren“).
 
 **Daten:** alles steht in `pruefungsplan/data.json` (Prüfungen, Noten, Lernpläne, Ziele). Die App lädt die Datei beim Öffnen und jede Minute neu, Änderungen kommen also ohne App-Update auf allen Geräten an. Abhaken wird pro Gerät gespeichert. Achtung: das Repo ist öffentlich, die Datei damit auch.
+
+---
+
+# ✦ Claude Chess (Schach-Übungs-App)
+
+Liegt im Ordner `schach/`. Eine installierbare Web-App (PWA) zum Schachtraining, die nach dem ersten Start auch offline läuft.
+Online: `https://<user>.github.io/Game/schach/`. Lokal: `npx serve .` und dann `/schach/` öffnen. Per Doppelklick auf die Datei geht es nicht, weil die Engine als Web Worker läuft.
+
+**Was drin ist**
+
+- **15 Ränge** von *Holz* (Bot Kiesel, ca. 400 Elo) bis *Claude Chess* (Rang 15). Jeder Rang hat einen eigenen Bot mit Persönlichkeit.
+  - Rang 1–5: Stockfish mit wenig Rechentiefe, gewichteter Zufall und gelegentlichen „menschlichen“ Fehlern
+  - Rang 6–13: Stockfish mit `UCI_LimitStrength` (1320 bis 2950 Elo)
+  - Rang 14: volle Stärke mit 1,5 s Bedenkzeit pro Zug
+  - Rang 15 *Claude Chess*: volle Stockfish-19-Stärke (NNUE) mit 3,5 s pro Zug. Das ist weit stärker als jeder Mensch.
+- **Einstufungspartie** am Anfang: Aus Genauigkeit und Ergebnis wird der Start-Rang berechnet (höchstens Rang 12)
+- **Punktesystem**: 100 Rangpunkte pro Rang. Ein Sieg bringt +32 bis +50 Punkte (mehr bei hoher Genauigkeit), eine Niederlage kostet −6 bis −22. Mit 100 Punkten steigst du auf, unter 0 steigst du ab. Wer auf Rang 15 die volle Punktzahl (1500/1500) erreicht, hat **Claude Chess besiegt**.
+- **Coach-Analyse nach jeder Partie**: Jeder Zug wird bewertet als Brillant `!!`, Großartig `!`, Bester Zug `★`, Exzellent, Gut, Buchzug, Ungenauigkeit `?!`, Fehler `?`, Verpasst `✗` oder Patzer `??`.
+  Dazu gibt es einen erklärenden Coach-Text (z. B. welche Figur verloren geht, Gabeln, Matt-Drohungen), den besten Zug als Pfeil, Genauigkeit wie bei Lichess, die geschätzte Spielstärke der Partie, einen Bewertungsgraphen, Phasen-Noten und Tipps.
+- **Puzzle-Modus**: Training mit eigener Puzzle-Wertung und Serien, außerdem **Sprint** (3 Minuten, 3 Leben). Die Puzzles wurden mit Stockfish selbst erzeugt, und jede Lösung ist eindeutig geprüft.
+- **Freies Spiel** gegen jeden freigeschalteten Bot, mit Hinweis, Zug zurück und Bewertungsbalken
+- Animierte Figuren (Ziehen oder Tippen), Umwandlungsauswahl, Klänge, 5 Brettfarben, Auf- und Abstiegs-Animationen, laufende Partien werden gespeichert
+
+**Dateien**: `js/app.js` (Oberfläche und Ablauf), `js/board.js` (Brett), `js/engine.js` (Stockfish-Anbindung), `js/ranks.js` (Ränge und Bots), `js/analysis.js` (Zugbewertung und Coach), `js/openings.js` (Eröffnungsbuch), `js/puzzles.js` (Puzzles)
+
+**Als Handy-App**
+
+- **Android (APK, ohne Store):** `android-schach/ClaudeChess.apk` aufs Handy laden und öffnen. Dafür in den Einstellungen „Installation aus unbekannten Quellen“ für den Browser bzw. Dateimanager erlauben. Die App läuft komplett offline, Stockfish ist eingebaut. Neu bauen geht mit `android-schach/build.sh` (gleiche Ubuntu-Pakete wie bei Grand Slam).
+- **iPhone als echte App:** `schach-ios/` ist ein fertiges Xcode-Projekt (Capacitor). Auf einem Mac `npm install && npm run sync && npm run open` ausführen und in Xcode auf dein iPhone spielen. Die Anleitung steht in `schach-ios/README.md`.
+- **iPhone und Android ohne APK:** `https://<user>.github.io/Game/schach/` öffnen. Dann in Safari Teilen → „Zum Home-Bildschirm“ oder in Chrome ⋮ → „App installieren“. Danach startet Claude Chess im Vollbild mit eigenem Icon und läuft offline.
+
+**Lizenzen**: Stockfish 19 / stockfish.js (GPLv3, siehe `schach/engine/Copying.txt`, Quellcode: https://github.com/nmrugg/stockfish.js) · chess.js (BSD-2) · Figuren „cburnett“ von Colin M.L. Burnett (CC BY-SA 3.0)
