@@ -652,7 +652,7 @@ function reviewScreen(rec) {
       }
     }
     $('#moves').querySelectorAll('.mv.cur').forEach(e => e.classList.remove('cur'));
-    const cur = $(`#moves [data-ply="${ply}"]`); if (cur) { cur.classList.add('cur'); cur.scrollIntoView({ block: 'nearest', inline: 'nearest' }); }
+    const cur = $(`#moves [data-ply="${ply}"]`); if (cur) { cur.classList.add('cur'); const box = $('#moves'); const t = cur.offsetTop - box.offsetTop; if (t < box.scrollTop || t > box.scrollTop + box.clientHeight - 30) box.scrollTop = t - box.clientHeight / 2; }
     $('#graph .g-cursor')?.setAttribute('x1', ply * (600 / Math.max(1, an.moves.length)));
     $('#graph .g-cursor')?.setAttribute('x2', ply * (600 / Math.max(1, an.moves.length)));
   }

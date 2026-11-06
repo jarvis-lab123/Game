@@ -293,7 +293,7 @@ function coachComment(moves, i, fens, evals) {
       if (reply?.mate && reply.mate > 0) cons = `Das erlaubt ${reply.mate === 1 ? 'ein sofortiges Matt' : `Matt in ${reply.mate}`} (${x.replyLine.slice(0, Math.min(3, x.replyLine.length)).join(' ')})`;
       else {
         const mat = pvMaterial(fenAfter, reply?.pv || [], 6, color);
-        const lost = material(fenAfter, color) - mat.end;
+        const lost = material(fenBefore, color) - mat.end;
         const hang = hangingPiece(fenAfter, color);
         const lp = lossPhrase(lost);
         if (lp) cons = `Nach ${x.replyLine[0] || 'der Antwort'} verlierst du ${lp}`;
