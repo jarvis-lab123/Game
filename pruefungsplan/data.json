@@ -1,6 +1,6 @@
 {
  "_hinweis": "Wird von Claude gepflegt. Pruefungen, Noten, Lernplaene. done = erledigte Einheiten (id@datum).",
- "stand": "2026-11-03",
+ "stand": "2026-11-06",
  "targets": {
   "Deutsch": 5,
   "Geschichte": 5
@@ -66,9 +66,10 @@
    "datum": "2026-10-23",
    "fach": "Geografie",
    "gewicht": "1",
-   "status": "geschrieben",
+   "status": "note",
    "w": 1,
-   "was": "Demografie"
+   "was": "Demografie",
+   "note": 5
   },
   {
    "id": "g-geschichte",
