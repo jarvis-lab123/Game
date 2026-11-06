@@ -189,4 +189,9 @@ Online: `https://<user>.github.io/Game/schach/`. Lokal: `npx serve .` und dann `
 
 **Dateien**: `js/app.js` (Oberfläche und Ablauf), `js/board.js` (Brett), `js/engine.js` (Stockfish-Anbindung), `js/ranks.js` (Ränge und Bots), `js/analysis.js` (Zugbewertung und Coach), `js/openings.js` (Eröffnungsbuch), `js/puzzles.js` (Puzzles)
 
+**Als Handy-App**
+
+- **Android (APK, ohne Store):** `android-schach/ClaudeChess.apk` aufs Handy laden und öffnen. Dafür in den Einstellungen „Installation aus unbekannten Quellen“ für den Browser bzw. Dateimanager erlauben. Die App läuft komplett offline, Stockfish ist eingebaut. Neu bauen geht mit `android-schach/build.sh` (gleiche Ubuntu-Pakete wie bei Grand Slam).
+- **iPhone und Android ohne APK:** `https://<user>.github.io/Game/schach/` öffnen. Dann in Safari Teilen → „Zum Home-Bildschirm“ oder in Chrome ⋮ → „App installieren“. Danach startet Claude Chess im Vollbild mit eigenem Icon und läuft offline.
+
 **Lizenzen**: Stockfish 19 / stockfish.js (GPLv3, siehe `schach/engine/Copying.txt`, Quellcode: https://github.com/nmrugg/stockfish.js) · chess.js (BSD-2) · Figuren „cburnett“ von Colin M.L. Burnett (CC BY-SA 3.0)

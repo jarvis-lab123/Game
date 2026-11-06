@@ -970,4 +970,13 @@ function sprintOver() {
 // ================= Start =================
 window.__cc = { get G() { return G; }, get P() { return P; }, get S() { return S; } }; // für Tests/Debugging
 go('home');
-if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
+if ('serviceWorker' in navigator && location.protocol.startsWith('http') && !/ClaudeChessApp/.test(navigator.userAgent)) navigator.serviceWorker.register('sw.js').catch(() => {});
+
+// Zurück-Taste der Android-App: eine Ebene zurück; false = App schliessen
+window.ccBack = () => {
+  const fx = document.querySelector('.rank-fx'); if (fx) { fx.remove(); return true; }
+  const m = $('#modal');
+  if (m.classList.contains('show')) { const bg = $('.modal-bg', m); if (bg && bg.onclick) closeModal(); return true; }
+  const back = $('.topbar [data-go]'); if (back) { back.click(); return true; }
+  return false;
+};
