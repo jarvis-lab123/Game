@@ -36,7 +36,16 @@ function tone(t, freq, dur, vol = 0.12, type = 'sine') {
   o.start(s); o.stop(s + dur + 0.05);
 }
 
+// Echte Haptik in der iOS-App (Capacitor); im Browser passiert nichts
+function haptic(style) {
+  const H = window.Capacitor?.Plugins?.Haptics;
+  if (!H) return;
+  try { style === 'ok' ? H.notification({ type: 'SUCCESS' }) : style === 'bad' ? H.notification({ type: 'ERROR' }) : H.impact({ style }); } catch {}
+}
+const HAPTIC = { move: 'LIGHT', castle: 'LIGHT', capture: 'MEDIUM', check: 'HEAVY', promote: 'MEDIUM', correct: 'ok', wrong: 'bad', win: 'ok', rankup: 'ok', lose: 'bad' };
+
 export function play(name) {
+  if (HAPTIC[name]) haptic(HAPTIC[name]);
   if (!sound.on) return;
   switch (name) {
     case 'move': knock(0, 190, 0.09, 0.9, 0.45); break;
