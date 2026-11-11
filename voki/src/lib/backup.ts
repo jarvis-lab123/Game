@@ -32,6 +32,8 @@ export function validateBackup(x: unknown): BackupV1 {
     throw new Error('Das ist kein Voki-Backup (oder eine neuere Version).')
   for (const k of ['decks', 'notes', 'cards', 'logs', 'settings'] as const)
     if (!Array.isArray(b[k])) throw new Error(`Voki-Backup unvollständig: „${k}“ fehlt.`)
+  if ((b.cards as Card[]).some((c) => !c || typeof c !== 'object' || !c.fsrs || !c.id))
+    throw new Error('Voki-Backup beschädigt: Karten ohne Lernstand.')
   const cards = (b.cards as Card[]).map((c) => {
     const due = new Date(c.fsrs.due as unknown as string)
     return {

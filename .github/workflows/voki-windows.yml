@@ -29,30 +29,32 @@ jobs:
           workspaces: voki/src-tauri -> target
       - run: npm ci
       - run: npm test
-      - id: version
+      - name: Build .msi
+        run: npm run tauri build -- --bundles msi
+      - name: Name installer
         shell: bash
-        run: echo "v=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
-      # Same tag every build of a version: the release is updated in place (latest .msi wins).
-      - name: Remove old release assets of this version
+        run: |
+          v=$(node -p "require('./package.json').version")
+          cp "$(ls src-tauri/target/release/bundle/msi/*.msi | head -1)" "Voki-Setup-$v.msi"
+      # Always available (needs only read access): Actions run page -> Artifacts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Voki-Setup-msi
+          path: voki/Voki-Setup-*.msi
+          retention-days: 90
+      # Release is replaced only after a successful build (a failed build keeps the old installer).
+      # Needs Settings -> Actions -> General -> Workflow permissions = "Read and write".
+      - name: Publish release
+        continue-on-error: true
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          tag="voki-v${{ steps.version.outputs.v }}"
-          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release delete "$tag" --repo "$GITHUB_REPOSITORY" --yes --cleanup-tag
+          v=$(node -p "require('./package.json').version")
+          tag="voki-v$v"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" "Voki-Setup-$v.msi" --clobber || { echo "::warning::Release nicht erlaubt: Settings > Actions > General > Workflow permissions auf 'Read and write' stellen. Installer liegt unter Artifacts."; exit 1; }
+          else
+            gh release create "$tag" "Voki-Setup-$v.msi" --target "$GITHUB_SHA" --title "Voki v$v für Windows" --notes "Windows-Installer für Voki: Voki-Setup-$v.msi herunterladen und doppelklicken.
+          Zeigt Windows „Der Computer wurde durch Windows geschützt“: auf „Weitere Informationen“ und dann „Trotzdem ausführen“ klicken (die App ist nicht kostenpflichtig signiert)." || { echo "::warning::Release nicht erlaubt: Settings > Actions > General > Workflow permissions auf 'Read and write' stellen. Installer liegt unter Artifacts."; exit 1; }
           fi
-      - uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          projectPath: voki
-          tagName: voki-v__VERSION__
-          releaseName: Voki v__VERSION__ für Windows
-          releaseBody: |
-            Windows-Installer für Voki. Die .msi-Datei herunterladen und doppelklicken.
-            Windows zeigt evtl. „Der Computer wurde durch Windows geschützt“: auf „Weitere Informationen“ → „Trotzdem ausführen“ klicken (die App ist nicht kostenpflichtig signiert).
-          releaseDraft: false
-          prerelease: false
-          releaseCommitish: ${{ github.sha }}
-          args: --bundles msi

@@ -8,7 +8,8 @@ permissions:
   pages: write
   id-token: write
 concurrency:
-  group: pages
+  # per branch: a build-only push must not cancel the production deploy
+  group: pages-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   build:

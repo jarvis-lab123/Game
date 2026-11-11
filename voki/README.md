@@ -3,7 +3,7 @@
 Lernt Vokabeln mit **Spaced Repetition (FSRS)**, lässt dich die Wörter **schreiben** statt nur umdrehen und rechnet **rückwärts vom Testdatum**, wie viel heute dran ist.
 
 - **Handy (iPhone/Android):** https://jarvis-lab123.github.io/Game/voki/
-- **PC (Windows):** Installer unter [Releases](https://github.com/jarvis-lab123/Game/releases) → neuestes „Voki v… für Windows“ → `Voki_…_x64_de-DE.msi` bzw. `Voki_…_x64_en-US.msi`
+- **PC (Windows):** https://github.com/jarvis-lab123/Game/releases/tag/voki-v0.1.0 → `Voki-Setup-0.1.0.msi`
 
 ## Installieren
 

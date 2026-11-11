@@ -22,6 +22,7 @@ export function ImportScreen({ deckId }: { deckId?: string }) {
   const [copied, setCopied] = useState(false)
   const [done, setDone] = useState<{ n: number; deckId: string } | null>(null)
   const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
   const deck = decks?.find((d) => d.id === (target || decks?.[0]?.id))
@@ -160,11 +161,18 @@ export function ImportScreen({ deckId }: { deckId?: string }) {
             <Button
               variant="primary"
               size="lg"
-              disabled={ok === 0 || !deck}
+              disabled={ok === 0 || !deck || busy}
               onClick={async () => {
-                if (!deck) return
-                const n = await importNotes(db, deck.id, drafts, deck.directions)
-                setDone({ n, deckId: deck.id })
+                if (!deck || busy) return
+                setBusy(true)
+                try {
+                  const n = await importNotes(db, deck.id, drafts, deck.directions)
+                  setDone({ n, deckId: deck.id })
+                } catch (e) {
+                  setError(`Import fehlgeschlagen: ${(e as Error).message}`)
+                } finally {
+                  setBusy(false)
+                }
               }}
             >
               {ok} Wörter importieren

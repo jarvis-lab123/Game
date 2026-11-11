@@ -67,6 +67,8 @@ export function Session({ deckId, extraMinutes }: { deckId?: string; extraMinute
   const [style, setStyle] = useState<ReviewStyle>(() => (localStorage.getItem('voki.reviewStyle') as ReviewStyle) || 'type')
   const [elapsed, setElapsed] = useState(0)
   const [wrapped, setWrapped] = useState(false)
+  const [dropped, setDropped] = useState(0)
+  const [error, setError] = useState('')
   const shownAt = useRef(Date.now())
   const startedAt = useRef(Date.now())
   const busy = useRef(false)
@@ -110,7 +112,7 @@ export function Session({ deckId, extraMinutes }: { deckId?: string; extraMinute
     if (!ctx) return
     const budget = (extraMinutes > 0 ? extraMinutes : ctx.settings.dailyMinutesGoal) * 60000
     if (!wrapped && Date.now() - startedAt.current > budget) {
-      ctx.engine.wrapUp()
+      setDropped(ctx.engine.wrapUp())
       setWrapped(true)
     }
     const n = ctx.engine.next()
@@ -130,6 +132,7 @@ export function Session({ deckId, extraMinutes }: { deckId?: string; extraMinute
     async (rating: Grade | 0, ok: boolean, typedAnswer?: string) => {
       if (!ctx || !item || !deck || busy.current) return
       busy.current = true
+      setError('')
       try {
         const now = new Date()
         const ret = ctx.settings.desiredRetention
@@ -169,8 +172,9 @@ export function Session({ deckId, extraMinutes }: { deckId?: string; extraMinute
             mode = useFlip ? 'flip' : 'type'
             break
         }
-        if (updated !== card) await db.cards.put(updated)
-        await log(db, {
+        await db.transaction('rw', db.cards, db.logs, async () => {
+          if (updated !== card) await db.cards.put(updated)
+          await log(db, {
           cardId: card.id,
           deckId: card.deckId,
           timestamp: now.toISOString(),
@@ -179,6 +183,7 @@ export function Session({ deckId, extraMinutes }: { deckId?: string; extraMinute
           typedAnswer,
           correct: ok,
           durationMs: now.getTime() - shownAt.current,
+          })
         })
         if (item.step !== 'intro') {
           setAnswered((x) => x + 1)
@@ -186,6 +191,8 @@ export function Session({ deckId, extraMinutes }: { deckId?: string; extraMinute
         }
         ctx.engine.answer(item, ok, updated)
         nextItem()
+      } catch (e) {
+        setError(`Speichern fehlgeschlagen: ${(e as Error).message}. Versuch es nochmal.`)
       } finally {
         busy.current = false
       }
@@ -246,7 +253,9 @@ export function Session({ deckId, extraMinutes }: { deckId?: string; extraMinute
   useEffect(() => {
     const on = (e: KeyboardEvent) => {
       const inField = e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement
+      if (e.key === 'Enter' && e.target instanceof HTMLButtonElement) return // native click on the focused button
       if (e.key === 'Escape') {
+        if (e.target instanceof HTMLTextAreaElement) return
         go('/')
         return
       }
@@ -301,7 +310,7 @@ export function Session({ deckId, extraMinutes }: { deckId?: string; extraMinute
         {!ctx ? (
           <div className="h-60" aria-busy="true" />
         ) : finished || !item ? (
-          <SessionEnd total={ctx.total} answered={answered} right={right} introduced={introduced} wrapped={wrapped && remaining > 0} deckId={deckId} extraMinutes={extraMinutes} empty={ctx.total === 0} />
+          <SessionEnd total={ctx.total} answered={answered} right={right} introduced={introduced} wrapped={wrapped && dropped > 0} deckId={deckId} extraMinutes={extraMinutes} empty={ctx.total === 0} />
         ) : !face || !note || !deck ? (
           <Empty title="Karte nicht gefunden">Diese Karte wurde gelöscht. <button className="text-accent underline" onClick={nextItem}>Weiter</button></Empty>
         ) : (
@@ -382,6 +391,7 @@ export function Session({ deckId, extraMinutes }: { deckId?: string; extraMinute
                 <Button variant="primary" size="lg" className="w-full desk:w-auto" onClick={submitRetype} disabled={!retype.trim()} kbd="Enter">Weiter</Button>
               )}
             </div>
+            {error && <p role="alert" className="mt-4 rounded-xl bg-bad-soft px-4 py-3 text-sm text-bad">{error}</p>}
             <p className="mt-auto hidden pt-10 text-center text-xs text-muted desk:block">
               <Kbd>Enter</Kbd> prüfen/weiter · <Kbd>Leertaste</Kbd> umdrehen · <Kbd>1</Kbd>–<Kbd>4</Kbd> wählen · <Kbd>Ctrl</Kbd>+<Kbd>Leertaste</Kbd> Audio · <Kbd>Alt</Kbd>+Buchstabe Akzent · <Kbd>Esc</Kbd> beenden
             </p>

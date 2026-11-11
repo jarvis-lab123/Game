@@ -141,3 +141,12 @@ describe('SessionEngine.updateCard', () => {
     expect(seen).toContain('mc:b')
   })
 })
+
+describe('wrapUp (review #3)', () => {
+  it('reports how many items were dropped', () => {
+    const reviews = Array.from({ length: 3 }, (_, i) => ({ ...reviewCard(), id: `w${i}` }))
+    const e = new SessionEngine({ reviews, fresh: [mkCard()], cram: [], rng })
+    e.next()
+    expect(e.wrapUp()).toBe(3)
+  })
+})

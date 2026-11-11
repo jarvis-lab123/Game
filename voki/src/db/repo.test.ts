@@ -52,3 +52,10 @@ describe('backup', () => {
     expect(() => validateBackup(null)).toThrow()
   })
 })
+
+describe('backup validation (review)', () => {
+  it('rejects a backup with a broken card in German', () => {
+    const b = { app: 'voki', version: 1, exportedAt: '', decks: [], notes: [], logs: [], settings: [], cards: [{ id: 'x' }] }
+    expect(() => validateBackup(b)).toThrow(/beschädigt/)
+  })
+})

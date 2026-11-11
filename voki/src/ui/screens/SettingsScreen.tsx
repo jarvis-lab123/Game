@@ -45,6 +45,37 @@ export function BackupReminder() {
   )
 }
 
+/** Free typing; clamps and saves only on blur or Enter. */
+function NumberField({ id, value, min, max, unit, onSave }: { id: string; value: number; min: number; max: number; unit: string; onSave: (v: number) => void }) {
+  const [text, setText] = useState(String(value))
+  const [focused, setFocused] = useState(false)
+  const shown = focused ? text : String(value)
+  const commit = () => {
+    const n = Number(text)
+    const v = Number.isFinite(n) && text.trim() !== '' ? Math.max(min, Math.min(max, Math.round(n))) : value
+    setText(String(v))
+    if (v !== value) onSave(v)
+  }
+  return (
+    <div className="flex items-center gap-2">
+      <Input
+        id={id}
+        className="max-w-28 tabular"
+        type="number"
+        inputMode="numeric"
+        min={min}
+        max={max}
+        value={shown}
+        onFocus={() => { setText(String(value)); setFocused(true) }}
+        onChange={(e) => setText(e.target.value)}
+        onBlur={() => { commit(); setFocused(false) }}
+        onKeyDown={(e) => e.key === 'Enter' && (e.currentTarget as HTMLInputElement).blur()}
+      />
+      <span className="text-sm text-muted">{unit}</span>
+    </div>
+  )
+}
+
 export function SettingsScreen() {
   const s = useSettings()
   const fileRef = useRef<HTMLInputElement>(null)
@@ -60,15 +91,15 @@ export function SettingsScreen() {
         <div className="grid gap-5 sm:grid-cols-3">
           <div>
             <Label htmlFor="st-min">Minuten pro Tag</Label>
-            <div className="flex items-center gap-2"><Input className="max-w-28 tabular" id="st-min" type="number" inputMode="numeric" min={5} max={120} value={s.dailyMinutesGoal} onChange={(e) => saveSettings({ dailyMinutesGoal: Math.max(5, Math.min(120, Number(e.target.value) || 15)) })} /><span className="text-sm text-muted">Min</span></div>
+            <NumberField id="st-min" value={s.dailyMinutesGoal} min={5} max={120} unit="Min" onSave={(v) => saveSettings({ dailyMinutesGoal: v })} />
           </div>
           <div>
             <Label htmlFor="st-new" hint="(ohne Testdatum)">Neue pro Tag</Label>
-            <div className="flex items-center gap-2"><Input className="max-w-28 tabular" id="st-new" type="number" inputMode="numeric" min={0} max={100} value={s.newCardsPerDayDefault} onChange={(e) => saveSettings({ newCardsPerDayDefault: Math.max(0, Math.min(100, Number(e.target.value) || 0)) })} /><span className="text-sm text-muted">Wörter</span></div>
+            <NumberField id="st-new" value={s.newCardsPerDayDefault} min={0} max={100} unit="Wörter" onSave={(v) => saveSettings({ newCardsPerDayDefault: v })} />
           </div>
           <div>
             <Label htmlFor="st-ret" hint="(Standard 90)">Behaltensquote</Label>
-            <div className="flex items-center gap-2"><Input className="max-w-28 tabular" id="st-ret" type="number" inputMode="numeric" min={80} max={97} value={Math.round(s.desiredRetention * 100)} onChange={(e) => saveSettings({ desiredRetention: Math.max(0.8, Math.min(0.97, (Number(e.target.value) || 90) / 100)) })} /><span className="text-sm text-muted">%</span></div>
+            <NumberField id="st-ret" value={Math.round(s.desiredRetention * 100)} min={80} max={97} unit="%" onSave={(v) => saveSettings({ desiredRetention: v / 100 })} />
           </div>
         </div>
         <p className="mt-3 text-sm text-muted">Höhere Quote = häufigere Wiederholungen. 90 % ist für die meisten ideal.</p>

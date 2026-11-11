@@ -117,10 +117,12 @@ export class SessionEngine {
   }
 
   /** Stop introducing new material (time is up); in-flight items still finish. */
-  wrapUp(): void {
+  wrapUp(): number {
+    const dropped = this.fresh.length + this.reviews.length + this.cram.length
     this.fresh = []
     this.reviews = []
     this.cram = []
+    return dropped
   }
 }
 

@@ -72,10 +72,17 @@ export function solutions(answer: string): string[] {
   for (const part of answer.split(';')) {
     const p = part.replace(/\s+/g, ' ').trim()
     if (!p) continue
-    if (/\(.*?\)/.test(p)) {
-      out.push(p.replace(/[()]/g, '').replace(/\s+/g, ' ').trim())
-      out.push(p.replace(/\(.*?\)/g, '').replace(/\s+/g, ' ').trim())
-    } else out.push(p)
+    const groups = (p.match(/\(.*?\)/g) ?? []).slice(0, 4)
+    // every combination of keeping / dropping each bracket group, "all kept" first
+    for (let mask = (1 << groups.length) - 1; mask >= 0; mask--) {
+      let i = 0
+      const v = p.replace(/\(.*?\)/g, (g) => {
+        const keep = i < groups.length ? (mask >> (groups.length - 1 - i)) & 1 : 1
+        i++
+        return keep ? g.slice(1, -1) : ''
+      })
+      out.push(v.replace(/\s+/g, ' ').trim())
+    }
   }
   return [...new Set(out.filter(Boolean))]
 }

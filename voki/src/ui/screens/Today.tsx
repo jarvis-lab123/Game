@@ -145,7 +145,7 @@ function ExamCard({ p }: { p: DeckPlan }) {
         {e.readiness.toTarget != null && <>Schreiben {pct(e.readiness.toTarget)}</>}
       </p>
       <p className="mt-3 border-t border-line pt-3 text-sm">
-        {e.days <= 2 ? (
+        {e.days <= 2 && p.unintroduced === 0 ? (
           <span className="text-muted">Nur noch Wiederholung, keine neuen Wörter.</span>
         ) : p.unintroduced === 0 ? (
           <span className="text-muted">Alle Wörter eingeführt.</span>
@@ -156,8 +156,10 @@ function ExamCard({ p }: { p: DeckPlan }) {
           </span>
         )}
       </p>
-      {e.warning && e.days > 2 && (
-        <p className="mt-2 rounded-lg bg-bad-soft px-3 py-2 text-sm text-bad">Knapp! Mehr als 40 neue Wörter pro Tag. Mach heute 2 Sessions.</p>
+      {e.warning && (
+        <p className="mt-2 rounded-lg bg-bad-soft px-3 py-2 text-sm text-bad">
+          {e.days <= 2 ? 'Sehr knapp: Lern die restlichen Wörter heute, am besten in 2 Sessions.' : 'Knapp! Mehr als 40 neue Wörter pro Tag. Mach heute 2 Sessions.'}
+        </p>
       )}
     </a>
   )

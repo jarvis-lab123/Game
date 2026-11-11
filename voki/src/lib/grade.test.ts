@@ -130,3 +130,13 @@ describe('diffChars', () => {
     expect(d.filter((x) => !x.ok).map((x) => x.ch)).toEqual(['e'])
   })
 })
+
+describe('solutions with several bracket groups (review #4)', () => {
+  it('accepts every combination', () => {
+    const s = solutions('(sich) erinnern (an)')
+    for (const v of ['sich erinnern an', 'sich erinnern', 'erinnern an', 'erinnern']) expect(s).toContain(v)
+  })
+  it('grades "sich erinnern" as correct', () => {
+    expect(gradeAnswer('sich erinnern', '(sich) erinnern (an)', { strictAccents: false, answerLang: 'de' }).verdict).toBe('correct')
+  })
+})

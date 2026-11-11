@@ -1,4 +1,5 @@
 import type { VokiDB } from './db'
+import { uid } from '../lib/id'
 import type { Card, Deck, Note, ReviewLog, Settings } from '../lib/types'
 import { DEFAULT_SETTINGS } from '../lib/types'
 import { daysUntil, isExamActive, needsWarning, newPerDay, readiness, type Readiness } from '../lib/exam'
@@ -42,8 +43,11 @@ const learnedStage = (c: Card) => c.stage === 'review'
 /** Everything the "Heute" screen and the session need, for all (or one) decks. */
 export async function planDay(db: VokiDB, now: Date, onlyDeck?: string): Promise<DayPlan> {
   const settings = await loadSettings(db)
-  const decks = (await db.decks.toArray()).filter((d) => !d.archived && (!onlyDeck || d.id === onlyDeck))
-  const allCards = (await db.cards.toArray()).filter((c) => !c.suspended)
+  const active = (await db.decks.toArray()).filter((d) => !d.archived)
+  const decks = active.filter((d) => !onlyDeck || d.id === onlyDeck)
+  const dirs = new Map(active.map((d) => [d.id, d.directions]))
+  // only cards of active decks and of directions the deck still asks
+  const allCards = (await db.cards.toArray()).filter((c) => !c.suspended && dirs.get(c.deckId)?.includes(c.direction))
   const since = new Date(startOfDay(now)).toISOString()
   const todayLogs = await db.logs.where('timestamp').aboveOrEqual(since).toArray()
   const reviewedToday = new Set(todayLogs.map((l) => l.cardId))
@@ -75,9 +79,12 @@ export async function planDay(db: VokiDB, now: Date, onlyDeck?: string): Promise
     let newToday: number
     let cram: Card[] = []
     if (deck.examDate && isExamActive(deck, now)) {
-      const perDay = newPerDay(unintroduced + introduced, deck.examDate, now)
+      let perDay = newPerDay(unintroduced + introduced, deck.examDate, now)
+      // imported too late for the plan (last 2 days): learn the rest now rather than never
+      const late = perDay === 0 && unintroduced > 0
+      if (late) perDay = unintroduced + introduced
       newToday = Math.min(unintroduced, newBudget({ dueCount: totalDue, defaultLimit: 0, introducedToday: introduced, examNeed: perDay }))
-      exam = { days: daysUntil(deck.examDate, now), perDay, warning: needsWarning(perDay), readiness: readiness(cards, deck.examDate, settings.desiredRetention) }
+      exam = { days: daysUntil(deck.examDate, now), perDay, warning: late || needsWarning(perDay), readiness: readiness(cards, deck.examDate, settings.desiredRetention) }
       cram = boostCandidates(cards, deck.examDate, now, settings.desiredRetention, reviewedToday)
     } else {
       newToday = Math.min(unintroduced, defaultLeft)
@@ -119,6 +126,8 @@ export function sessionCards(plan: DayPlan, now: Date): { reviews: Card[]; fresh
   // new words: in-progress first, then by import order; decks interleaved round-robin
   const perDeck = plan.decks.map((p) => {
     const byNote = new Map<string, Card[]>()
+    // a word counts as started once any of its cards left "new" (e.g. a direction added later)
+    const started = new Set(p.cards.filter((c) => c.stage !== 'new').map((c) => c.noteId))
     const unlearned = p.cards
       .filter((c) => !learnedStage(c))
       .sort((a, b) => Number(b.stage !== 'new') - Number(a.stage !== 'new') || a.order - b.order)
@@ -126,8 +135,8 @@ export function sessionCards(plan: DayPlan, now: Date): { reviews: Card[]; fresh
       if (!byNote.has(c.noteId)) byNote.set(c.noteId, [])
       byNote.get(c.noteId)!.push(c)
     }
-    const inProgress = [...byNote.values()].filter((cs) => cs.some((c) => c.stage !== 'new'))
-    const fresh = [...byNote.values()].filter((cs) => cs.every((c) => c.stage === 'new'))
+    const inProgress = [...byNote.entries()].filter(([id]) => started.has(id)).map(([, cs]) => cs)
+    const fresh = [...byNote.entries()].filter(([id]) => !started.has(id)).map(([, cs]) => cs)
     return [...inProgress, ...fresh.slice(0, p.newToday)]
   })
   const fresh: Card[] = []
@@ -152,7 +161,7 @@ export async function streak(db: VokiDB, now: Date): Promise<number> {
 }
 
 export async function log(db: VokiDB, entry: Omit<ReviewLog, 'id'>): Promise<void> {
-  await db.logs.add({ ...entry, id: crypto.randomUUID() })
+  await db.logs.add({ ...entry, id: uid() })
 }
 
 export async function notesById(db: VokiDB, ids: string[]): Promise<Map<string, Note>> {
