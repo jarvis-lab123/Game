@@ -105,7 +105,7 @@ export function ImportScreen({ deckId }: { deckId?: string }) {
             </Select>
           </div>
           <div>
-            <input ref={fileRef} type="file" accept=".tsv,.csv,.txt,.json,text/plain,text/csv,application/json" className="sr-only" onChange={(e) => e.target.files?.[0] && onFile(e.target.files[0])} />
+            <input ref={fileRef} aria-label="Vokabel-Datei wählen" type="file" accept=".tsv,.csv,.txt,.json,text/plain,text/csv,application/json" className="sr-only" onChange={(e) => e.target.files?.[0] && onFile(e.target.files[0])} />
             <Button onClick={() => fileRef.current?.click()}><IconImport /> Datei wählen</Button>
           </div>
         </div>

@@ -35,7 +35,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonHTMLAttributes<HTMLBut
 
 export function Kbd({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <kbd className={cx('inline-flex h-5 min-w-5 items-center justify-center rounded-md border border-current/25 px-1 font-sans text-[11px] font-medium opacity-70', className)}>
+    <kbd className={cx('inline-flex h-5 min-w-5 items-center justify-center rounded-md border border-current/30 px-1 font-sans text-[11px] font-medium', className)}>
       {children}
     </kbd>
   )

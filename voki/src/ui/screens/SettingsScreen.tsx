@@ -89,6 +89,7 @@ export function SettingsScreen() {
           <Button variant="primary" onClick={downloadBackup}>Backup herunterladen</Button>
           <input
             ref={fileRef}
+            aria-label="Backup-Datei wählen"
             type="file"
             accept=".json,application/json"
             className="sr-only"
