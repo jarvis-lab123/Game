@@ -11,7 +11,7 @@
 | 375 px (iPhone SE): nichts abgeschnitten | ✅ | Kein horizontaler Überlauf auf allen Screens; Live-Screenshot iPhone SE |
 | Daten bleiben nach Reload erhalten | ✅ | IndexedDB + `navigator.storage.persist()`; Reload-Test |
 | Deploy-Workflow → GitHub Pages; Link funktioniert | ✅ | https://jarvis-lab123.github.io/Game/voki/ live geprüft (iPhone-SE-Emulation, 0 Fehler) |
-| Windows-Installer per Actions gebaut + als Release hochgeladen; startet, PC-Layout | ⚠️ teilweise | .msi wird gebaut (2,4 MB) und als Artefakt hochgeladen. Release braucht „Read and write“-Workflow-Rechte (Repo-Einstellung). Start unter Windows nur auf echtem PC prüfbar. |
+| Windows-Installer per Actions gebaut + als Release hochgeladen; startet, PC-Layout | ✅ / ⚠️ | Release `voki-v0.1.0` mit `Voki-Setup-0.1.0.msi` (gültige MSI, 2,5 MB, heruntergeladen und geprüft). Start unter Windows nur auf echtem PC prüfbar; Fenster 1200 px ≥ Breakpoint 900 px → PC-Layout. |
 | Phase 2: Sync | – | Phase 2 |
 | TSV-Export Anki/Loopky | – | Phase 2 (`loopky`-CLI nicht installiert) |
 

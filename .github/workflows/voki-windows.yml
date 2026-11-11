@@ -43,7 +43,6 @@ jobs:
           path: voki/Voki-Setup-*.msi
           retention-days: 90
       # Release is replaced only after a successful build (a failed build keeps the old installer).
-      # Needs Settings -> Actions -> General -> Workflow permissions = "Read and write".
       - name: Publish release
         continue-on-error: true
         shell: bash
