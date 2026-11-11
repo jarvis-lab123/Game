@@ -1,14 +1,15 @@
 name: Voki Windows-Installer
 on:
   push:
-    branches: [claude/new-session-ps1d0m, claude/2d-story-game-kazh5h]
+    branches: [claude/2d-story-game-kazh5h]
     paths: ['voki/**', '.github/workflows/voki-windows.yml']
   workflow_dispatch:
 permissions:
   contents: write
 concurrency:
   group: voki-windows
-  cancel-in-progress: true
+  # queue instead of cancel: a running build always finishes its release
+  cancel-in-progress: false
 jobs:
   build:
     runs-on: windows-latest

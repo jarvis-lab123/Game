@@ -2,7 +2,7 @@
 
 Lernt Vokabeln mit **Spaced Repetition (FSRS)**, lässt dich die Wörter **schreiben** statt nur umdrehen und rechnet **rückwärts vom Testdatum**, wie viel heute dran ist.
 
-- **Handy (iPhone/Android):** https://jarvis-lab123.github.io/game/voki/
+- **Handy (iPhone/Android):** https://jarvis-lab123.github.io/Game/voki/
 - **PC (Windows):** Installer unter [Releases](https://github.com/jarvis-lab123/Game/releases) → neuestes „Voki v… für Windows“ → `Voki_…_x64_de-DE.msi` bzw. `Voki_…_x64_en-US.msi`
 
 ## Installieren
@@ -45,7 +45,7 @@ Neue Wörter: **Kennenlernen → Auswählen (4 Optionen) → selbst schreiben**.
 
 ```bash
 npm install
-npm run dev        # http://localhost:5173/game/voki/
+npm run dev        # http://localhost:5173/Game/voki/
 npm test           # Vitest (Bewertung, FSRS, Prüfungsplanung, Import, Backup)
 npm run build      # PWA nach dist/
 npm run tauri build -- --bundles msi   # Windows-Installer (auf Windows, Rust nötig)

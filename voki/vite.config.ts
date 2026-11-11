@@ -3,12 +3,12 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
-// PWA build is served from https://jarvis-lab123.github.io/game/voki/
+// PWA build is served from https://jarvis-lab123.github.io/Game/voki/
 // Tauri build (--mode tauri) loads files relative to the app bundle.
 export default defineConfig(({ mode }) => {
   const tauri = mode === 'tauri'
   return {
-    base: tauri ? './' : '/game/voki/',
+    base: tauri ? './' : '/Game/voki/',
     define: { __APP_VERSION__: JSON.stringify(process.env.npm_package_version ?? '0.1.0') },
     plugins: [
       react(),

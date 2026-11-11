@@ -5,7 +5,7 @@
   "identifier": "ch.jarvislab.voki",
   "build": {
     "beforeDevCommand": "npm run dev",
-    "devUrl": "http://localhost:5173/game/voki/",
+    "devUrl": "http://localhost:5173/Game/voki/",
     "beforeBuildCommand": "npm run build:tauri",
     "frontendDist": "../dist"
   },
