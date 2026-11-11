@@ -1,0 +1,57 @@
+name: Voki Windows-Installer
+on:
+  push:
+    branches: [claude/new-session-ps1d0m, claude/2d-story-game-kazh5h]
+    paths: ['voki/**', '.github/workflows/voki-windows.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: voki-windows
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: voki
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: voki/package-lock.json
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: voki/src-tauri -> target
+      - run: npm ci
+      - run: npm test
+      - id: version
+        shell: bash
+        run: echo "v=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+      # Same tag every build of a version: the release is updated in place (latest .msi wins).
+      - name: Remove old release assets of this version
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tag="voki-v${{ steps.version.outputs.v }}"
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release delete "$tag" --repo "$GITHUB_REPOSITORY" --yes --cleanup-tag
+          fi
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: voki
+          tagName: voki-v__VERSION__
+          releaseName: Voki v__VERSION__ für Windows
+          releaseBody: |
+            Windows-Installer für Voki. Die .msi-Datei herunterladen und doppelklicken.
+            Windows zeigt evtl. „Der Computer wurde durch Windows geschützt“: auf „Weitere Informationen“ → „Trotzdem ausführen“ klicken (die App ist nicht kostenpflichtig signiert).
+          releaseDraft: false
+          prerelease: false
+          releaseCommitish: ${{ github.sha }}
+          args: --bundles msi
