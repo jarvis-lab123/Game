@@ -38,6 +38,8 @@ jobs:
           path: _site
   deploy:
     needs: build
+    # The github-pages environment only accepts the default branch.
+    if: github.ref == 'refs/heads/claude/2d-story-game-kazh5h' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
