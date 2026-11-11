@@ -9,6 +9,7 @@ export default defineConfig(({ mode }) => {
   const tauri = mode === 'tauri'
   return {
     base: tauri ? './' : '/game/voki/',
+    define: { __APP_VERSION__: JSON.stringify(process.env.npm_package_version ?? '0.1.0') },
     plugins: [
       react(),
       tailwindcss(),
@@ -38,5 +39,6 @@ export default defineConfig(({ mode }) => {
       }),
     ],
     server: { port: 5173, strictPort: true },
+    build: { chunkSizeWarningLimit: 800 },
   }
 })

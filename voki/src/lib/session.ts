@@ -102,6 +102,15 @@ export class SessionEngine {
     }
   }
 
+  /** Replace a queued card with a newer version (e.g. sibling direction moved past intro). */
+  updateCard(card: Card): void {
+    const swap = (l: Card[]) => l.forEach((c, i) => c.id === card.id && (l[i] = card))
+    swap(this.fresh)
+    swap(this.reviews)
+    swap(this.cram)
+    this.pending.forEach((p) => p.card.id === card.id && (p.card = card))
+  }
+
   /** Items still waiting (for "Fertig?" checks and the progress bar). */
   remaining(): number {
     return this.reviews.length + this.fresh.length + this.cram.length + this.pending.length

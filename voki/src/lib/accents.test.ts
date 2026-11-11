@@ -18,3 +18,13 @@ describe('cycleAccent (§5.5)', () => {
     expect(ACCENT_BAR.join(' ')).toBe('é è ê ë à â ç î ï ô û ù œ æ « »')
   })
 })
+
+describe('baseOf', () => {
+  it('maps accent variants back to their base letter', async () => {
+    const { baseOf } = await import('./accents')
+    expect(baseOf('è')).toBe('e')
+    expect(baseOf('E')).toBe('e')
+    expect(baseOf('Ç')).toBe('c')
+    expect(baseOf('x')).toBeNull()
+  })
+})

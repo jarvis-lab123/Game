@@ -15,3 +15,10 @@ export function cycleAccent(ch: string): string | null {
   }
   return null
 }
+
+/** Base letter of an accent variant ("è" -> "e"), or null if the letter has no variants. */
+export function baseOf(ch: string): string | null {
+  const l = ch.toLowerCase()
+  const cyc = CYCLES.find((c) => c.includes(l))
+  return cyc ? cyc[0] : null
+}

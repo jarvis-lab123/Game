@@ -126,3 +126,18 @@ describe('boostCandidates (§6.3)', () => {
     expect(boostCandidates([weak], '2026-11-14', now, 0.9, new Set(['weak']))).toEqual([])
   })
 })
+
+describe('SessionEngine.updateCard', () => {
+  it('a sibling direction that skipped intro is asked as mc directly', () => {
+    const a = mkCard({ id: 'a', noteId: 'n' })
+    const b = mkCard({ id: 'b', noteId: 'n', direction: 'toNative' })
+    const e = new SessionEngine({ reviews: [], fresh: [a, b], cram: [], rng })
+    const first = e.next()!
+    expect(first.step).toBe('intro')
+    e.answer(first, true, { ...a, stage: 'mc' })
+    e.updateCard({ ...b, stage: 'mc' })
+    const seen = run(e)
+    expect(seen).not.toContain('intro:b')
+    expect(seen).toContain('mc:b')
+  })
+})
