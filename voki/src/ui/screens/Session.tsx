@@ -3,7 +3,7 @@ import { motion, useReducedMotion, type PanInfo } from 'framer-motion'
 import { Rating, type Grade } from 'ts-fsrs'
 import { db } from '../../db/db'
 import { loadSettings, log, planDay, sessionCards } from '../../db/queries'
-import { masteryInfo } from '../../db/mastery'
+import { drillCards, clearOverconfident, DRILL_SECONDS } from '../../db/drill'
 import { requestSync } from '../../db/autosync'
 import { SessionEngine, type Item } from '../../lib/session'
 import { planGroups, type Group } from '../../lib/groups'
@@ -33,7 +33,6 @@ interface Ctx {
 }
 
 const RECALL = new Set(['review', 'practice', 'cram'])
-const DRILL_SECONDS = 20
 
 function shuffle<T>(a: T[]): T[] {
   const r = [...a]
@@ -59,18 +58,6 @@ function mcOptions(card: Card, face: Face, note: Note, notes: Map<string, Note>)
       }
     }
   return shuffle([face.answer, ...pick])
-}
-
-/** Fehlerheft drill: wobbly words, leeches, overconfident words and recent mistakes. */
-async function drillCards(db_: typeof db, minutes: number, deckId?: string): Promise<Card[]> {
-  const { byNote } = await masteryInfo(db_, deckId ? [deckId] : undefined)
-  const since = new Date(Date.now() - 14 * 86400000).toISOString()
-  const wrong = new Set((await db_.logs.where('timestamp').aboveOrEqual(since).toArray()).filter((l) => !l.correct).map((l) => l.cardId))
-  const flagged = new Set((await db_.notes.toArray()).filter((n) => n.tags.includes('überschätzt')).map((n) => n.id))
-  const cards = (await db_.cards.toArray()).filter(
-    (c) => !c.suspended && (!deckId || c.deckId === deckId) && c.stage === 'review' && (byNote.get(c.noteId) === 'wackelt' || c.leech || wrong.has(c.id) || flagged.has(c.noteId)),
-  )
-  return shuffle(cards).slice(0, Math.max(1, Math.floor((minutes * 60) / DRILL_SECONDS)))
 }
 
 export function Session({ deckId, minutes, mode, drill }: { deckId?: string; minutes: number; mode: StudyMode; drill: boolean }) {
@@ -120,7 +107,7 @@ export function Session({ deckId, minutes, mode, drill }: { deckId?: string; min
       if (!alive) return
       const total = groups.reduce((s, g) => s + g.reviews.length + g.fresh.length * 2 + g.cram.length * (drill ? 2 : 1), 0)
       setCtx({ groups, notes, decks, settings, total, drill })
-      startGroup(groups, 0, drill)
+      startGroup(groups, 0, drill, notes)
     })()
     return () => {
       alive = false
@@ -142,7 +129,7 @@ export function Session({ deckId, minutes, mode, drill }: { deckId?: string; min
     shownAt.current = Date.now()
   }
 
-  function startGroup(groups: Group[], i: number, isDrill: boolean) {
+  function startGroup(groups: Group[], i: number, isDrill: boolean, notes = ctx?.notes) {
     const g = groups[i]
     if (!g) {
       setItem(null)
@@ -151,15 +138,15 @@ export function Session({ deckId, minutes, mode, drill }: { deckId?: string; min
     }
     engine.current = new SessionEngine(isDrill ? { reviews: [], fresh: [], cram: [], drill: g.cram } : { reviews: g.reviews, fresh: g.fresh, cram: g.cram })
     setGroupIndex(i)
-    showNext()
+    showNext(notes)
   }
 
-  function showNext() {
+  function showNext(notes = ctx?.notes) {
     const n = engine.current?.next() ?? null
     setItem(n)
     resetCard()
     if (!n) return
-    const note = ctx?.notes.get(n.card.noteId)
+    const note = notes?.get(n.card.noteId)
     const needsAid = n.card.leech && RECALL.has(n.step) && note && !note.mnemonic && !note.emoji && !note.sketch
     setPhase(needsAid ? 'leech' : 'ask')
   }
@@ -245,6 +232,7 @@ export function Session({ deckId, minutes, mode, drill }: { deckId?: string; min
           })
         })
         siblings.forEach((s) => engine.current?.updateCard(s))
+        if (ctx.drill && ok && item.step === 'practice') await clearOverconfident(db, card.noteId)
         if (item.step !== 'intro') {
           setAnswered((x) => x + 1)
           if (ok) setRight((x) => x + 1)
@@ -414,7 +402,7 @@ export function Session({ deckId, minutes, mode, drill }: { deckId?: string; min
         ) : phase === 'between' ? (
           <GroupBreak done={groupIndex + 1} total={ctx.groups.length} words={groupWords} onNext={nextGroup} />
         ) : !face || !note || !deck || !item ? (
-          <Empty title="Karte nicht gefunden">Diese Karte wurde gelöscht. <button className="text-accent underline" onClick={showNext}>Weiter</button></Empty>
+          <Empty title="Karte nicht gefunden">Diese Karte wurde gelöscht. <button className="text-accent underline" onClick={() => { const n = engine.current?.next() ?? null; if (n) { setItem(n); resetCard() } else afterGroup() }}>Weiter</button></Empty>
         ) : (
           <>
             <motion.div
@@ -451,7 +439,14 @@ export function Session({ deckId, minutes, mode, drill }: { deckId?: string; min
                         {!ctx.drill && <HintBar key={item.card.id + answered} steps={hintList} used={hints} onMore={() => setHints((h) => h + 1)} />}
                       </div>
                     ) : (
-                      result && <FeedbackView result={result} typed={typed} face={face} strict={deck.strictAccents} />
+                      result && (
+                        <>
+                          <FeedbackView result={result} typed={typed} face={face} strict={deck.strictAccents} />
+                          {hints > 0 && result.verdict === 'correct' && (
+                            <p className="mt-2 text-sm text-muted">Mit {hints === 1 ? 'einem Hinweis' : `${hints} Hinweisen`} – zählt als „{hints === 1 ? 'schwer' : 'nochmal'}“, damit Voki das Wort bald wieder fragt.</p>
+                          )}
+                        </>
+                      )
                     )}
                     {phase !== 'ask' && result && result.verdict !== 'correct' && <div className="mt-4"><MemoryAids note={note} /></div>}
                     {phase === 'retype' && result && (

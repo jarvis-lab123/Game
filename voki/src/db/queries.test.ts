@@ -59,3 +59,18 @@ describe('planDay edge cases (review #2, #5)', () => {
     expect(p.due).toBe(1)
   })
 })
+
+describe('orphan cards (review #2)', () => {
+  it('a card whose word no longer exists is never scheduled', async () => {
+    const db = new VokiDB('q-' + Math.random())
+    const now = new Date('2026-11-11T10:00:00')
+    const deck = await createDeck(db, { name: 'E', language: 'en', directions: ['toTarget'] })
+    await importNotes(db, deck.id, [{ term: 'a', translation: 'b', valid: true, duplicate: false }, { term: 'c', translation: 'd', valid: true, duplicate: false }], deck.directions)
+    for (const c of await db.cards.toArray()) await db.cards.put({ ...c, stage: 'review', due: now.getTime() - 1000 })
+    const orphan = (await db.cards.toArray())[0]
+    await db.notes.delete(orphan.noteId)
+    const p = (await planDay(db, now)).decks[0]
+    expect(p.due).toBe(1)
+    expect(p.cards.map((c) => c.id)).not.toContain(orphan.id)
+  })
+})

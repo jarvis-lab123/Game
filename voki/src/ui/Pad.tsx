@@ -1,6 +1,6 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
 
-export interface PadHandle { clear: () => void; toDataURL: () => string | null; isEmpty: () => boolean }
+export interface PadHandle { clear: () => void; toDataURL: (maxWidth?: number) => string | null; isEmpty: () => boolean }
 
 /** Drawing surface for handwriting and memory sketches (finger, pen or mouse). */
 export const Pad = forwardRef<PadHandle, { height?: number; initial?: string; label: string; onChange?: () => void }>(function Pad({ height = 200, initial, label, onChange }, ref) {
@@ -21,7 +21,8 @@ export const Pad = forwardRef<PadHandle, { height?: number; initial?: string; la
     g.lineCap = 'round'
     g.lineJoin = 'round'
     g.lineWidth = 3
-    g.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--fg').trim() || '#111'
+    // fixed dark ink on a white sheet: readable in light and dark mode
+    g.strokeStyle = '#1a1d24'
     if (initial) {
       const img = new Image()
       img.onload = () => g.drawImage(img, 0, 0, w, height)
@@ -38,7 +39,19 @@ export const Pad = forwardRef<PadHandle, { height?: number; initial?: string; la
       empty.current = true
       onChange?.()
     },
-    toDataURL: () => (empty.current ? null : canvas.current?.toDataURL('image/png') ?? null),
+    toDataURL: (maxWidth = 480) => {
+      const c = canvas.current
+      if (empty.current || !c) return null
+      const scale = Math.min(1, maxWidth / c.width)
+      const out = document.createElement('canvas')
+      out.width = Math.round(c.width * scale)
+      out.height = Math.round(c.height * scale)
+      const g = out.getContext('2d')!
+      g.fillStyle = '#ffffff'
+      g.fillRect(0, 0, out.width, out.height)
+      g.drawImage(c, 0, 0, out.width, out.height)
+      return out.toDataURL('image/jpeg', 0.8)
+    },
     isEmpty: () => empty.current,
   }))
 
@@ -51,7 +64,7 @@ export const Pad = forwardRef<PadHandle, { height?: number; initial?: string; la
       ref={canvas}
       role="img"
       aria-label={label}
-      className="block w-full touch-none rounded-2xl bg-surface-2/60 ring-1 ring-inset ring-line"
+      className="block w-full touch-none rounded-2xl bg-white ring-1 ring-inset ring-line"
       style={{ height }}
       onPointerDown={(e) => {
         drawing.current = true

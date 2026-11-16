@@ -58,6 +58,25 @@ export function mergeSnapshots(a: Snapshot, b: Snapshot): Snapshot {
     ;(out[table] as Versioned[]) = keep.sort(byId)
   }
 
+  // Cascade: rows whose parent was deleted (and is gone) disappear too, even if edited later.
+  // Their tombstone gets the newest timestamp so the next sync does not bring them back.
+  const cascade = (table: 'notes' | 'cards', parentTable: 'decks' | 'notes', parentOf: (r: Versioned) => string) => {
+    const alive = new Set((out[parentTable] as Versioned[]).map((r) => r.id))
+    const keep: Versioned[] = []
+    for (const r of out[table] as Versioned[]) {
+      const pid = parentOf(r)
+      if (!alive.has(pid) && tombs.has(`${parentTable}:${pid}`)) {
+        const tid = `${table}:${r.id}`
+        const old = tombs.get(tid)
+        const deletedAt = old && old.deletedAt > r.updatedAt ? old.deletedAt : r.updatedAt
+        tombs.set(tid, { id: tid, table, deletedAt })
+      } else keep.push(r)
+    }
+    ;(out[table] as Versioned[]) = keep
+  }
+  cascade('notes', 'decks', (r) => (r as unknown as { deckId: string }).deckId)
+  cascade('cards', 'notes', (r) => (r as unknown as { noteId: string }).noteId)
+
   const logs = unionBy(a.logs, b.logs, (l) => l.timestamp)
   out.logs = [...logs.values()].filter((l) => !tombs.has(`logs:${l.id}`)).sort(byId)
   out.tombstones = [...tombs.values()].sort(byId)

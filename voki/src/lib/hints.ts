@@ -33,7 +33,8 @@ export function hintSteps(answer: string, example?: string): string[] {
   const prefix = article ? (article.endsWith("'") ? article : `${article} `) : ''
   const out: string[] = []
   if (example) {
-    const re = new RegExp(rest.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i')
+    const esc = rest.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const re = new RegExp(`(?<![\\p{L}])${esc}(?![\\p{L}])`, 'iu')
     if (re.test(example)) out.push(example.replace(re, '___'))
   }
   out.push(prefix + mask(rest, false))

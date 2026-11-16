@@ -15,7 +15,7 @@ const KIND_LABEL = { genus: 'Genus', wortteil: 'Wortteil', ähnlich: 'Ähnlich' 
  * Eselsbrücken-Werkstatt: automatic hooks + own sentence + emoji + sketch (dual coding).
  * Saves directly to the note.
  */
-export function MnemonicStudio({ note, language, compact, onSaved }: { note: Note; language: Language; compact?: boolean; onSaved?: (n: Note) => void }) {
+export function MnemonicStudio({ note, language, compact, onSaved, onDraft }: { note: Note; language: Language; compact?: boolean; onSaved?: (n: Note) => void; onDraft?: (text: string) => void }) {
   const others = useLiveQuery(() => db.notes.where('deckId').notEqual(note.deckId).limit(3000).toArray(), [note.deckId])
   const suggestions = useMemo(() => suggestMnemonics(note, language, others ?? []), [note, language, others])
   const [text, setText] = useState(note.mnemonic ?? '')
@@ -24,9 +24,10 @@ export function MnemonicStudio({ note, language, compact, onSaved }: { note: Not
   const pad = useRef<PadHandle>(null)
 
   const save = async (patch: Partial<Note>) => {
-    const n = { ...note, ...patch, updatedAt: new Date().toISOString() }
-    await db.notes.put(n)
-    onSaved?.(n)
+    // only the changed fields, against the stored record (a parallel save must not be undone)
+    await db.notes.update(note.id, { ...patch, updatedAt: new Date().toISOString() })
+    const n = await db.notes.get(note.id)
+    if (n) onSaved?.(n)
   }
 
   return (
@@ -50,7 +51,10 @@ export function MnemonicStudio({ note, language, compact, onSaved }: { note: Not
           rows={2}
           value={text}
           placeholder="Bild, Klang, Geschichte … je verrückter, desto besser"
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) => {
+            setText(e.target.value)
+            onDraft?.(e.target.value)
+          }}
           onBlur={() => text !== (note.mnemonic ?? '') && save({ mnemonic: text.trim() || undefined })}
         />
       </label>
@@ -85,7 +89,7 @@ export function MnemonicStudio({ note, language, compact, onSaved }: { note: Not
             <p className="mb-1.5 text-sm font-medium">Skizze <span className="font-normal text-muted">(zeichne dein Merkbild)</span></p>
             <Pad ref={pad} height={150} initial={note.sketch} label={`Skizze zu ${note.term}`} />
             <div className="mt-2 flex gap-2">
-              <Button size="sm" onClick={() => save({ sketch: pad.current?.toDataURL() ?? undefined })}>Skizze speichern</Button>
+              <Button size="sm" onClick={() => save({ sketch: pad.current?.toDataURL(480) ?? undefined })}>Skizze speichern</Button>
               <Button size="sm" variant="ghost" onClick={() => { pad.current?.clear(); void save({ sketch: undefined }) }}>Löschen</Button>
             </div>
           </div>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { Rating } from 'ts-fsrs'
 import { db } from '../../db/db'
@@ -25,6 +25,7 @@ export function ProbeTest({ deckId }: { deckId: string }) {
   const [typed, setTyped] = useState('')
   const [answers, setAnswers] = useState<A[]>([])
   const [saved, setSaved] = useState<number | null>(null)
+  const saving = useRef(false)
 
   useEffect(() => {
     ;(async () => {
@@ -52,7 +53,8 @@ export function ProbeTest({ deckId }: { deckId: string }) {
 
   // save result once
   useEffect(() => {
-    if (!done || saved != null || !deck || !qs) return
+    if (!done || saved != null || !deck || !qs || saving.current) return
+    saving.current = true
     ;(async () => {
       const correct = answers.filter((a) => a.correct).length
       const grade = swissGrade(correct, answers.length)

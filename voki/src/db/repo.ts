@@ -95,6 +95,7 @@ export async function deleteDeck(db: VokiDB, deckId: string): Promise<void> {
     await addTombstones(db, 'cards', (await db.cards.where('deckId').equals(deckId).primaryKeys()) as string[])
     await addTombstones(db, 'notes', (await db.notes.where('deckId').equals(deckId).primaryKeys()) as string[])
     await addTombstones(db, 'decks', [deckId])
+    await addTombstones(db, 'logs', (await db.logs.where('deckId').equals(deckId).primaryKeys()) as string[])
     await db.cards.where('deckId').equals(deckId).delete()
     await db.notes.where('deckId').equals(deckId).delete()
     await db.logs.where('deckId').equals(deckId).delete()

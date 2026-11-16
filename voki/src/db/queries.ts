@@ -47,10 +47,12 @@ export async function planDay(db: VokiDB, now: Date, onlyDeck?: string): Promise
   const decks = active.filter((d) => !onlyDeck || d.id === onlyDeck)
   const dirs = new Map(active.map((d) => [d.id, d.directions]))
   // only cards of active decks and of directions the deck still asks
-  const allCards = (await db.cards.toArray()).filter((c) => !c.suspended && dirs.get(c.deckId)?.includes(c.direction))
+  const noteIds = new Set((await db.notes.toCollection().primaryKeys()) as string[])
+  const allCards = (await db.cards.toArray()).filter((c) => !c.suspended && dirs.get(c.deckId)?.includes(c.direction) && noteIds.has(c.noteId))
   const since = new Date(startOfDay(now)).toISOString()
   const todayLogs = await db.logs.where('timestamp').aboveOrEqual(since).toArray()
-  const reviewedToday = new Set(todayLogs.map((l) => l.cardId))
+  // Probetest and Fehlerheft drills don't count as a real review for the pre-exam boost
+  const reviewedToday = new Set(todayLogs.filter((l) => l.mode !== 'test' && l.mode !== 'drill').map((l) => l.cardId))
   const totalDue = allCards.filter((c) => isDue(c, now)).length
   const backlog = totalDue > BACKLOG_LIMIT
 

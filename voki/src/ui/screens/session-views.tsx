@@ -125,7 +125,8 @@ export function HintBar({ steps, used, onMore }: { steps: string[]; used: number
 
 /* ---------- Problemwort-Pause (§5.7) ---------- */
 export function LeechPause({ note, deck, onSaved, onContinue }: { note: Note; deck: Deck; onSaved: (n: Note) => void; onContinue: () => void }) {
-  const hasAid = !!(note.mnemonic || note.emoji || note.sketch)
+  const [draft, setDraft] = useState('')
+  const hasAid = !!(note.mnemonic || note.emoji || note.sketch || draft.trim().length >= 3)
   return (
     <div>
       <div className="flex items-center gap-2 text-warn">
@@ -136,7 +137,7 @@ export function LeechPause({ note, deck, onSaved, onContinue }: { note: Note; de
       <p className="mt-4 break-words text-[30px] font-semibold leading-tight tracking-tight" lang={deck.language}>{note.term}</p>
       <p className="mt-1 text-[19px] text-fg/90">{note.translation}</p>
       <div className="mt-5 border-t border-line pt-5">
-        <MnemonicStudio note={note} language={deck.language} onSaved={onSaved} />
+        <MnemonicStudio note={note} language={deck.language} onSaved={onSaved} onDraft={setDraft} />
       </div>
       <Button variant="primary" size="lg" className="mt-6 w-full desk:w-auto" disabled={!hasAid} onClick={onContinue}>
         {hasAid ? 'Weiter zur Abfrage' : 'Erst eine Eselsbrücke, Emoji oder Skizze'}
@@ -149,7 +150,7 @@ export function LeechPause({ note, deck, onSaved, onContinue }: { note: Note; de
 export function GroupBreak({ done, total, words, onNext }: { done: number; total: number; words: { term: string; translation: string; emoji?: string }[]; onNext: () => void }) {
   const reduce = useReducedMotion()
   useEffect(() => {
-    const on = (e: KeyboardEvent) => e.key === 'Enter' && onNext()
+    const on = (e: KeyboardEvent) => e.key === 'Enter' && !(e.target instanceof HTMLButtonElement) && onNext()
     window.addEventListener('keydown', on)
     return () => window.removeEventListener('keydown', on)
   }, [onNext])

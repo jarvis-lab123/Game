@@ -120,3 +120,25 @@ describe('parseSnapshot', () => {
     expect(() => parseSnapshot('{"v":2}')).toThrow()
   })
 })
+
+describe('cascade deletes (review #2)', () => {
+  const note = (id: string, updatedAt: string, deckId = 'd1') => ({ id, deckId, term: 'x', translation: 'y', tags: [], updatedAt })
+  it('a card reviewed on B after its word was deleted on A does not survive as an orphan', () => {
+    const a = snap({ tombstones: [tomb('notes', 'n1', T(5)), tomb('cards', 'c1', T(5))] })
+    const b = snap({ notes: [note('n1', T(0))], cards: [card('c1', T(9), 2)] })
+    for (const m of [mergeSnapshots(a, b), mergeSnapshots(b, a)]) {
+      expect(m.notes).toEqual([])
+      expect(m.cards).toEqual([])
+      const t = m.tombstones.find((x) => x.id === 'cards:c1')!
+      expect(t.deletedAt >= T(9)).toBe(true) // stays deleted on the next sync too
+    }
+  })
+  it('words of a deleted deck go too', () => {
+    const a = snap({ tombstones: [tomb('decks', 'd1', T(5))] })
+    const b = snap({ decks: [deck('d1', T(0))], notes: [note('n1', T(7))] })
+    expect(mergeSnapshots(a, b).notes).toEqual([])
+  })
+  it('a card without any note record (not deleted) is kept', () => {
+    expect(mergeSnapshots(snap({ cards: [card('c1', T(1))] }), snap({})).cards).toHaveLength(1)
+  })
+})

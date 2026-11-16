@@ -25,3 +25,12 @@ describe('applyHints (§5.4b)', () => {
   it('two or more hints: Again', () => expect(applyHints(Rating.Good, 2)).toBe(Rating.Again))
   it('never improves a rating', () => expect(applyHints(Rating.Again, 1)).toBe(Rating.Again))
 })
+
+describe('hintSteps – whole words only (review)', () => {
+  it('does not gap a word inside a longer word', () => {
+    expect(hintSteps('le chat', 'Les chats dorment.')[0]).toBe('le _ _ _ _')
+  })
+  it('gaps the word with accents correctly', () => {
+    expect(hintSteps("l'élève", "L'élève lit.")[0]).toBe("L'___ lit.")
+  })
+})
