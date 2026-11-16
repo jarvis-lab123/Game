@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { IconDecks, IconImport, IconPractice, IconSettings, IconStats, IconToday } from './icons'
 import { cx } from './components'
 import { APP_VERSION } from '../lib/version'
+import { FullscreenNavItem } from './fullscreen'
 
 const NAV = [
   { to: '/', label: 'Heute', icon: IconToday, match: (p: string) => p === '/' },
@@ -46,7 +47,10 @@ export function Shell({ path, children }: { path: string; children: ReactNode })
             )
           })}
         </nav>
-        <p className="mt-auto px-3 text-xs text-muted">Tipp: <kbd className="font-sans">Enter</kbd> startet das Lernen auf „Heute“.</p>
+        <div className="mt-auto">
+          <FullscreenNavItem />
+        </div>
+        <p className="mt-3 px-3 text-xs text-muted">Tipp: <kbd className="font-sans">Enter</kbd> startet das Lernen auf „Heute“.</p>
         <a href="#/einstellungen" className="mt-2 px-3 text-xs font-medium text-muted hover:text-fg">Voki {APP_VERSION}</a>
       </aside>
 
