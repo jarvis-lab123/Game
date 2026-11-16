@@ -6,6 +6,7 @@ import { db } from '../db/db'
 import { startAutoSync } from '../db/autosync'
 import { seedBuiltinDecks } from '../db/seed'
 import { isTauri, setDueBadge, toggleFullscreen } from '../platform'
+import { watchForUpdates } from '../platform/liveupdate'
 import { Today } from './screens/Today'
 import { Session } from './screens/Session'
 import { SessionSetup, type StudyMode } from './screens/SessionSetup'
@@ -27,6 +28,8 @@ export function App() {
     void seedBuiltinDecks(db).catch(() => {})
     return startAutoSync(db)
   }, [])
+  // newest web version also for an app that stays open (PC tray, PWA)
+  useEffect(() => watchForUpdates(), [])
   // PC app: F11 toggles fullscreen like in a browser
   useEffect(() => {
     if (!isTauri) return

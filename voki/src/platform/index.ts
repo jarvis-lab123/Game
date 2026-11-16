@@ -142,6 +142,7 @@ export async function openExternal(url: string): Promise<void> {
 
 /** Web/PWA: look for a new version now (the page reloads itself when one is found). */
 export async function checkWebUpdate(): Promise<void> {
+  await import('./liveupdate').then((m) => m.checkForNewBuild(true)).catch(() => {})
   if (isTauri || !('serviceWorker' in navigator)) return
   const reg = await navigator.serviceWorker.getRegistration()
   await reg?.update()
