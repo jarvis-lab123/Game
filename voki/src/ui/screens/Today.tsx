@@ -2,11 +2,14 @@ import { useEffect } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '../../db/db'
 import { planDay, type DeckPlan } from '../../db/queries'
-import { Badge, Button, Empty, Panel, Progress, SectionTitle, pct } from '../components'
+import { Badge, Button, Panel, Progress, SectionTitle, pct } from '../components'
 import { Flag, IconCheck, IconFlame, IconPlay } from '../icons'
 import { go } from '../router'
 import { useSettings } from '../settings'
 import { BackupReminder } from './SettingsScreen'
+import { masteryInfo } from '../../db/mastery'
+import { MasteryBar } from '../MasteryBar'
+import { Illustration } from '../illustrations'
 
 const dateFmt = new Intl.DateTimeFormat('de-CH', { weekday: 'long', day: 'numeric', month: 'long' })
 
@@ -16,6 +19,7 @@ function plural(n: number, one: string, many: string) {
 
 export function Today() {
   const plan = useLiveQuery(() => planDay(db, new Date()), [])
+  const mastery = useLiveQuery(() => masteryInfo(db), [])
   const settings = useSettings()
   const total = plan ? plan.reviews + plan.news + plan.cram : 0
 
@@ -41,12 +45,12 @@ export function Today() {
       </header>
 
       {!hasDecks || words === 0 ? (
-        <Empty
-          title="Noch keine Vokabeln"
-          action={<Button variant="primary" onClick={() => go('/import')}>Vokabeln importieren</Button>}
-        >
-          Importier deine erste Liste. Mit dem Foto-Prompt für Claude dauert das etwa zwei Minuten.
-        </Empty>
+        <div className="rounded-3xl bg-surface px-6 py-10 text-center ring-1 ring-line">
+          <div className="flex justify-center"><Illustration kind="cards" /></div>
+          <p className="mt-4 text-[20px] font-semibold tracking-tight">Noch keine Vokabeln</p>
+          <p className="mx-auto mt-1 max-w-sm text-[15px] text-muted">Fotografier deine Liste, lass Claude sie umwandeln und füg sie ein. Dauert etwa zwei Minuten.</p>
+          <Button variant="primary" size="lg" className="mt-6" onClick={() => go('/import')}>Vokabeln importieren</Button>
+        </div>
       ) : (
         <Panel className="p-6 desk:p-8">
           {total > 0 ? (
@@ -68,7 +72,7 @@ export function Today() {
                   : ` · Ziel ${settings.dailyMinutesGoal} Min`}
               </p>
               <Button variant="primary" size="lg" className="mt-6 w-full desk:w-auto desk:min-w-64" onClick={() => go('/lernen')} kbd="Enter">
-                <IconPlay /> Session starten
+                <IconPlay /> Lernen starten
               </Button>
             </>
           ) : (
@@ -86,6 +90,18 @@ export function Today() {
             </p>
           )}
         </Panel>
+      )}
+
+      {mastery && hasDecks && words > 0 && (
+        <section className="rounded-2xl bg-surface p-5 ring-1 ring-line">
+          <div className="mb-3 flex items-baseline justify-between gap-3">
+            <h2 className="text-[13px] font-semibold uppercase tracking-wide text-muted">Was sitzt?</h2>
+            {mastery.counts.wackelt > 0 && (
+              <a href="#/ueben" className="text-sm font-medium text-warn hover:underline">{mastery.counts.wackelt} wackeln → Fehlerheft</a>
+            )}
+          </div>
+          <MasteryBar counts={mastery.counts} />
+        </section>
       )}
 
       {exams.length > 0 && (

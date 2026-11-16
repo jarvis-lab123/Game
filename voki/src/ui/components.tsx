@@ -18,6 +18,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonHTMLAttributes<HTMLBut
     return (
       <button
         ref={ref}
+        type="button"
         className={cx(
           'inline-flex select-none items-center justify-center gap-2 rounded-xl font-medium transition-[background,filter,transform] duration-150 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-40',
           size === 'lg' ? 'min-h-14 px-6 text-[17px]' : size === 'sm' ? 'min-h-11 px-3 text-sm desk:min-h-9' : 'min-h-11 px-4 text-[15px]',
@@ -35,7 +36,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonHTMLAttributes<HTMLBut
 
 export function Kbd({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <kbd className={cx('inline-flex h-5 min-w-5 items-center justify-center rounded-md border border-current/30 px-1 font-sans text-[11px] font-medium', className)}>
+    <kbd className={cx('hidden h-5 min-w-5 items-center desk:inline-flex justify-center rounded-md border border-current/30 px-1 font-sans text-[11px] font-medium', className)}>
       {children}
     </kbd>
   )
@@ -131,6 +132,7 @@ export function Segmented<T extends string>({ value, onChange, options, label }:
       {options.map((o) => (
         <button
           key={o.value}
+          type="button"
           role="radio"
           aria-checked={value === o.value}
           onClick={() => onChange(o.value)}

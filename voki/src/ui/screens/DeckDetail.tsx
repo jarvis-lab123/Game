@@ -10,6 +10,10 @@ import { Badge, Button, Empty, Input, Label, PageHeader, Panel, Progress, Sectio
 import { Flag, IconBack, IconPlay, IconSearch, IconTrash, IconImport } from '../icons'
 import { go } from '../router'
 import { DirectionPicker } from './Decks'
+import { ExportButton } from './ExportButton'
+import { masteryInfo } from '../../db/mastery'
+import { MasteryBar, MASTERY_TONE } from '../MasteryBar'
+import { MnemonicStudio } from '../MnemonicStudio'
 
 const STAGE_LABEL: Record<Card['stage'], string> = { new: 'neu', intro: 'neu', mc: 'lernt', type: 'lernt', review: 'gelernt' }
 
@@ -33,6 +37,7 @@ export function DeckDetail({ id }: { id: string }) {
         action={
           <div className="flex gap-2">
             <Button onClick={() => go(`/import?deck=${deck.id}`)}><IconImport /> Import</Button>
+            <Button onClick={() => go(`/probetest?deck=${deck.id}`)}>Probetest</Button>
             <Button variant="primary" disabled={todo === 0} onClick={() => go(`/lernen?deck=${deck.id}`)}><IconPlay /> Lernen{todo > 0 && ` (${todo})`}</Button>
           </div>
         }
@@ -49,11 +54,24 @@ export function DeckDetail({ id }: { id: string }) {
         </Panel>
       )}
 
+      <MasteryPanel deckId={deck.id} />
+
       <div className="mb-4">
         <Segmented label="Ansicht" value={tab} onChange={setTab} options={[{ value: 'words', label: 'Wörter' }, { value: 'settings', label: 'Einstellungen' }]} />
       </div>
       {tab === 'words' ? <WordList deck={deck} notes={notes ?? []} cards={cards ?? []} /> : <DeckSettings deck={deck} unintroduced={p?.unintroduced ?? 0} />}
     </div>
+  )
+}
+
+function MasteryPanel({ deckId }: { deckId: string }) {
+  const m = useLiveQuery(() => masteryInfo(db, [deckId]), [deckId])
+  if (!m || m.byNote.size === 0) return null
+  return (
+    <Panel className="mb-6">
+      <p className="mb-3 font-semibold">Was sitzt?</p>
+      <MasteryBar counts={m.counts} />
+    </Panel>
   )
 }
 
@@ -67,6 +85,7 @@ function WordList({ deck, notes, cards }: { deck: Deck; notes: Note[]; cards: Ca
     return m
   }, [cards])
   const order = useMemo(() => new Map(cards.map((c) => [c.noteId, c.order])), [cards])
+  const mastery = useLiveQuery(() => masteryInfo(db, [deck.id]), [deck.id, cards])
   const list = notes
     .filter((n) => !q || normalize(`${n.term} ${n.translation}`).includes(normalize(q)))
     .sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0))
@@ -93,14 +112,16 @@ function WordList({ deck, notes, cards }: { deck: Deck; notes: Note[]; cards: Ca
                   <span className="block truncate text-sm text-muted">{n.translation}</span>
                 </span>
                 {cs.some((c) => c.leech) && <Badge tone="warn">Problemwort</Badge>}
-                {suspended ? <Badge>gesperrt</Badge> : <Badge tone={stage === 'review' ? 'good' : stage === 'new' ? 'neutral' : 'accent'}>{STAGE_LABEL[stage]}</Badge>}
+                {n.emoji && <span className="text-[18px]" aria-hidden>{n.emoji}</span>}
+                {suspended ? <Badge>gesperrt</Badge> : mastery?.byNote.get(n.id) ? <Badge tone={MASTERY_TONE[mastery.byNote.get(n.id)!].badge}>{mastery.byNote.get(n.id)}</Badge> : <Badge>{STAGE_LABEL[stage]}</Badge>}
               </button>
-              {open === n.id && <NoteEditor note={n} cards={cs} onClose={() => setOpen(null)} />}
+              {open === n.id && <NoteEditor note={n} cards={cs} language={deck.language} onClose={() => setOpen(null)} />}
             </li>
           )
         })}
         {list.length === 0 && <li className="px-5 py-6 text-center text-sm text-muted">Kein Treffer für „{q}“.</li>}
       </ul>
+      <div className="mt-4"><ExportButton deckId={deck.id} /></div>
       {list.length > limit && (
         <Button variant="ghost" className="mt-2 w-full" onClick={() => setLimit(list.length)}>Alle {list.length} anzeigen</Button>
       )}
@@ -108,7 +129,7 @@ function WordList({ deck, notes, cards }: { deck: Deck; notes: Note[]; cards: Ca
   )
 }
 
-function NoteEditor({ note, cards, onClose }: { note: Note; cards: Card[]; onClose: () => void }) {
+function NoteEditor({ note, cards, language, onClose }: { note: Note; cards: Card[]; language: Deck['language']; onClose: () => void }) {
   const [n, setN] = useState(note)
   const suspended = cards.length > 0 && cards.every((c) => c.suspended)
   const field = (k: keyof Note, label: string) => (
@@ -123,7 +144,9 @@ function NoteEditor({ note, cards, onClose }: { note: Note; cards: Card[]; onClo
       onSubmit={async (e) => {
         e.preventDefault()
         if (!n.term.trim() || !n.translation.trim()) return
-        await db.notes.put({ ...n, term: n.term.trim(), translation: n.translation.trim(), updatedAt: new Date().toISOString() })
+        // merge into the stored note: memory aids are saved separately by the studio
+        const fresh = (await db.notes.get(note.id)) ?? note
+        await db.notes.put({ ...fresh, term: n.term.trim(), translation: n.translation.trim(), example: n.example, notes: n.notes, gender: n.gender, updatedAt: new Date().toISOString() })
         onClose()
       }}
     >
@@ -131,12 +154,14 @@ function NoteEditor({ note, cards, onClose }: { note: Note; cards: Card[]; onClo
         {field('term', 'Fremdwort')}
         {field('translation', 'Deutsch (mehrere mit ; trennen)')}
         {field('example', 'Beispielsatz')}
-        {field('mnemonic', 'Eselsbrücke')}
         {field('notes', 'Notiz')}
         <div>
           <Label>Genus</Label>
           <Segmented label="Genus" value={n.gender ?? ''} onChange={(v) => setN({ ...n, gender: (v || undefined) as Note['gender'] })} options={[{ value: '', label: '–' }, { value: 'm', label: 'm' }, { value: 'f', label: 'f' }, { value: 'n', label: 'n' }, { value: 'pl', label: 'pl' }]} />
         </div>
+      </div>
+      <div className="rounded-2xl bg-surface p-4 ring-1 ring-line">
+        <MnemonicStudio note={note} language={language} />
       </div>
       <div className="flex flex-wrap gap-2">
         <Button type="submit" variant="primary">Speichern</Button>

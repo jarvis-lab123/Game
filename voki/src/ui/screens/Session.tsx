@@ -1,27 +1,39 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { motion, useReducedMotion, type PanInfo } from 'framer-motion'
 import { Rating, type Grade } from 'ts-fsrs'
 import { db } from '../../db/db'
 import { loadSettings, log, planDay, sessionCards } from '../../db/queries'
+import { masteryInfo } from '../../db/mastery'
+import { requestSync } from '../../db/autosync'
 import { SessionEngine, type Item } from '../../lib/session'
+import { planGroups, type Group } from '../../lib/groups'
 import { advanceLadder, applyReview } from '../../lib/srs'
 import { gradeAnswer, normalize, type GradeResult } from '../../lib/grade'
+import { applyHints, hintSteps } from '../../lib/hints'
 import type { Card, Deck, Note, ReviewMode, Settings } from '../../lib/types'
-import { speak, vibrate } from '../../platform'
-import { Button, Empty, Kbd, Progress, Segmented, cx } from '../components'
+import { setDueBadge, speak, vibrate } from '../../platform'
+import { Button, Empty, Kbd, Progress, cx } from '../components'
 import { IconCheck, IconX } from '../icons'
+import { Illustration } from '../illustrations'
+import { MemoryAids } from '../MnemonicStudio'
 import { go } from '../router'
 import { AnswerInput, CardShell, FeedbackView, FlipRatings, FlipView, IntroView, McView, StepLabel, faceOf, type Face } from './cards'
+import { GroupBreak, HandView, HintBar, LeechPause, ListenPrompt, SelfGradeButtons, type SelfGrade } from './session-views'
+import type { StudyMode } from './SessionSetup'
 
-type Phase = 'ask' | 'feedback' | 'retype'
-type ReviewStyle = 'type' | 'flip'
+type Phase = 'leech' | 'ask' | 'feedback' | 'retype' | 'between'
 
 interface Ctx {
-  engine: SessionEngine
+  groups: Group[]
   notes: Map<string, Note>
   decks: Map<string, Deck>
   settings: Settings
   total: number
+  drill: boolean
 }
+
+const RECALL = new Set(['review', 'practice', 'cram'])
+const DRILL_SECONDS = 20
 
 function shuffle<T>(a: T[]): T[] {
   const r = [...a]
@@ -38,7 +50,6 @@ function mcOptions(card: Card, face: Face, note: Note, notes: Map<string, Note>)
   const ans = (n: Note) => (toTarget ? n.term : n.translation)
   const seen = new Set([normalize(face.answer)])
   const pick: string[] = []
-  // prefer same gender (§5.2), then the rest
   for (const group of [shuffle(pool.filter((n) => note.gender && n.gender === note.gender)), shuffle(pool)])
     for (const n of group) {
       const k = normalize(ans(n))
@@ -50,8 +61,22 @@ function mcOptions(card: Card, face: Face, note: Note, notes: Map<string, Note>)
   return shuffle([face.answer, ...pick])
 }
 
-export function Session({ deckId, extraMinutes }: { deckId?: string; extraMinutes: number }) {
+/** Fehlerheft drill: wobbly words, leeches, overconfident words and recent mistakes. */
+async function drillCards(db_: typeof db, minutes: number, deckId?: string): Promise<Card[]> {
+  const { byNote } = await masteryInfo(db_, deckId ? [deckId] : undefined)
+  const since = new Date(Date.now() - 14 * 86400000).toISOString()
+  const wrong = new Set((await db_.logs.where('timestamp').aboveOrEqual(since).toArray()).filter((l) => !l.correct).map((l) => l.cardId))
+  const flagged = new Set((await db_.notes.toArray()).filter((n) => n.tags.includes('überschätzt')).map((n) => n.id))
+  const cards = (await db_.cards.toArray()).filter(
+    (c) => !c.suspended && (!deckId || c.deckId === deckId) && c.stage === 'review' && (byNote.get(c.noteId) === 'wackelt' || c.leech || wrong.has(c.id) || flagged.has(c.noteId)),
+  )
+  return shuffle(cards).slice(0, Math.max(1, Math.floor((minutes * 60) / DRILL_SECONDS)))
+}
+
+export function Session({ deckId, minutes, mode, drill }: { deckId?: string; minutes: number; mode: StudyMode; drill: boolean }) {
   const [ctx, setCtx] = useState<Ctx | null>(null)
+  const [groupIndex, setGroupIndex] = useState(0)
+  const engine = useRef<SessionEngine | null>(null)
   const [item, setItem] = useState<Item | null>(null)
   const [finished, setFinished] = useState(false)
   const [answered, setAnswered] = useState(0)
@@ -62,74 +87,112 @@ export function Session({ deckId, extraMinutes }: { deckId?: string; extraMinute
   const [retype, setRetype] = useState('')
   const [result, setResult] = useState<GradeResult | null>(null)
   const [picked, setPicked] = useState<number | null>(null)
-  const [flipped, setFlipped] = useState(false)
+  const [revealed, setRevealed] = useState(false)
+  const [hints, setHints] = useState(0)
   const [shake, setShake] = useState(0)
-  const [style, setStyle] = useState<ReviewStyle>(() => (localStorage.getItem('voki.reviewStyle') as ReviewStyle) || 'type')
   const [elapsed, setElapsed] = useState(0)
-  const [wrapped, setWrapped] = useState(false)
-  const [dropped, setDropped] = useState(0)
   const [error, setError] = useState('')
+  const [, force] = useState(0)
   const shownAt = useRef(Date.now())
   const startedAt = useRef(Date.now())
   const busy = useRef(false)
+  const reduce = useReducedMotion()
 
-  // build the session once
+  // ----- build session -----
   useEffect(() => {
     let alive = true
     ;(async () => {
       const now = new Date()
       const settings = await loadSettings(db)
-      const plan = await planDay(db, now, deckId)
-      const { reviews, fresh, cram } = sessionCards(plan, now)
-      const deckIds = plan.decks.map((d) => d.deck.id)
+      let groups: Group[]
+      let deckIds: string[]
+      if (drill) {
+        const cards = await drillCards(db, minutes, deckId)
+        groups = cards.length ? [{ reviews: [], fresh: [], cram: cards, seconds: cards.length * DRILL_SECONDS }] : []
+        deckIds = [...new Set(cards.map((c) => c.deckId))]
+      } else {
+        const plan = await planDay(db, now, deckId)
+        groups = planGroups(sessionCards(plan, now), minutes)
+        deckIds = plan.decks.map((d) => d.deck.id)
+      }
       const notes = new Map((await db.notes.where('deckId').anyOf(deckIds).toArray()).map((n) => [n.id, n]))
-      const decks = new Map(plan.decks.map((d) => [d.deck.id, d.deck]))
-      const engine = new SessionEngine({ reviews, fresh, cram })
+      const decks = new Map((await db.decks.bulkGet(deckIds)).filter((d): d is Deck => !!d).map((d) => [d.id, d]))
       if (!alive) return
-      setCtx({ engine, notes, decks, settings, total: engine.remaining() })
-      setItem(engine.next())
+      const total = groups.reduce((s, g) => s + g.reviews.length + g.fresh.length * 2 + g.cram.length * (drill ? 2 : 1), 0)
+      setCtx({ groups, notes, decks, settings, total, drill })
+      startGroup(groups, 0, drill)
     })()
     return () => {
       alive = false
     }
-  }, [deckId])
+  }, [deckId, minutes, drill]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const t = setInterval(() => setElapsed(Date.now() - startedAt.current), 1000)
     return () => clearInterval(t)
   }, [])
 
-  useEffect(() => localStorage.setItem('voki.reviewStyle', style), [style])
-
-  const note = item && ctx ? ctx.notes.get(item.card.noteId) : undefined
-  const deck = item && ctx ? ctx.decks.get(item.card.deckId) : undefined
-  const face = item && note && deck ? faceOf(item.card, note, deck) : null
-  const isRecall = item && ['review', 'practice', 'cram'].includes(item.step)
-  const useFlip = isRecall && style === 'flip'
-  const options = useMemo(() => (item?.step === 'mc' && face && note && ctx ? mcOptions(item.card, face, note, ctx.notes) : []), [item, face?.answer]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const nextItem = useCallback(() => {
-    if (!ctx) return
-    const budget = (extraMinutes > 0 ? extraMinutes : ctx.settings.dailyMinutesGoal) * 60000
-    if (!wrapped && Date.now() - startedAt.current > budget) {
-      setDropped(ctx.engine.wrapUp())
-      setWrapped(true)
-    }
-    const n = ctx.engine.next()
-    setItem(n)
-    if (!n) setFinished(true)
-    setPhase('ask')
+  const resetCard = () => {
     setTyped('')
     setRetype('')
     setResult(null)
     setPicked(null)
-    setFlipped(false)
+    setRevealed(false)
+    setHints(0)
     shownAt.current = Date.now()
-  }, [ctx, extraMinutes, wrapped])
+  }
 
-  /** Persist the outcome of the current item and move on. */
+  function startGroup(groups: Group[], i: number, isDrill: boolean) {
+    const g = groups[i]
+    if (!g) {
+      setItem(null)
+      setFinished(true)
+      return
+    }
+    engine.current = new SessionEngine(isDrill ? { reviews: [], fresh: [], cram: [], drill: g.cram } : { reviews: g.reviews, fresh: g.fresh, cram: g.cram })
+    setGroupIndex(i)
+    showNext()
+  }
+
+  function showNext() {
+    const n = engine.current?.next() ?? null
+    setItem(n)
+    resetCard()
+    if (!n) return
+    const note = ctx?.notes.get(n.card.noteId)
+    const needsAid = n.card.leech && RECALL.has(n.step) && note && !note.mnemonic && !note.emoji && !note.sketch
+    setPhase(needsAid ? 'leech' : 'ask')
+  }
+
+  const afterGroup = useCallback(() => {
+    if (!ctx) return
+    if (groupIndex + 1 < ctx.groups.length) setPhase('between')
+    else {
+      setFinished(true)
+      requestSync()
+      void db.cards.toArray().then((cs) => setDueBadge(cs.filter((c) => c.stage === 'review' && !c.suspended && c.due <= Date.now()).length))
+    }
+  }, [ctx, groupIndex])
+
+  const note = item && ctx ? ctx.notes.get(item.card.noteId) : undefined
+  const deck = item && ctx ? ctx.decks.get(item.card.deckId) : undefined
+  const face = item && note && deck ? faceOf(item.card, note, deck) : null
+  const isRecall = !!item && RECALL.has(item.step)
+  const typingStep = !!item && (item.step === 'type' || isRecall)
+  const effMode: StudyMode = !typingStep ? 'type' : item!.step === 'type' && (mode === 'flip' || mode === 'listen') ? 'type' : mode
+  const listenOk = effMode === 'listen' && item?.card.direction === 'toNative' && face?.foreignLang !== 'other' && 'speechSynthesis' in window
+  const view: 'type' | 'hand' | 'listen' | 'flip' = effMode === 'listen' ? (listenOk ? 'listen' : 'type') : effMode
+  const hintList = useMemo(() => (face && note ? hintSteps(face.answer, item?.card.direction === 'toTarget' ? note.example : undefined) : []), [face?.answer, note?.example, item?.card.direction]) // eslint-disable-line react-hooks/exhaustive-deps
+  const options = useMemo(() => ((item?.step === 'mc' || item?.step === 'dmc') && face && note && ctx ? mcOptions(item.card, face, note, ctx.notes) : []), [item, face?.answer]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const updateNote = (n: Note) => {
+    ctx?.notes.set(n.id, n)
+    force((x) => x + 1)
+  }
+
+  /** Persist the outcome and move on. */
   const commit = useCallback(
-    async (rating: Grade | 0, ok: boolean, typedAnswer?: string) => {
+    async (rating: Grade | 0, ok: boolean, typedAnswer?: string, modeOverride?: ReviewMode) => {
       if (!ctx || !item || !deck || busy.current) return
       busy.current = true
       setError('')
@@ -138,74 +201,81 @@ export function Session({ deckId, extraMinutes }: { deckId?: string; extraMinute
         const ret = ctx.settings.desiredRetention
         const card = item.card
         let updated: Card = card
-        let mode: ReviewMode = 'type'
+        let logMode: ReviewMode = modeOverride ?? (view === 'hand' ? 'hand' : view === 'listen' ? 'listen' : view === 'flip' ? 'flip' : 'type')
+        const siblings: Card[] = []
         switch (item.step) {
           case 'intro': {
             updated = advanceLadder(card, 'intro', true, now, ret).card
-            mode = 'intro'
-            // the other direction of the same word skips its own intro
-            const siblings = await db.cards.where('noteId').equals(card.noteId).toArray()
-            for (const s of siblings)
-              if (s.id !== card.id && s.stage === 'new') {
-                const moved = { ...s, stage: 'mc' as const, updatedAt: now.toISOString() }
-                await db.cards.put(moved)
-                ctx.engine.updateCard(moved)
-              }
+            logMode = 'intro'
+            for (const s of await db.cards.where('noteId').equals(card.noteId).toArray())
+              if (s.id !== card.id && s.stage === 'new') siblings.push({ ...s, stage: 'mc', updatedAt: now.toISOString() })
             setIntroduced((x) => x + 1)
             break
           }
           case 'mc':
             updated = advanceLadder(card, 'mc', ok, now, ret).card
-            mode = 'mc'
+            logMode = 'mc'
+            break
+          case 'dmc':
+            logMode = 'drill'
             break
           case 'type':
             updated = advanceLadder(card, 'type', ok, now, ret, (rating || Rating.Good) as Grade).card
             break
           case 'review':
             updated = applyReview(card, rating as Grade, now, ret)
-            mode = useFlip ? 'flip' : 'type'
             break
           case 'cram':
-            mode = 'cram'
-            break
           case 'practice':
-            mode = useFlip ? 'flip' : 'type'
+            if (ctx.drill) logMode = 'drill'
             break
         }
         await db.transaction('rw', db.cards, db.logs, async () => {
           if (updated !== card) await db.cards.put(updated)
+          if (siblings.length) await db.cards.bulkPut(siblings)
           await log(db, {
-          cardId: card.id,
-          deckId: card.deckId,
-          timestamp: now.toISOString(),
-          mode,
-          rating: item.step === 'cram' || item.step === 'practice' ? Rating.Manual : rating,
-          typedAnswer,
-          correct: ok,
-          durationMs: now.getTime() - shownAt.current,
+            cardId: card.id,
+            deckId: card.deckId,
+            timestamp: now.toISOString(),
+            mode: logMode,
+            rating: ['cram', 'practice', 'dmc'].includes(item.step) ? Rating.Manual : rating,
+            typedAnswer,
+            correct: ok,
+            durationMs: now.getTime() - shownAt.current,
           })
         })
+        siblings.forEach((s) => engine.current?.updateCard(s))
         if (item.step !== 'intro') {
           setAnswered((x) => x + 1)
           if (ok) setRight((x) => x + 1)
         }
-        ctx.engine.answer(item, ok, updated)
-        nextItem()
+        engine.current?.answer(item, ok, updated)
+        const n = engine.current?.next() ?? null
+        if (!n) {
+          setItem(null)
+          afterGroup()
+        } else {
+          setItem(n)
+          resetCard()
+          const nn = ctx.notes.get(n.card.noteId)
+          setPhase(n.card.leech && RECALL.has(n.step) && nn && !nn.mnemonic && !nn.emoji && !nn.sketch ? 'leech' : 'ask')
+        }
       } catch (e) {
         setError(`Speichern fehlgeschlagen: ${(e as Error).message}. Versuch es nochmal.`)
       } finally {
         busy.current = false
       }
     },
-    [ctx, item, deck, nextItem, useFlip],
+    [ctx, item, deck, view, afterGroup],
   )
 
   // ----- actions -----
   const check = () => {
-    if (!face || !deck || phase !== 'ask') return
-    if (!typed.trim()) return
-    const r = gradeAnswer(typed, face.answer, { strictAccents: deck.strictAccents, answerLang: face.answerLang })
-    setResult(r)
+    if (!face || !deck || phase !== 'ask' || !typed.trim()) return
+    const strict = deck.strictAccents
+    const r = gradeAnswer(typed, face.answer, { strictAccents: strict, answerLang: face.answerLang })
+    const rating = applyHints(r.rating as Grade, hints)
+    setResult({ ...r, rating })
     setPhase('feedback')
     if (r.verdict === 'correct') vibrate(12)
     else {
@@ -234,11 +304,17 @@ export function Session({ deckId, extraMinutes }: { deckId?: string; extraMinute
     if (!result || !note || !item) return
     if (addAsSolution && typed.trim()) {
       const field = item.card.direction === 'toTarget' ? 'term' : 'translation'
-      const updatedNote = { ...note, [field]: `${note[field]}; ${typed.trim()}`, updatedAt: new Date().toISOString() }
-      await db.notes.put(updatedNote)
-      ctx?.notes.set(note.id, updatedNote)
+      const n = { ...note, [field]: `${note[field]}; ${typed.trim()}`, updatedAt: new Date().toISOString() }
+      await db.notes.put(n)
+      updateNote(n)
     }
-    void commit(Rating.Good, true, typed)
+    void commit(applyHints(Rating.Good, hints), true, typed)
+  }
+
+  const selfGrade = (g: SelfGrade) => {
+    const rating = (g === 1 ? Rating.Again : g === 2 ? Rating.Hard : Rating.Good) as Grade
+    vibrate(g === 1 ? [30, 40, 30] : 12)
+    void commit(rating, g > 1, undefined, 'hand')
   }
 
   const pickMc = (i: number) => {
@@ -249,11 +325,16 @@ export function Session({ deckId, extraMinutes }: { deckId?: string; extraMinute
     vibrate(ok ? 12 : [30, 40, 30])
   }
 
-  // ----- keyboard (§7: Enter, Space, 1–4, Ctrl+Space, Esc) -----
+  const nextGroup = useCallback(() => {
+    if (!ctx) return
+    startGroup(ctx.groups, groupIndex + 1, ctx.drill)
+  }, [ctx, groupIndex]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ----- keyboard (§7) -----
   useEffect(() => {
     const on = (e: KeyboardEvent) => {
       const inField = e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement
-      if (e.key === 'Enter' && e.target instanceof HTMLButtonElement) return // native click on the focused button
+      if (e.key === 'Enter' && e.target instanceof HTMLButtonElement) return
       if (e.key === 'Escape') {
         if (e.target instanceof HTMLTextAreaElement) return
         go('/')
@@ -264,21 +345,26 @@ export function Session({ deckId, extraMinutes }: { deckId?: string; extraMinute
         speak(face.foreign, face.foreignLang)
         return
       }
-      if (!item || inField) return
+      if (!item || inField || phase === 'between' || phase === 'leech') return
       if (item.step === 'intro' && e.key === 'Enter') {
         e.preventDefault()
         void commit(0, true)
-      } else if (item.step === 'mc') {
+      } else if (item.step === 'mc' || item.step === 'dmc') {
         if (picked == null && /^[1-4]$/.test(e.key) && Number(e.key) <= options.length) pickMc(Number(e.key) - 1)
         else if (picked != null && e.key === 'Enter') {
           e.preventDefault()
           void commit(0, options[picked] === face?.answer)
         }
-      } else if (useFlip) {
-        if (!flipped && (e.code === 'Space' || e.key === 'Enter')) {
+      } else if (view === 'flip') {
+        if (!revealed && (e.code === 'Space' || e.key === 'Enter')) {
           e.preventDefault()
-          setFlipped(true)
-        } else if (flipped && /^[1-4]$/.test(e.key)) void commit(Number(e.key) as Grade, Number(e.key) > 1)
+          setRevealed(true)
+        } else if (revealed && /^[1-4]$/.test(e.key)) void commit(Number(e.key) as Grade, Number(e.key) > 1)
+      } else if (view === 'hand') {
+        if (!revealed && e.key === 'Enter') {
+          e.preventDefault()
+          setRevealed(true)
+        } else if (revealed && /^[1-3]$/.test(e.key)) selfGrade(Number(e.key) as SelfGrade)
       } else if (phase === 'feedback' && e.key === 'Enter') {
         e.preventDefault()
         proceedAfterFeedback()
@@ -288,11 +374,22 @@ export function Session({ deckId, extraMinutes }: { deckId?: string; extraMinute
     return () => window.removeEventListener('keydown', on)
   })
 
+  // ----- swipe in flip mode (links = nochmal, rechts = gut) -----
+  const onDragEnd = (_: unknown, info: PanInfo) => {
+    if (!revealed) return
+    if (info.offset.x > 110) void commit(Rating.Good, true)
+    else if (info.offset.x < -110) void commit(Rating.Again, false)
+  }
+
   // ----- render -----
-  const remaining = ctx?.engine.remaining() ?? 0
-  const progress = answered / Math.max(1, answered + remaining + (item ? 1 : 0))
+  const remaining = engine.current?.remaining() ?? 0
+  const laterGroups = ctx ? ctx.groups.slice(groupIndex + 1).reduce((s, g) => s + g.reviews.length + g.fresh.length * 2 + g.cram.length, 0) : 0
+  const progress = answered / Math.max(1, answered + remaining + laterGroups + (item ? 1 : 0))
   const mm = Math.floor(elapsed / 60000)
   const ss = String(Math.floor(elapsed / 1000) % 60).padStart(2, '0')
+  const groupWords = ctx?.groups[groupIndex]
+    ? [...new Set(ctx.groups[groupIndex].fresh.map((c) => c.noteId))].map((id) => ctx.notes.get(id)).filter((n): n is Note => !!n).map((n) => ({ term: n.term, translation: n.translation, emoji: n.emoji }))
+    : []
 
   return (
     <div className="flex min-h-full flex-col">
@@ -301,96 +398,106 @@ export function Session({ deckId, extraMinutes }: { deckId?: string; extraMinute
           <button onClick={() => go('/')} className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-muted hover:bg-surface-2 hover:text-fg" aria-label="Session beenden (Esc)" title="Beenden (Esc) – alles ist gespeichert">
             <IconX />
           </button>
-          <Progress value={finished ? 1 : progress} label="Fortschritt der Session" />
+          <div className="flex-1">
+            <Progress value={finished ? 1 : progress} label="Fortschritt der Session" />
+            {ctx && ctx.groups.length > 1 && !finished && <p className="mt-1 text-center text-[11px] font-medium text-muted tabular">Gruppe {groupIndex + 1} von {ctx.groups.length}</p>}
+          </div>
           <span className="w-12 shrink-0 text-right text-sm text-muted tabular" aria-label="Zeit">{mm}:{ss}</span>
         </div>
       </header>
 
-      <div className="mx-auto flex w-full max-w-[680px] flex-1 flex-col px-4 pb-10 pt-6 desk:pt-12">
+      <div className="mx-auto flex w-full max-w-[680px] flex-1 flex-col px-4 pb-10 pt-6 desk:pt-10">
         {!ctx ? (
           <div className="h-60" aria-busy="true" />
-        ) : finished || !item ? (
-          <SessionEnd total={ctx.total} answered={answered} right={right} introduced={introduced} wrapped={wrapped && dropped > 0} deckId={deckId} extraMinutes={extraMinutes} empty={ctx.total === 0} />
-        ) : !face || !note || !deck ? (
-          <Empty title="Karte nicht gefunden">Diese Karte wurde gelöscht. <button className="text-accent underline" onClick={nextItem}>Weiter</button></Empty>
+        ) : finished || (!item && phase !== 'between') ? (
+          <SessionEnd answered={answered} right={right} introduced={introduced} empty={ctx.total === 0} drill={ctx.drill} />
+        ) : phase === 'between' ? (
+          <GroupBreak done={groupIndex + 1} total={ctx.groups.length} words={groupWords} onNext={nextGroup} />
+        ) : !face || !note || !deck || !item ? (
+          <Empty title="Karte nicht gefunden">Diese Karte wurde gelöscht. <button className="text-accent underline" onClick={showNext}>Weiter</button></Empty>
         ) : (
           <>
-            {isRecall && (
-              <div className="mb-4 flex justify-end">
-                <Segmented label="Abfragemodus" value={style} onChange={setStyle} options={[{ value: 'type', label: 'Tippen' }, { value: 'flip', label: 'Umdrehen' }]} />
-              </div>
-            )}
-            <CardShell shake={shake} label={<StepLabel step={item.step} leech={item.card.leech} />}>
-              {item.step === 'intro' && (
-                <IntroView
-                  key={note.id}
-                  note={note}
-                  deck={deck}
-                  onMnemonic={async (m) => {
-                    const n = { ...note, mnemonic: m, updatedAt: new Date().toISOString() }
-                    await db.notes.put(n)
-                    ctx.notes.set(n.id, n)
-                  }}
-                />
-              )}
-              {item.step === 'mc' && <McView face={face} options={options} picked={picked} onPick={pickMc} />}
-              {useFlip && <FlipView face={face} flipped={flipped} />}
-              {(item.step === 'type' || (isRecall && !useFlip)) && (
-                <div>
-                  <p className="text-sm font-medium text-muted">{face.promptLabel}</p>
-                  <p className="mt-1 break-words text-[32px] font-semibold leading-tight tracking-tight desk:text-[36px]">{face.question}</p>
-                  {phase === 'ask' ? (
-                    <div className="mt-6">
-                      <AnswerInput value={typed} onChange={setTyped} onSubmit={check} lang={face.answerLang} showAccents={face.answerLang === 'fr'} placeholder="Antwort tippen …" ariaLabel="Deine Antwort" />
-                    </div>
-                  ) : (
-                    result && <FeedbackView result={result} typed={typed} face={face} strict={deck.strictAccents} />
-                  )}
-                  {phase === 'retype' && result && (
-                    <div className="mt-5">
-                      <p className="mb-2 text-sm font-medium">Tipp die Lösung einmal ab</p>
-                      <AnswerInput value={retype} onChange={setRetype} onSubmit={submitRetype} lang={face.answerLang} showAccents={face.answerLang === 'fr'} placeholder="Lösung abtippen …" ariaLabel="Lösung abtippen" />
-                    </div>
-                  )}
-                </div>
-              )}
-            </CardShell>
+            <motion.div
+              drag={view === 'flip' && revealed && !reduce ? 'x' : false}
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={0.6}
+              onDragEnd={onDragEnd}
+              className="w-full"
+            >
+              <CardShell shake={shake} label={<StepLabel step={phase === 'leech' ? 'review' : item.step} leech={item.card.leech} />}>
+                {phase === 'leech' ? (
+                  <LeechPause note={note} deck={deck} onSaved={updateNote} onContinue={() => setPhase('ask')} />
+                ) : item.step === 'intro' ? (
+                  <IntroView key={note.id} note={note} deck={deck} onSaved={updateNote} />
+                ) : item.step === 'mc' || item.step === 'dmc' ? (
+                  <McView face={face} options={options} picked={picked} onPick={pickMc} />
+                ) : view === 'flip' ? (
+                  <FlipView face={face} flipped={revealed} />
+                ) : view === 'hand' ? (
+                  <HandView key={`${item.card.id}-${answered}`} face={face} note={note} revealed={revealed} onReveal={() => setRevealed(true)} />
+                ) : (
+                  <div>
+                    {view === 'listen' ? (
+                      <ListenPrompt face={face} />
+                    ) : (
+                      <>
+                        <p className="text-sm font-medium text-muted">{face.promptLabel}</p>
+                        <p className="mt-1 break-words text-[32px] font-semibold leading-tight tracking-tight desk:text-[36px]">{face.question}</p>
+                      </>
+                    )}
+                    {phase === 'ask' ? (
+                      <div className="mt-6">
+                        <AnswerInput value={typed} onChange={setTyped} onSubmit={check} lang={face.answerLang} showAccents={face.answerLang === 'fr'} placeholder="Antwort tippen …" ariaLabel="Deine Antwort" />
+                        {!ctx.drill && <HintBar key={item.card.id + answered} steps={hintList} used={hints} onMore={() => setHints((h) => h + 1)} />}
+                      </div>
+                    ) : (
+                      result && <FeedbackView result={result} typed={typed} face={face} strict={deck.strictAccents} />
+                    )}
+                    {phase !== 'ask' && result && result.verdict !== 'correct' && <div className="mt-4"><MemoryAids note={note} /></div>}
+                    {phase === 'retype' && result && (
+                      <div className="mt-5">
+                        <p className="mb-2 text-sm font-medium">Tipp die Lösung einmal ab</p>
+                        <AnswerInput value={retype} onChange={setRetype} onSubmit={submitRetype} lang={face.answerLang} showAccents={face.answerLang === 'fr'} placeholder="Lösung abtippen …" ariaLabel="Lösung abtippen" />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </CardShell>
+            </motion.div>
 
             {/* action row */}
-            <div className="mt-5 flex flex-wrap items-center gap-2">
-              {item.step === 'intro' && (
-                <Button variant="primary" size="lg" className="w-full desk:w-auto" onClick={() => commit(0, true)} kbd="Enter">Weiter</Button>
-              )}
-              {item.step === 'mc' && picked != null && (
-                <Button variant="primary" size="lg" className="w-full desk:w-auto" onClick={() => commit(0, options[picked] === face.answer)} kbd="Enter">Weiter</Button>
-              )}
-              {useFlip && !flipped && (
-                <Button variant="primary" size="lg" className="w-full desk:w-auto" onClick={() => setFlipped(true)} kbd="Leertaste">Umdrehen</Button>
-              )}
-              {useFlip && flipped && <div className="w-full"><FlipRatings onRate={(r) => commit(r as Grade, r > 1)} /></div>}
-              {!useFlip && (item.step === 'type' || isRecall) && phase === 'ask' && (
-                <Button variant="primary" size="lg" className="w-full desk:w-auto" onClick={check} disabled={!typed.trim()} kbd="Enter">Prüfen</Button>
-              )}
-              {phase === 'feedback' && result && (
-                <>
-                  <Button variant="primary" size="lg" className="w-full desk:w-auto" onClick={proceedAfterFeedback} kbd="Enter">
-                    {result.verdict === 'correct' ? 'Weiter' : 'Abtippen'}
-                  </Button>
-                  {result.verdict === 'correct' && item.step === 'review' && (
-                    <Button variant="ghost" onClick={() => commit(Rating.Easy, true, typed)}>War zu leicht</Button>
-                  )}
-                  {result.verdict !== 'correct' && (
-                    <>
-                      <Button variant="ghost" onClick={() => overrideRight(false)}><IconCheck width={16} height={16} /> Ich hatte recht</Button>
-                      <Button variant="ghost" className="text-muted" onClick={() => overrideRight(true)}>… und als Lösung speichern</Button>
-                    </>
-                  )}
-                </>
-              )}
-              {phase === 'retype' && (
-                <Button variant="primary" size="lg" className="w-full desk:w-auto" onClick={submitRetype} disabled={!retype.trim()} kbd="Enter">Weiter</Button>
-              )}
-            </div>
+            {phase !== 'leech' && (
+              <div className="mt-5 flex flex-wrap items-center gap-2">
+                {item.step === 'intro' && <Button variant="primary" size="lg" className="w-full desk:w-auto" onClick={() => commit(0, true)} kbd="Enter">Weiter</Button>}
+                {(item.step === 'mc' || item.step === 'dmc') && picked != null && (
+                  <Button variant="primary" size="lg" className="w-full desk:w-auto" onClick={() => commit(0, options[picked] === face.answer)} kbd="Enter">Weiter</Button>
+                )}
+                {view === 'flip' && typingStep && !revealed && <Button variant="primary" size="lg" className="w-full desk:w-auto" onClick={() => setRevealed(true)} kbd="Leertaste">Umdrehen</Button>}
+                {view === 'flip' && typingStep && revealed && (
+                  <div className="w-full">
+                    <FlipRatings onRate={(r) => commit(r as Grade, r > 1)} />
+                    <p className="mt-2 text-center text-xs text-muted">Tipp: Karte nach links wischen = nochmal, nach rechts = gut</p>
+                  </div>
+                )}
+                {view === 'hand' && typingStep && revealed && <div className="w-full"><SelfGradeButtons onGrade={selfGrade} /></div>}
+                {(view === 'type' || view === 'listen') && typingStep && phase === 'ask' && (
+                  <Button variant="primary" size="lg" className="w-full desk:w-auto" onClick={check} disabled={!typed.trim()} kbd="Enter">Prüfen</Button>
+                )}
+                {phase === 'feedback' && result && (
+                  <>
+                    <Button variant="primary" size="lg" className="w-full desk:w-auto" onClick={proceedAfterFeedback} kbd="Enter">{result.verdict === 'correct' ? 'Weiter' : 'Abtippen'}</Button>
+                    {result.verdict === 'correct' && item.step === 'review' && hints === 0 && <Button variant="ghost" onClick={() => commit(Rating.Easy, true, typed)}>War zu leicht</Button>}
+                    {result.verdict !== 'correct' && (
+                      <>
+                        <Button variant="ghost" onClick={() => overrideRight(false)}><IconCheck width={16} height={16} /> Ich hatte recht</Button>
+                        <Button variant="ghost" className="text-muted" onClick={() => overrideRight(true)}>… und als Lösung speichern</Button>
+                      </>
+                    )}
+                  </>
+                )}
+                {phase === 'retype' && <Button variant="primary" size="lg" className="w-full desk:w-auto" onClick={submitRetype} disabled={!retype.trim()} kbd="Enter">Weiter</Button>}
+              </div>
+            )}
             {error && <p role="alert" className="mt-4 rounded-xl bg-bad-soft px-4 py-3 text-sm text-bad">{error}</p>}
             <p className="mt-auto hidden pt-10 text-center text-xs text-muted desk:block">
               <Kbd>Enter</Kbd> prüfen/weiter · <Kbd>Leertaste</Kbd> umdrehen · <Kbd>1</Kbd>–<Kbd>4</Kbd> wählen · <Kbd>Ctrl</Kbd>+<Kbd>Leertaste</Kbd> Audio · <Kbd>Alt</Kbd>+Buchstabe Akzent · <Kbd>Esc</Kbd> beenden
@@ -402,27 +509,27 @@ export function Session({ deckId, extraMinutes }: { deckId?: string; extraMinute
   )
 }
 
-function SessionEnd({ total, answered, right, introduced, wrapped, deckId, empty }: {
-  total: number; answered: number; right: number; introduced: number; wrapped: boolean; deckId?: string; extraMinutes?: number; empty: boolean
-}) {
+function SessionEnd({ answered, right, introduced, empty, drill }: { answered: number; right: number; introduced: number; empty: boolean; drill: boolean }) {
   useEffect(() => {
-    const on = (e: KeyboardEvent) => e.key === 'Enter' && go('/')
+    const on = (e: KeyboardEvent) => e.key === 'Enter' && !(e.target instanceof HTMLButtonElement) && go('/')
     window.addEventListener('keydown', on)
     return () => window.removeEventListener('keydown', on)
   }, [])
   if (empty)
     return (
-      <Empty title="Gerade nichts zu lernen" action={<Button variant="primary" onClick={() => go('/')}>Zur Übersicht</Button>}>
-        Keine fälligen Wiederholungen und keine neuen Wörter für heute. Morgen geht’s weiter.
-      </Empty>
+      <div className="rounded-3xl bg-surface p-8 text-center ring-1 ring-line">
+        <div className="flex justify-center"><Illustration kind={drill ? 'notebook' : 'done'} /></div>
+        <h1 className="mt-4 text-[22px] font-semibold tracking-tight">{drill ? 'Fehlerheft ist leer' : 'Gerade nichts zu lernen'}</h1>
+        <p className="mt-1 text-[15px] text-muted">{drill ? 'Keine wackligen Wörter. Stark!' : 'Keine fälligen Wiederholungen und keine neuen Wörter. Morgen geht’s weiter.'}</p>
+        <Button variant="primary" className="mt-6" onClick={() => go('/')}>Zur Übersicht</Button>
+      </div>
     )
   const rate = answered ? Math.round((right / answered) * 100) : 0
-  const plus = `/lernen?plus=5&t=${Date.now()}${deckId ? `&deck=${deckId}` : ''}`
   return (
     <div className="rounded-3xl bg-surface p-8 text-center ring-1 ring-line">
-      <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-good-soft text-good"><IconCheck width={28} height={28} /></span>
-      <h1 className="mt-4 text-[26px] font-semibold tracking-tight">{wrapped ? 'Zeit ist um, gut gemacht' : 'Fertig für heute'}</h1>
-      <p className="mt-1 text-[15px] text-muted">Alles ist gespeichert.</p>
+      <div className="flex justify-center"><Illustration kind="done" /></div>
+      <h1 className="mt-4 text-[26px] font-semibold tracking-tight">{rate >= 80 ? 'Stark gemacht' : 'Geschafft'}</h1>
+      <p className="mt-1 text-[15px] text-muted">Alles ist gespeichert{navigator.onLine ? ' und wird synchronisiert' : ''}.</p>
       <dl className="mx-auto mt-6 grid max-w-sm grid-cols-3 gap-3">
         <div><dt className="text-xs text-muted">Abgefragt</dt><dd className="text-[22px] font-semibold tabular">{answered}</dd></div>
         <div><dt className="text-xs text-muted">Richtig</dt><dd className={cx('text-[22px] font-semibold tabular', rate >= 80 ? 'text-good' : rate >= 60 ? 'text-warn' : 'text-bad')}>{rate} %</dd></div>
@@ -430,9 +537,8 @@ function SessionEnd({ total, answered, right, introduced, wrapped, deckId, empty
       </dl>
       <div className="mt-8 flex flex-col gap-2 desk:flex-row desk:justify-center">
         <Button variant="primary" size="lg" onClick={() => go('/')} kbd="Enter">Zur Übersicht</Button>
-        {wrapped && <Button size="lg" onClick={() => go(plus)}>Noch 5 Min?</Button>}
+        <Button size="lg" onClick={() => go('/lernen')}>Noch eine Runde</Button>
       </div>
-      {total > 0 && !wrapped && <p className="mt-6 text-sm text-muted">Morgen kommen die nächsten Wiederholungen.</p>}
     </div>
   )
 }

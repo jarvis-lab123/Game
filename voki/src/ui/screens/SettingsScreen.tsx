@@ -5,6 +5,8 @@ import { exportBackup, restoreBackup, validateBackup } from '../../lib/backup'
 import { downloadFile, isTauri } from '../../platform'
 import { Button, Input, Label, PageHeader, Panel, SectionTitle, Segmented } from '../components'
 import { saveSettings, useSettings } from '../settings'
+import { SyncPanel } from './SyncPanel'
+import { go } from '../router'
 
 export async function downloadBackup() {
   const b = await exportBackup(db)
@@ -110,10 +112,18 @@ export function SettingsScreen() {
         <Segmented label="Farbschema" value={s.theme} onChange={(v) => saveSettings({ theme: v })} options={[{ value: 'system', label: 'System' }, { value: 'light', label: 'Hell' }, { value: 'dark', label: 'Dunkel' }]} />
       </Panel>
 
+      <SyncPanel />
+
+      <Panel>
+        <SectionTitle>Vokabeln</SectionTitle>
+        <p className="text-[15px] text-muted">Neue Listen per Foto-Prompt, Einfügen oder Datei. Export als TSV findest du im jeweiligen Deck.</p>
+        <Button className="mt-4" onClick={() => go('/import')}>Vokabeln importieren</Button>
+      </Panel>
+
       <Panel>
         <SectionTitle>Backup</SectionTitle>
         <p className="text-[15px] text-muted">
-          Sichert alle Decks, Wörter und deinen Lernfortschritt als JSON-Datei. {isTauri ? 'PC-App und Handy-App' : 'Handy und PC'} haben getrennte Speicher: Bis zum Sync (Phase 2) bringst du Daten per Backup auf das andere Gerät.
+          Sichert alle Decks, Wörter und deinen Lernfortschritt als JSON-Datei, zusätzlich zum Sync. Dein Sync-Token ist nicht im Backup.
         </p>
         {counts && <p className="mt-2 text-sm text-muted tabular">{counts.words} Wörter · {counts.logs} Abfragen gespeichert</p>}
         <div className="mt-4 flex flex-wrap gap-2">

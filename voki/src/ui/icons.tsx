@@ -42,3 +42,5 @@ export function Flag({ lang, size = 18 }: { lang: 'en' | 'fr' | 'other'; size?: 
     )
   return <span className="inline-block h-3 w-4 shrink-0 rounded-[3px] bg-surface-2 ring-1 ring-line" aria-hidden />
 }
+export const IconPractice = (p: SVGProps<SVGSVGElement>) => <svg {...base(p)}><path d="M12 3.5l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.6-4.8 2.6.9-5.4L4.2 9.2l5.4-.8z" /></svg>
+export const IconStats = (p: SVGProps<SVGSVGElement>) => <svg {...base(p)}><path d="M4 20h16M7 16v-5M12 16V7M17 16v-8" /></svg>

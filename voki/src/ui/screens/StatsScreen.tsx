@@ -59,7 +59,7 @@ export function StatsScreen() {
     return (
       <div>
         <PageHeader title="Statistik" />
-        <Empty title="Noch keine Abfragen" action={<Button variant="primary" onClick={() => go('/lernen')}>Session starten</Button>}>
+        <Empty title="Noch keine Abfragen" action={<Button variant="primary" onClick={() => go('/lernen')}>Lernen starten</Button>}>
           Sobald du deine ersten Wörter geübt hast, siehst du hier deinen Fortschritt.
         </Empty>
       </div>

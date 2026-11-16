@@ -1,13 +1,15 @@
 import type { ReactNode } from 'react'
-import { IconDecks, IconImport, IconSettings, IconToday } from './icons'
+import { IconDecks, IconImport, IconPractice, IconSettings, IconStats, IconToday } from './icons'
 import { cx } from './components'
 
 const NAV = [
   { to: '/', label: 'Heute', icon: IconToday, match: (p: string) => p === '/' },
   { to: '/decks', label: 'Decks', icon: IconDecks, match: (p: string) => p.startsWith('/deck') },
-  { to: '/import', label: 'Import', icon: IconImport, match: (p: string) => p.startsWith('/import') },
-  { to: '/einstellungen', label: 'Einstellungen', icon: IconSettings, match: (p: string) => p.startsWith('/einstellungen') },
+  { to: '/ueben', label: 'Üben', icon: IconPractice, match: (p: string) => p.startsWith('/ueben') },
+  { to: '/statistik', label: 'Statistik', icon: IconStats, match: (p: string) => p.startsWith('/statistik') },
+  { to: '/einstellungen', label: 'Einstellungen', icon: IconSettings, match: (p: string) => p.startsWith('/einstellungen'), mobileLabel: 'Mehr' },
 ]
+const DESKTOP_EXTRA = [{ to: '/import', label: 'Import', icon: IconImport, match: (p: string) => p.startsWith('/import') }]
 
 export function Logo() {
   return (
@@ -28,7 +30,7 @@ export function Shell({ path, children }: { path: string; children: ReactNode })
       <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-line bg-surface px-3 py-5 desk:flex">
         <div className="px-3 pb-6"><Logo /></div>
         <nav aria-label="Hauptnavigation" className="flex flex-col gap-0.5">
-          {NAV.map((n) => {
+          {[...NAV.slice(0, 4), ...DESKTOP_EXTRA, NAV[4]].map((n) => {
             const active = n.match(path)
             return (
               <a
@@ -43,7 +45,7 @@ export function Shell({ path, children }: { path: string; children: ReactNode })
             )
           })}
         </nav>
-        <p className="mt-auto px-3 text-xs text-muted">Tipp: <kbd className="font-sans">Enter</kbd> startet die Session auf „Heute“.</p>
+        <p className="mt-auto px-3 text-xs text-muted">Tipp: <kbd className="font-sans">Enter</kbd> startet das Lernen auf „Heute“.</p>
       </aside>
 
       <main id="main" className="safe-top mx-auto w-full max-w-3xl px-4 pb-28 pt-6 desk:max-w-4xl desk:px-10 desk:pb-12 desk:pt-10">
@@ -52,7 +54,7 @@ export function Shell({ path, children }: { path: string; children: ReactNode })
 
       {/* Mobile bottom navigation */}
       <nav aria-label="Hauptnavigation" className="safe-bottom fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/95 backdrop-blur desk:hidden">
-        <div className="mx-auto grid max-w-lg grid-cols-4">
+        <div className="mx-auto grid max-w-lg grid-cols-5">
           {NAV.map((n) => {
             const active = n.match(path)
             return (
@@ -63,7 +65,7 @@ export function Shell({ path, children }: { path: string; children: ReactNode })
                 className={cx('flex min-h-14 flex-col items-center justify-center gap-0.5 text-[11px] font-medium', active ? 'text-accent' : 'text-muted')}
               >
                 <n.icon width={22} height={22} />
-                {n.label}
+                {'mobileLabel' in n ? n.mobileLabel : n.label}
               </a>
             )
           })}

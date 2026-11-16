@@ -1,11 +1,12 @@
-import { useEffect, useRef, useState, type KeyboardEvent as RKE, type ReactNode } from 'react'
+import { useEffect, useRef, type KeyboardEvent as RKE, type ReactNode } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import type { Card, Deck, Note } from '../../lib/types'
 import { diffChars, normalize, type AnswerLang, type GradeResult } from '../../lib/grade'
 import { ACCENT_BAR, baseOf, cycleAccent } from '../../lib/accents'
 import { speak } from '../../platform'
-import { Badge, Button, Input, Kbd, TextArea, cx } from '../components'
-import { IconBulb, IconCheck, IconFlame, IconSound, IconX } from '../icons'
+import { Badge, Button, Input, Kbd, cx } from '../components'
+import { IconCheck, IconFlame, IconSound, IconX } from '../icons'
+import { MnemonicStudio } from '../MnemonicStudio'
 
 export interface Face {
   question: string
@@ -64,7 +65,7 @@ export function CardShell({ children, shake, label }: { children: ReactNode; sha
 }
 
 export function StepLabel({ step, leech }: { step: string; leech?: boolean }) {
-  const text = { intro: 'Neues Wort', mc: 'Auswählen', type: 'Schreiben', review: 'Wiederholung', practice: 'Nochmal üben', cram: 'Extra vor dem Test' }[step] ?? step
+  const text = { intro: 'Neues Wort', mc: 'Auswählen', type: 'Schreiben', review: 'Wiederholung', practice: 'Nochmal üben', cram: 'Extra vor dem Test', dmc: 'Fehlerheft' }[step] ?? step
   return (
     <>
       <Badge tone={step === 'intro' || step === 'mc' || step === 'type' ? 'accent' : 'neutral'}>{text}</Badge>
@@ -74,28 +75,28 @@ export function StepLabel({ step, leech }: { step: string; leech?: boolean }) {
 }
 
 /* ---------- Intro ---------- */
-export function IntroView({ note, deck, onMnemonic }: { note: Note; deck: Deck; onMnemonic: (v: string) => void }) {
-  const [m, setM] = useState(note.mnemonic ?? '')
+export function IntroView({ note, deck, onSaved }: { note: Note; deck: Deck; onSaved: (n: Note) => void }) {
   useEffect(() => {
     speak(note.term, deck.language)
   }, [note.term, deck.language])
   return (
     <div>
-      <div className="flex items-start gap-2">
+      <div className="flex items-start gap-3">
+        {note.emoji && <span className="text-[40px] leading-none" aria-hidden>{note.emoji}</span>}
         <p className="min-w-0 flex-1 break-words text-[34px] font-semibold leading-tight tracking-tight desk:text-[40px]" lang={deck.language}>{note.term}</p>
         <AudioButton text={note.term} lang={deck.language} />
       </div>
       <div className="mt-2 flex flex-wrap gap-2">
-        {note.gender && <Badge>{GENDER[note.gender]}</Badge>}
+        {note.gender && <Badge tone={note.gender === 'f' ? 'bad' : note.gender === 'm' ? 'accent' : 'neutral'}>{GENDER[note.gender]}</Badge>}
         {note.plural && <Badge>Pl. {note.plural}</Badge>}
       </div>
       <p className="mt-4 text-[22px] text-fg/90">{note.translation}</p>
       {note.example && <p className="mt-4 border-l-2 border-accent/50 pl-3 text-[16px] italic text-muted" lang={deck.language}>{note.example}</p>}
       {note.notes && <p className="mt-3 text-sm text-muted">{note.notes}</p>}
-      <label className="mt-6 block">
-        <span className="mb-1.5 flex items-center gap-1.5 text-sm font-medium"><IconBulb width={16} height={16} className="text-warn" /> Eselsbrücke <span className="font-normal text-muted">(optional)</span></span>
-        <TextArea rows={2} value={m} placeholder="z. B. „boulangerie“ klingt wie „Bulle“ + „Gerie“ …" onChange={(e) => setM(e.target.value)} onBlur={() => m !== (note.mnemonic ?? '') && onMnemonic(m)} />
-      </label>
+      {note.sketch && <img src={note.sketch} alt="Deine Skizze" className="mt-4 h-24 rounded-xl bg-surface-2 object-contain ring-1 ring-line" />}
+      <div className="mt-6 border-t border-line pt-5">
+        <MnemonicStudio note={note} language={deck.language} compact onSaved={onSaved} />
+      </div>
     </div>
   )
 }
@@ -287,8 +288,8 @@ export function FlipRatings({ onRate }: { onRate: (r: 1 | 2 | 3 | 4) => void }) 
   return (
     <div className="grid grid-cols-4 gap-2">
       {FLIP_RATINGS.map((x) => (
-        <Button key={x.r} onClick={() => onRate(x.r)} className={cx('flex-col gap-0 py-2', x.tone)}>
-          <span>{x.label}</span>
+        <Button key={x.r} onClick={() => onRate(x.r)} className="h-auto flex-col gap-0 py-2">
+          <span className={x.tone}>{x.label}</span>
           <Kbd className="mt-0.5 hidden desk:inline-flex">{x.r}</Kbd>
         </Button>
       ))}
