@@ -85,7 +85,7 @@ export function PaperTest({ deck, items, n, block }: { deck: Deck; items: PaperI
       const now = new Date().toISOString()
       const graded = items.map((it, k) => ({ cardId: it.cardId, typed: '', correct: decisions[k] === true, confident: false, decided: decisions[k] != null })).filter((x) => x.decided)
       await db.transaction('rw', db.tests, db.logs, async () => {
-        await db.tests.add({ id: uid(), deckId: deck.id, date: now, total: graded.length, correct: points, grade, items: graded.map(({ decided: _d, ...x }) => x), ...(block ? { block: block.index, blocks: block.count } : {}), updatedAt: now })
+        await db.tests.add({ id: uid(), deckId: deck.id, date: now, total: graded.length, correct: points, grade, items: graded.map(({ decided: _d, ...x }) => x), ...(block ? { block: block.index, blocks: block.count, applied: true } : {}), updatedAt: now })
         for (const a of graded) await log(db, { cardId: a.cardId, deckId: deck.id, timestamp: now, mode: 'test', rating: Rating.Manual, typedAnswer: '', correct: a.correct, durationMs: 0 })
       })
       // a block test is a clean recall: it moves the words forward in the learning progress

@@ -33,6 +33,14 @@ describe('noteMastery – "sitzt / sitzt nicht"', () => {
   it('wackelt for a leech', () => {
     expect(noteMastery([learned(12, 1, { leech: true })], [true, true], now, 0.9)).toBe('wackelt')
   })
+  it('test in 2 days: a fresh word sitzt when it will still be known on the test day', () => {
+    const exam = new Date('2026-11-18T08:00:00')
+    expect(noteMastery([learned(3, 0)], [true, true], now, 0.9, exam)).toBe('sitzt')
+    expect(noteMastery([learned(3, 0)], [true, false], now, 0.9, exam)).toBe('lernt')
+    expect(noteMastery([learned(0.5, 0)], [true, true], now, 0.9, exam)).toBe('lernt')
+    // test far away: the normal 7-day rule
+    expect(noteMastery([learned(3, 0)], [true, true], now, 0.9, new Date('2026-12-20T08:00:00'))).toBe('lernt')
+  })
   it('both directions must sit', () => {
     expect(noteMastery([learned(12), learned(2)], [true, true], now, 0.9)).toBe('lernt')
   })

@@ -25,7 +25,12 @@ export function App() {
   useTheme(settings.theme)
 
   useEffect(() => {
-    void seedBuiltinDecks(db).catch(() => {})
+    void seedBuiltinDecks(db)
+      .then(async () => {
+        const [{ applyPendingBlockTests }, { loadSettings }] = await Promise.all([import('../db/blocks'), import('../db/queries')])
+        await applyPendingBlockTests(db, (await loadSettings(db)).desiredRetention)
+      })
+      .catch(() => {})
     return startAutoSync(db)
   }, [])
   // newest web version also for an app that stays open (PC tray, PWA)

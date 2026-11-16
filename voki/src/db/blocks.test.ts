@@ -2,7 +2,7 @@ import 'fake-indexeddb/auto'
 import { describe, it, expect } from 'vitest'
 import { VokiDB } from './db'
 import { createDeck, importNotes } from './repo'
-import { applyBlockTest, introduceBlock } from './blocks'
+import { applyBlockTest, applyPendingBlockTests, introduceBlock } from './blocks'
 
 async function setup() {
   const db = new VokiDB('b-' + Math.random())
@@ -38,5 +38,18 @@ describe('block learning feeds the progress', () => {
     const c = await db.cards.get(target[0].id)
     expect(c!.stage).toBe('review')
     expect(c!.fsrs.lapses).toBe(1)
+  })
+})
+
+describe('old block tests are caught up once', () => {
+  it('applies a block test saved before 0.3.6, then never again', async () => {
+    const { db, target } = await setup()
+    const date = '2026-11-16T15:00:00.000Z'
+    await db.tests.add({ id: 't1', deckId: target[0].deckId, date, total: 2, correct: 1, grade: 3.5, block: 0, blocks: 1, items: [{ cardId: target[0].id, typed: '', correct: true, confident: false }, { cardId: target[1].id, typed: '', correct: false, confident: false }], updatedAt: date })
+    expect(await applyPendingBlockTests(db, 0.9)).toBe(1)
+    expect((await db.cards.get(target[0].id))!.stage).toBe('review')
+    expect((await db.tests.get('t1'))!.applied).toBe(true)
+    expect(await applyPendingBlockTests(db, 0.9)).toBe(0)
+    expect((await db.cards.get(target[0].id))!.fsrs.reps).toBe(1)
   })
 })

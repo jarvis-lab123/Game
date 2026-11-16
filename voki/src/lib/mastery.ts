@@ -6,12 +6,17 @@ export const MASTERY_LABEL: Record<Mastery, string> = { neu: 'neu', lernt: 'lern
 
 export const SITZT_STABILITY_DAYS = 7
 export const WACKELT_RECALL = 0.8
+/** Test within this many days: „sitzt“ = still known on the test day with ≥ EXAM_RECALL. */
+export const EXAM_NEAR_DAYS = 7
+export const EXAM_RECALL = 0.85
 
 /**
  * "Sitzt das?" for one word (all its cards).
  * @param recent answers for this word, newest first (true = right)
+ * @param examAt if a test is near (≤ 7 days): a word also „sitzt“ when it will most likely still be
+ *   known on the test day – otherwise nothing could ever „sitzen“ in the last week before a test.
  */
-export function noteMastery(cards: Card[], recent: boolean[], now: Date, retention: number): Mastery {
+export function noteMastery(cards: Card[], recent: boolean[], now: Date, retention: number, examAt?: Date): Mastery {
   const live = cards.filter((c) => !c.suspended)
   if (live.length === 0 || live.every((c) => c.stage === 'new')) return 'neu'
   if (live.some((c) => c.leech)) return 'wackelt'
@@ -20,9 +25,11 @@ export function noteMastery(cards: Card[], recent: boolean[], now: Date, retenti
   const learned = live.filter((c) => c.stage === 'review')
   if (learned.some((c) => retrievabilityAt(c, now, retention) < WACKELT_RECALL)) return 'wackelt'
   if (learned.length < live.length) return 'lernt'
-  const stable = learned.every((c) => c.fsrs.stability >= SITZT_STABILITY_DAYS)
   const lastTwoRight = recent.length >= 2 && recent[0] && recent[1]
-  return stable && lastTwoRight ? 'sitzt' : 'lernt'
+  if (!lastTwoRight) return 'lernt'
+  if (learned.every((c) => c.fsrs.stability >= SITZT_STABILITY_DAYS)) return 'sitzt'
+  const soon = examAt && examAt.getTime() >= now.getTime() && examAt.getTime() - now.getTime() <= EXAM_NEAR_DAYS * 86400000
+  return soon && learned.every((c) => retrievabilityAt(c, examAt, retention) >= EXAM_RECALL) ? 'sitzt' : 'lernt'
 }
 
 /** Recent answers per note (newest first) from review logs. */

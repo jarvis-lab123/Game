@@ -79,6 +79,8 @@ export interface TestResult {
   /** Blocklernen: block index and the number of blocks the deck was split into */
   block?: number
   blocks?: number
+  /** block test results were applied to the learning progress */
+  applied?: boolean
   updatedAt: string
 }
 

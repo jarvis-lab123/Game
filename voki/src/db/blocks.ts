@@ -43,3 +43,22 @@ export async function applyBlockTest(db: VokiDB, results: { cardId: string; corr
     if (out.length) await db.cards.bulkPut(out)
   })
 }
+
+/**
+ * Block tests saved before they counted (Voki ≤ 0.3.5): apply them once, at their own date.
+ * Cards reviewed after that test are left alone (their newer state wins).
+ */
+export async function applyPendingBlockTests(db: VokiDB, retention: number): Promise<number> {
+  const pending = (await db.tests.toArray()).filter((t) => t.block != null && !t.applied).sort((a, b) => a.date.localeCompare(b.date))
+  for (const t of pending) {
+    const at = new Date(t.date)
+    const cards = new Map((await db.cards.bulkGet(t.items.map((i) => i.cardId))).filter((c): c is Card => !!c).map((c) => [c.id, c]))
+    const items = t.items.filter((i) => {
+      const last = cards.get(i.cardId)?.fsrs.last_review
+      return cards.has(i.cardId) && (!last || new Date(last).getTime() < at.getTime())
+    })
+    await applyBlockTest(db, items.map((i) => ({ cardId: i.cardId, correct: i.correct })), retention, at)
+    await db.tests.put({ ...t, applied: true, updatedAt: new Date().toISOString() })
+  }
+  return pending.length
+}

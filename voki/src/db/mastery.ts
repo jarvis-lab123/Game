@@ -2,6 +2,7 @@ import type { VokiDB } from './db'
 import { loadSettings } from './queries'
 import { noteMastery, recentByNote, type Mastery } from '../lib/mastery'
 import type { Card } from '../lib/types'
+import { examDay } from '../lib/exam'
 
 export interface MasteryInfo { byNote: Map<string, Mastery>; counts: Record<Mastery, number>; byDeck: Map<string, Record<Mastery, number>> }
 
@@ -14,6 +15,7 @@ export async function masteryInfo(db: VokiDB, deckIds?: string[], now = new Date
   const settings = await loadSettings(db)
   const decks = (await db.decks.toArray()).filter((d) => !d.archived && (!deckIds || deckIds.includes(d.id)))
   const dirs = new Map(decks.map((d) => [d.id, d.directions]))
+  const examOf = new Map(decks.filter((d) => d.examDate).map((d) => [d.id, examDay(d.examDate!)]))
   const noteIds = new Set((await db.notes.toCollection().primaryKeys()) as string[])
   const cards = (await db.cards.where('deckId').anyOf([...dirs.keys()]).toArray()).filter((c) => dirs.get(c.deckId)?.includes(c.direction) && noteIds.has(c.noteId))
   const logs = await db.logs.where('deckId').anyOf([...dirs.keys()]).toArray()
@@ -26,7 +28,7 @@ export async function masteryInfo(db: VokiDB, deckIds?: string[], now = new Date
   const byDeck = new Map<string, Record<Mastery, number>>()
   for (const [noteId, cs] of byNoteCards) {
     if (cs.every((c) => c.suspended)) continue
-    const m = noteMastery(cs, recent.get(noteId) ?? [], now, settings.desiredRetention)
+    const m = noteMastery(cs, recent.get(noteId) ?? [], now, settings.desiredRetention, examOf.get(cs[0].deckId))
     byNote.set(noteId, m)
     counts[m]++
     const d = byDeck.get(cs[0].deckId) ?? emptyCounts()
