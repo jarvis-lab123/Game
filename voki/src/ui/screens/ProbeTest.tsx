@@ -45,7 +45,7 @@ export function ProbeTest({ deckId }: { deckId: string }) {
   const submit = () => {
     if (!q || !face || confident == null) return
     const r = gradeAnswer(typed, face.answer, { strictAccents: true, answerLang: face.answerLang })
-    setAnswers((a) => [...a, { cardId: q.card.id, typed, correct: r.verdict === 'correct', confident, expected: r.matched }])
+    setAnswers((a) => [...a, { cardId: q.card.id, typed, correct: r.verdict === 'correct' || r.verdict === 'spelling', confident, expected: r.matched }])
     setTyped('')
     setConfident(null)
     setI((x) => x + 1)

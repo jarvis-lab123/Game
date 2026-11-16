@@ -34,6 +34,8 @@ interface Ctx {
 }
 
 const RECALL = new Set(['review', 'practice', 'cram'])
+/** right answer, no retyping needed (German: other spelling also counts) */
+const isRight = (v: GradeResult['verdict']) => v === 'correct' || v === 'spelling'
 
 function shuffle<T>(a: T[]): T[] {
   const r = [...a]
@@ -273,7 +275,7 @@ export function Session({ deckId, minutes, mode, drill }: { deckId?: string; min
     const rating = applyHints(r.rating as Grade, hints)
     setResult({ ...r, rating })
     setPhase('feedback')
-    if (r.verdict === 'correct') vibrate(12)
+    if (isRight(r.verdict)) vibrate(12)
     else {
       vibrate([30, 40, 30])
       setShake((s) => s + 1)
@@ -283,7 +285,7 @@ export function Session({ deckId, minutes, mode, drill }: { deckId?: string; min
 
   const proceedAfterFeedback = () => {
     if (!result) return
-    if (result.verdict !== 'correct' && phase === 'feedback') {
+    if (!isRight(result.verdict) && phase === 'feedback') {
       setPhase('retype')
       return
     }
@@ -456,13 +458,13 @@ export function Session({ deckId, minutes, mode, drill }: { deckId?: string; min
                       result && (
                         <>
                           <FeedbackView result={result} typed={typed} face={face} strict={deck.strictAccents} />
-                          {hints > 0 && result.verdict === 'correct' && (
+                          {hints > 0 && isRight(result.verdict) && (
                             <p className="mt-2 text-sm text-muted">Mit {hints === 1 ? 'einem Hinweis' : `${hints} Hinweisen`} – zählt als „{hints === 1 ? 'schwer' : 'nochmal'}“, damit Voki das Wort bald wieder fragt.</p>
                           )}
                         </>
                       )
                     )}
-                    {phase !== 'ask' && result && result.verdict !== 'correct' && <div className="mt-4"><MemoryAids note={note} /></div>}
+                    {phase !== 'ask' && result && !isRight(result.verdict) && <div className="mt-4"><MemoryAids note={note} /></div>}
                     {phase === 'retype' && result && (
                       <div className="mt-5">
                         <p className="mb-2 text-sm font-medium">Tipp die Lösung einmal ab</p>
@@ -494,9 +496,9 @@ export function Session({ deckId, minutes, mode, drill }: { deckId?: string; min
                 )}
                 {phase === 'feedback' && result && (
                   <>
-                    <Button variant="primary" size="lg" className="w-full desk:w-auto" onClick={proceedAfterFeedback} kbd="Enter">{result.verdict === 'correct' ? 'Weiter' : 'Abtippen'}</Button>
-                    {result.verdict === 'correct' && item.step === 'review' && hints === 0 && <Button variant="ghost" onClick={() => commit(Rating.Easy, true, typed)}>War zu leicht</Button>}
-                    {result.verdict !== 'correct' && (
+                    <Button variant="primary" size="lg" className="w-full desk:w-auto" onClick={proceedAfterFeedback} kbd="Enter">{isRight(result.verdict) ? 'Weiter' : 'Abtippen'}</Button>
+                    {isRight(result.verdict) && item.step === 'review' && hints === 0 && <Button variant="ghost" onClick={() => commit(Rating.Easy, true, typed)}>War zu leicht</Button>}
+                    {!isRight(result.verdict) && (
                       <>
                         <Button variant="ghost" onClick={() => overrideRight(false)}><IconCheck width={16} height={16} /> Ich hatte recht</Button>
                         <Button variant="ghost" className="text-muted" onClick={() => overrideRight(true)}>… und als Lösung speichern</Button>

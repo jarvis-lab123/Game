@@ -230,6 +230,8 @@ export function AnswerInput({ value, onChange, onSubmit, lang, showAccents, plac
 
 const VERDICT_COPY: Record<GradeResult['verdict'], (lang: AnswerLang, strict: boolean) => { title: string; tone: 'good' | 'warn' | 'bad' }> = {
   correct: () => ({ title: 'Richtig', tone: 'good' }),
+  spelling: () => ({ title: 'Richtig – auf Deutsch zählt die Bedeutung', tone: 'good' }),
+  partial: () => ({ title: 'Fast – das ist nur ein Teil der Bedeutung', tone: 'warn' }),
   accent: (_l, strict) => ({ title: strict ? 'Akzent falsch – im Test zählt das als Fehler' : 'Fast – achte auf die Akzente', tone: strict ? 'bad' : 'warn' }),
   typo: () => ({ title: 'Fast! Ein Buchstabe stimmt nicht', tone: 'warn' }),
   article: (lang) => (lang === 'fr' ? { title: 'Genus! Der Artikel stimmt nicht', tone: 'bad' } : { title: 'Fast – Artikel bzw. „to“ beachten', tone: 'warn' }),
@@ -248,7 +250,10 @@ export function FeedbackView({ result, typed, face, strict }: { result: GradeRes
         </motion.span>
         {c.title}
       </div>
-      {result.verdict !== 'correct' && (
+      {result.verdict === 'spelling' && (
+        <p className="mt-3 text-[15px] text-muted">So schreibt man’s: <span className="font-semibold text-fg">{result.matched}</span></p>
+      )}
+      {result.verdict !== 'correct' && result.verdict !== 'spelling' && (
         <div className="mt-4">
           <p className="text-sm text-muted">Richtig ist</p>
           <p className="mt-1 break-words text-[30px] font-semibold leading-tight tracking-tight" lang={face.answerLang} aria-label={result.matched}>

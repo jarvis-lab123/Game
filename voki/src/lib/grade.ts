@@ -1,7 +1,8 @@
 import { Rating } from 'ts-fsrs'
 
 export type AnswerLang = 'fr' | 'en' | 'de' | 'other'
-export type Verdict = 'correct' | 'accent' | 'typo' | 'article' | 'wrong'
+/** 'spelling': German answer with the right meaning but other spelling (counts as right). 'partial': part of a longer German meaning. */
+export type Verdict = 'correct' | 'spelling' | 'accent' | 'typo' | 'article' | 'partial' | 'wrong'
 
 export interface GradeOptions {
   strictAccents: boolean
@@ -87,7 +88,37 @@ export function solutions(answer: string): string[] {
   return [...new Set(out.filter(Boolean))]
 }
 
-const RANK: Record<Verdict, number> = { correct: 0, accent: 1, typo: 2, article: 3, wrong: 4 }
+const RANK: Record<Verdict, number> = { correct: 0, spelling: 1, accent: 2, typo: 3, article: 4, partial: 5, wrong: 6 }
+
+/* ---------- German answers: meaning over spelling ---------- */
+const DE_FILLER = new Set(['der', 'die', 'das', 'den', 'dem', 'des', 'ein', 'eine', 'einen', 'einem', 'einer', 'etw', 'etwas', 'jmdn', 'jmdm', 'jdn', 'jdm', 'jemanden', 'jemandem', 'sich', 'zu'])
+
+/** Lower-case, umlauts/ß folded (ä = a = ae), punctuation and filler words removed. */
+function deWords(s: string): string[] {
+  return stripAccents(normalize(s).replace(/ae/g, 'a').replace(/oe/g, 'o').replace(/ue/g, 'u'))
+    .replace(/[^a-z\s]/g, ' ')
+    .split(/\s+/)
+    .filter((w) => w && !DE_FILLER.has(w))
+}
+
+/** How many letters may differ: short words exact, longer words more forgiving. */
+function deTolerance(len: number): number {
+  return len <= 4 ? 0 : len <= 8 ? 1 : len <= 14 ? 2 : 3
+}
+
+function deClose(a: string, e: string): boolean {
+  return levenshtein(a, e) <= deTolerance(e.length)
+}
+
+function deVerdict(input: string, expected: string): Verdict | null {
+  const a = deWords(input)
+  const e = deWords(expected)
+  if (!a.length || !e.length) return null
+  if (deClose(a.join(''), e.join(''))) return 'spelling'
+  // part of a longer meaning: every typed word matches a word of the solution
+  if (a.length < e.length && a.every((w) => e.some((x) => w.length >= 3 && deClose(w, x)))) return 'partial'
+  return null
+}
 
 function verdictFor(input: string, expected: string, lang: AnswerLang): Verdict {
   const a = normalize(input)
@@ -98,6 +129,10 @@ function verdictFor(input: string, expected: string, lang: AnswerLang): Verdict 
   const se = splitArticle(e)
   // German answers: article is optional when it is simply left out.
   if (lang === 'de' && !sa.article && se.article && sa.rest === se.rest) return 'correct'
+  if (lang === 'de') {
+    const v = deVerdict(input, expected)
+    if (v) return v
+  }
   if (loose(a) === loose(e)) return 'accent'
   if (sa.article !== se.article && loose(sa.rest) === loose(se.rest)) return 'article'
   if (levenshtein(a, e) === 1 && stripAccents(se.rest).replace(/[^a-z]/g, '').length >= 6) return 'typo'
@@ -107,7 +142,10 @@ function verdictFor(input: string, expected: string, lang: AnswerLang): Verdict 
 function ratingFor(v: Verdict, opts: GradeOptions): Rating {
   switch (v) {
     case 'correct':
+    case 'spelling':
       return Rating.Good
+    case 'partial':
+      return Rating.Hard
     case 'accent':
       return opts.strictAccents ? Rating.Again : Rating.Hard
     case 'typo':

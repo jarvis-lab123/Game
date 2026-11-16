@@ -7,7 +7,7 @@ export function classifyError(typed: string | undefined, expected: string, answe
   if (!typed || !typed.trim()) return 'nichtGewusst'
   const v: Verdict = gradeAnswer(typed, expected, { strictAccents: true, answerLang }).verdict
   if (v === 'article') return 'genus'
-  if (v === 'accent' || v === 'typo' || v === 'correct') return 'flüchtig'
+  if (v === 'accent' || v === 'typo' || v === 'correct' || v === 'spelling' || v === 'partial') return 'flüchtig'
   return 'nichtGewusst'
 }
 

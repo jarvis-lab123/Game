@@ -118,7 +118,7 @@ describe('gradeAnswer (§5.4)', () => {
   })
   it('picks the best verdict over all solutions and reports the matched one', () => {
     const r = gradeAnswer('der Backer', 'die Bäckerei; der Bäcker', { strictAccents: false, answerLang: 'de' })
-    expect(r.verdict).toBe('accent')
+    expect(r.verdict).toBe('spelling') // German: spelling doesn't matter (since 16.11.)
     expect(r.matched).toBe('der Bäcker')
   })
 })
@@ -138,5 +138,44 @@ describe('solutions with several bracket groups (review #4)', () => {
   })
   it('grades "sich erinnern" as correct', () => {
     expect(gradeAnswer('sich erinnern', '(sich) erinnern (an)', { strictAccents: false, answerLang: 'de' }).verdict).toBe('correct')
+  })
+})
+
+describe('German answers: meaning counts, not spelling (user wish 16.11.)', () => {
+  const de = { strictAccents: false, answerLang: 'de' as const }
+  it('umlauts written without dots or as ae/oe/ue are right', () => {
+    for (const t of ['Backerei', 'Baeckerei']) {
+      const r = gradeAnswer(t, 'die Bäckerei', de)
+      expect(r.verdict).toBe('spelling')
+      expect(r.rating).toBe(Rating.Good)
+    }
+  })
+  it('spelling mistakes in longer words are right', () => {
+    expect(gradeAnswer('Galenflüsigkeit', 'Gallenflüssigkeit', de).rating).toBe(Rating.Good)
+    expect(gradeAnswer('Umweltverschmuzung', 'Umweltverschmutzung', de).rating).toBe(Rating.Good)
+    expect(gradeAnswer('Bäkerei', 'die Bäckerei', de).rating).toBe(Rating.Good)
+  })
+  it('filler words like etw./jmdn./sich/der are optional', () => {
+    expect(gradeAnswer('Bedrohung', 'Bedrohung für etw.', de).rating).not.toBe(Rating.Again)
+    expect(gradeAnswer('erinnern', 'sich erinnern', de).rating).toBe(Rating.Good)
+  })
+  it('only part of a longer meaning is "fast" (Hard)', () => {
+    const r = gradeAnswer('Warnung', 'eine deutliche Warnung aussprechen', de)
+    expect(r.verdict).toBe('partial')
+    expect(r.rating).toBe(Rating.Hard)
+  })
+  it('short words stay exact: Maus is not Haus', () => {
+    expect(gradeAnswer('Maus', 'das Haus', de).verdict).toBe('wrong')
+  })
+  it('a different meaning stays wrong', () => {
+    expect(gradeAnswer('Katze', 'der Hund', de).verdict).toBe('wrong')
+    expect(gradeAnswer('Verwüstung', 'Verwirrung', de).verdict).toBe('wrong')
+  })
+  it('strict accents never apply to German answers', () => {
+    expect(gradeAnswer('Backerei', 'die Bäckerei', { strictAccents: true, answerLang: 'de' }).rating).toBe(Rating.Good)
+  })
+  it('foreign answers stay strict', () => {
+    expect(gradeAnswer('la boulangeri', 'la boulangerie', { strictAccents: false, answerLang: 'fr' }).verdict).toBe('typo')
+    expect(gradeAnswer('remmeber', 'to remember', { strictAccents: false, answerLang: 'en' }).rating).not.toBe(Rating.Good)
   })
 })
