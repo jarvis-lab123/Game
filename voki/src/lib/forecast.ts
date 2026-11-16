@@ -7,10 +7,10 @@ export const DEFAULT_PACE = { secPerAnswer: 12, accuracy: 0.8 }
 const PACE_WINDOW = 300
 const MIN_SAMPLES = 20
 
-/** From the learner's own logs (ignore mode 'intro'): median durationMs of the last 300 answers, clamped 3..60 s; accuracy = share correct. Fewer than 20 samples → defaults secPerAnswer 12, accuracy 0.8 (samples still reported). */
+/** From the learner's own logs (ignore mode 'intro' and logs without a measured time, e.g. paper tests): median durationMs of the last 300 answers, clamped 3..60 s; accuracy = share correct. Fewer than 20 samples → defaults secPerAnswer 12, accuracy 0.8 (samples still reported). */
 export function personalPace(logs: ReviewLog[]): Pace {
   const recent = logs
-    .filter((l) => l.mode !== 'intro')
+    .filter((l) => l.mode !== 'intro' && l.durationMs > 0)
     .sort((a, b) => (a.timestamp < b.timestamp ? 1 : a.timestamp > b.timestamp ? -1 : 0))
     .slice(0, PACE_WINDOW)
   const samples = recent.length

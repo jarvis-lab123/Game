@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { Rating } from 'ts-fsrs'
 import { db } from '../../db/db'
 import { log } from '../../db/queries'
 import { requestSync } from '../../db/autosync'
+import { introduceBlock } from '../../db/blocks'
 import type { Card, Deck, Note } from '../../lib/types'
 import { READ_ROUNDS, blockStates, drillCurrent, drillFinished, drillMark, overallGrade, pickNextBlock, splitBlocks, startDrill, type BlockState, type DrillState } from '../../lib/blocks'
 import { gradeTone } from '../../lib/papertest'
@@ -19,14 +20,14 @@ const HOME = '/ueben?tab=bloecke'
 const GRADE_CLS = { good: 'bg-good-soft text-good', warn: 'bg-warn-soft text-warn', bad: 'bg-bad-soft text-bad' }
 
 interface Word { card: Card; note: Note; item: PaperItem }
-interface DeckBlocks { deck: Deck; blocks: Word[][]; states: BlockState[] }
+export interface DeckBlocks { deck: Deck; blocks: Word[][]; states: BlockState[] }
 
 /** The card asked in a block: writing the foreign word if the deck asks it, else the deck's first direction. */
 function blockDirection(d: Deck) {
   return d.directions.includes('toTarget') ? 'toTarget' : d.directions[0]
 }
 
-async function loadDeckBlocks(d: Deck): Promise<DeckBlocks> {
+export async function loadDeckBlocks(d: Deck): Promise<DeckBlocks> {
   const dir = blockDirection(d)
   const cards = (await db.cards.where('deckId').equals(d.id).toArray()).filter((c) => c.direction === dir && !c.suspended).sort((a, b) => a.order - b.order)
   const notes = new Map((await db.notes.where('deckId').equals(d.id).toArray()).map((n) => [n.id, n]))
@@ -42,7 +43,7 @@ async function loadDeckBlocks(d: Deck): Promise<DeckBlocks> {
   return { deck: d, blocks, states: blockStates(blocks.map((b) => b.length), tests) }
 }
 
-function GradeChip({ grade, size = 'md' }: { grade: number | null; size?: 'md' | 'sm' }) {
+export function GradeChip({ grade, size = 'md' }: { grade: number | null; size?: 'md' | 'sm' }) {
   const box = size === 'sm' ? 'h-8 min-w-8 text-[13px]' : 'h-10 min-w-10 text-[15px]'
   if (grade == null) return <span className={cx('grid shrink-0 place-items-center rounded-xl bg-surface-2 px-1.5 font-semibold text-muted', box)} aria-label="noch keine Note">–</span>
   return <span className={cx('grid shrink-0 place-items-center rounded-xl px-1.5 font-bold tabular', box, GRADE_CLS[gradeTone(grade)])} aria-label={`Note ${grade.toFixed(1)}`}>{grade.toFixed(1)}</span>
@@ -213,13 +214,13 @@ function BlockFlow({ deck, words, index, count, label }: { deck: Deck; words: Wo
             onSkip={() => setPhase({ k: 'readDone' })}
           />
         )}
-        {phase.k === 'readDone' && <ReadDone n={N} label={label} reduce={reduce} onStart={() => setPhase({ k: 'drill' })} />}
+        {phase.k === 'readDone' && <ReadDone n={N} label={label} reduce={reduce} onStart={() => { void introduceBlock(db, words.map((w) => w.card.id)).then(requestSync); setPhase({ k: 'drill' }) }} />}
         {phase.k === 'drill' && (
           <Drill deck={deck} drill={drill} byId={byId} reduce={reduce} words={words}
-            onMark={(ok) => {
+            onMark={(ok, ms) => {
               const id = drillCurrent(drill)
               const w = id ? byId.get(id) : null
-              if (w) void log(db, { cardId: w.card.id, deckId: deck.id, timestamp: new Date().toISOString(), mode: 'hand', rating: Rating.Manual, typedAnswer: '', correct: ok, durationMs: 0 }).then(requestSync)
+              if (w) void log(db, { cardId: w.card.id, deckId: deck.id, timestamp: new Date().toISOString(), mode: 'hand', rating: Rating.Manual, typedAnswer: '', correct: ok, durationMs: ms }).then(requestSync)
               setDrill((s) => drillMark(s, ok))
             }}
             onTest={() => { setPhase({ k: 'test' }); window.scrollTo({ top: 0 }) }}
@@ -323,8 +324,9 @@ function ReadDone({ n, label, reduce, onStart }: { n: number; label: string; red
   )
 }
 
-function Drill({ deck, drill, byId, words, reduce, onMark, onTest }: { deck: Deck; drill: DrillState; byId: Map<string, Word>; words: Word[]; reduce: boolean; onMark: (ok: boolean) => void; onTest: () => void }) {
+function Drill({ deck, drill, byId, words, reduce, onMark, onTest }: { deck: Deck; drill: DrillState; byId: Map<string, Word>; words: Word[]; reduce: boolean; onMark: (ok: boolean, ms: number) => void; onTest: () => void }) {
   const [shown, setShown] = useState(false)
+  const shownAt = useRef(Date.now())
   const [roundSeen, setRoundSeen] = useState(1)
   const id = drillCurrent(drill)
   const w = id ? byId.get(id) : undefined
@@ -333,7 +335,9 @@ function Drill({ deck, drill, byId, words, reduce, onMark, onTest }: { deck: Dec
   const doneSet = new Set(drill.done)
   const focusTest = useCalmFocus<HTMLButtonElement>(finished)
 
-  const mark = (ok: boolean) => { if (!shown) return; setShown(false); onMark(ok) }
+  useEffect(() => { shownAt.current = Date.now() }, [id, drill.round, roundSeen])
+  // time from seeing the word to checking it (writing on paper), capped like a normal answer
+  const mark = (ok: boolean) => { if (!shown) return; setShown(false); onMark(ok, Math.min(60000, Date.now() - shownAt.current)) }
   useEffect(() => {
     const on = (e: KeyboardEvent) => {
       if (e.key === 'Escape') return go(HOME)

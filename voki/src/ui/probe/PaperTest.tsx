@@ -2,7 +2,8 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { Rating } from 'ts-fsrs'
 import { db } from '../../db/db'
-import { log } from '../../db/queries'
+import { loadSettings, log } from '../../db/queries'
+import { applyBlockTest } from '../../db/blocks'
 import { requestSync } from '../../db/autosync'
 import type { Deck } from '../../lib/types'
 import { nextOpen, paperScore, type Decision } from '../../lib/papertest'
@@ -87,6 +88,8 @@ export function PaperTest({ deck, items, n, block }: { deck: Deck; items: PaperI
         await db.tests.add({ id: uid(), deckId: deck.id, date: now, total: graded.length, correct: points, grade, items: graded.map(({ decided: _d, ...x }) => x), ...(block ? { block: block.index, blocks: block.count } : {}), updatedAt: now })
         for (const a of graded) await log(db, { cardId: a.cardId, deckId: deck.id, timestamp: now, mode: 'test', rating: Rating.Manual, typedAnswer: '', correct: a.correct, durationMs: 0 })
       })
+      // a block test is a clean recall: it moves the words forward in the learning progress
+      if (block) await applyBlockTest(db, graded.map((a) => ({ cardId: a.cardId, correct: a.correct })), (await loadSettings(db)).desiredRetention)
       requestSync()
     })()
   }, [phase, decisions, items, deck.id, block])

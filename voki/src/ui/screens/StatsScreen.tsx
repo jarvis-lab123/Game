@@ -1,6 +1,6 @@
 import { useLayoutEffect, useMemo, useRef } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { Bar, BarChart, CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { db } from '../../db/db'
 import { loadSettings, startOfDay } from '../../db/queries'
 import { masteryInfo, emptyCounts } from '../../db/mastery'
@@ -14,6 +14,10 @@ import { Flag } from '../icons'
 import { MasteryBar } from '../MasteryBar'
 import { StreakCard } from '../StreakCard'
 import { go } from '../router'
+import { byDaypart, gradeStats, hardestWords, minutesByDay, modeBreakdown, weekCompare, type DaypartRow, type GradeStats, type HardWord, type ModeRow } from '../../lib/morestats'
+import { gradeTone } from '../../lib/papertest'
+import { GradeChip, loadDeckBlocks, type DeckBlocks } from './BlockLearn'
+import type { Note } from '../../lib/types'
 
 const WEEKS = 20
 const FORECAST_DAYS = 30
@@ -61,14 +65,18 @@ function accuracyByDay(logs: ReviewLog[], days: number, now: Date): AccDay[] {
 
 async function loadStats() {
   const now = new Date()
-  const [decks, cards, logs, settings, mastery, fc] = await Promise.all([
+  const [decks, cards, logs, settings, mastery, fc, tests, notes] = await Promise.all([
     db.decks.toArray(),
     db.cards.toArray(),
     db.logs.toArray(),
     loadSettings(db),
     masteryInfo(db, undefined, now),
     allDeckForecasts(db),
+    db.tests.toArray(),
+    db.notes.toArray(),
   ])
+  const noteById = new Map(notes.map((n) => [n.id, n]))
+  const noteOfCard = new Map(cards.map((c) => [c.id, c.noteId]))
   const dirById = new Map(cards.map((c) => [c.id, c.direction]))
   const dirOf = (id: string) => dirById.get(id)
   const since = new Date(startOfDay(now) - 29 * DAY).toISOString()
@@ -79,7 +87,18 @@ async function loadStats() {
   const heatDays = (WEEKS - 1) * 7 + weekday + 1
   const activeDecks = decks.filter((d) => !d.archived).sort((a, b) => a.name.localeCompare(b.name, 'de'))
   const withWords = activeDecks.filter((d) => mastery.byDeck.has(d.id))
+  const time14 = minutesByDay(logs, 14, now)
+  const blocks = (await Promise.all(withWords.map(loadDeckBlocks))).filter((b) => b.blocks.length > 0)
+  const deckById = new Map(decks.map((d) => [d.id, d]))
   return {
+    today: { answers: time14[13].answers, minutes: time14[13].minutes },
+    time14,
+    week: weekCompare(logs, now),
+    grades: gradeStats(tests),
+    blocks,
+    modes: modeBreakdown(recent),
+    dayparts: byDaypart(recent),
+    hard: hardestWords(recent, (id) => noteOfCard.get(id)).map((w) => ({ ...w, note: noteById.get(w.noteId) })).filter((w): w is HardWord & { note: Note } => !!w.note).map((w) => ({ ...w, deck: deckById.get(w.note.deckId) })),
     now,
     totalLogs: logs.length,
     learned: learnedWords(cards.filter((c) => !c.suspended)),
@@ -125,6 +144,25 @@ export function StatsScreen() {
         </div>
       </div>
 
+      <div className="grid grid-cols-2 gap-3 desk:grid-cols-4">
+        <Tile label="Heute gelernt" value={`${fmtMin(s.today.minutes)} · ${fmtNum.format(s.today.answers)}×`} />
+        <Tile label="Diese Woche" value={fmtMin(s.week.thisWeek.minutes)} />
+        <Tile label="Ø Note" value={s.grades.average == null ? '–' : s.grades.average.toFixed(1)} tone={s.grades.average == null ? undefined : gradeTone(s.grades.average)} />
+        <Tile label="Probetests" value={fmtNum.format(s.grades.count)} />
+      </div>
+
+      {(s.grades.count > 0 || s.blocks.some((b) => b.states.some((x) => x.grade != null))) && (
+        <Panel>
+          <SectionTitle>Noten</SectionTitle>
+          <Grades g={s.grades} blocks={s.blocks} />
+        </Panel>
+      )}
+
+      <Panel>
+        <SectionTitle>Lernzeit</SectionTitle>
+        <TimeChart data={s.time14} week={s.week} />
+      </Panel>
+
       {s.mastery.decks.length > 0 && (
         <Panel>
           <SectionTitle>Wie gut kannst du's?</SectionTitle>
@@ -146,6 +184,29 @@ export function StatsScreen() {
         <SectionTitle>Trefferquote der letzten 14 Tage</SectionTitle>
         <AccuracyTrend data={s.accDays} />
       </Panel>
+
+      {s.modes.length > 0 && (
+        <Panel>
+          <SectionTitle>So lernst du</SectionTitle>
+          <p className="-mt-1.5 mb-4 text-sm text-muted">Letzte 30 Tage</p>
+          <Modes rows={s.modes} />
+        </Panel>
+      )}
+
+      {s.dayparts.rows.some((r) => r.answers > 0) && (
+        <Panel>
+          <SectionTitle>Tageszeit</SectionTitle>
+          <Dayparts rows={s.dayparts.rows} best={s.dayparts.best} />
+        </Panel>
+      )}
+
+      {s.hard.length > 0 && (
+        <Panel>
+          <SectionTitle>Schwierigste Wörter</SectionTitle>
+          <p className="-mt-1.5 mb-3 text-sm text-muted">Am häufigsten falsch · letzte 30 Tage</p>
+          <HardList rows={s.hard} />
+        </Panel>
+      )}
 
       <Panel>
         <SectionTitle>Aktivität</SectionTitle>
@@ -307,11 +368,13 @@ function AccTip({ active, payload }: { active?: boolean; payload?: readonly { pa
   )
 }
 
-function Tile({ label, value }: { label: string; value: string }) {
+const TONE_TEXT = { good: 'text-good', warn: 'text-warn', bad: 'text-bad' }
+
+function Tile({ label, value, tone }: { label: string; value: string; tone?: 'good' | 'warn' | 'bad' }) {
   return (
     <div className="min-w-0 rounded-[22px] bg-surface px-4 py-3 shadow-card">
       <p className="truncate text-xs font-medium text-muted">{label}</p>
-      <p className="mt-0.5 whitespace-nowrap text-[20px] font-semibold tracking-tight">{value}</p>
+      <p className={`mt-0.5 truncate whitespace-nowrap text-[20px] font-semibold tracking-tight tabular ${tone ? TONE_TEXT[tone] : ''}`}>{value}</p>
     </div>
   )
 }
@@ -480,5 +543,139 @@ function Meter({ label, value }: { label: string; value: number | null }) {
       </div>
       <span className="w-11 shrink-0 text-right text-sm font-medium tabular">{pct(value)}</span>
     </div>
+  )
+}
+
+/* ---------- Mehr Statistik: Noten, Lernzeit, Lernarten, Tageszeit, schwierige Wörter ---------- */
+
+function fmtMin(min: number): string {
+  if (min <= 0) return '0 min'
+  if (min < 1) return '< 1 min'
+  return fmtDuration(min)
+}
+
+const fmtDate = new Intl.DateTimeFormat('de-CH', { day: 'numeric', month: 'numeric' })
+
+function Grades({ g, blocks }: { g: GradeStats; blocks: DeckBlocks[] }) {
+  const data = g.history.map((h, i) => ({ i: i + 1, grade: h.grade, label: fmtDate.format(new Date(h.date)), block: h.block }))
+  return (
+    <div>
+      {g.count > 0 && (
+        <>
+          <p className="mb-4 text-sm text-muted tabular">
+            Ø <span className="font-medium text-fg">{g.average!.toFixed(1)}</span> · beste <span className="font-medium text-fg">{g.best!.toFixed(1)}</span> · letzte <span className="font-medium text-fg">{g.last!.toFixed(1)}</span> · {g.count} {g.count === 1 ? 'Test' : 'Tests'}
+          </p>
+          {data.length > 1 && (
+            <div className="h-40" role="img" aria-label={`Noten aller Probetests, im Schnitt ${g.average!.toFixed(1)}, zuletzt ${g.last!.toFixed(1)}.`}>
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
+                  <CartesianGrid vertical={false} stroke="var(--line)" />
+                  <XAxis dataKey="label" tickLine={false} axisLine={{ stroke: 'var(--line)' }} tick={{ fill: 'var(--muted)', fontSize: 11 }} tickMargin={6} minTickGap={16} />
+                  <YAxis domain={[1, 6]} ticks={[1, 2, 3, 4, 5, 6]} tickLine={false} axisLine={false} tick={{ fill: 'var(--muted)', fontSize: 11 }} width={28} />
+                  <ReferenceLine y={4} stroke="var(--warn)" strokeDasharray="4 4" />
+                  <Tooltip cursor={{ stroke: 'var(--line)', strokeWidth: 1 }} isAnimationActive={false} content={({ active, payload }) => {
+                    const d = active && payload?.length ? (payload[0].payload as (typeof data)[number]) : null
+                    return d ? <div className="rounded-lg bg-surface px-3 py-2 text-sm shadow-lg shadow-card"><p className="text-xs text-muted">{d.label} · {d.block ? 'Blocktest' : 'Probetest'}</p><p className="font-semibold tabular">Note {d.grade.toFixed(1)}</p></div> : null
+                  }} />
+                  <Line type="monotone" dataKey="grade" stroke="var(--accent)" strokeWidth={2} dot={{ r: 4, fill: 'var(--accent)', stroke: 'var(--surface)', strokeWidth: 2 }} isAnimationActive={false} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+          <p className="mt-2 text-xs text-muted">Schweizer Skala: 6 = alles richtig · 4 = genügend (gestrichelt)</p>
+        </>
+      )}
+      {blocks.length > 0 && (
+        <ul className="mt-4 divide-y divide-line border-t border-line">
+          {blocks.map((b) => (
+            <li key={b.deck.id} className="py-3 last:pb-0">
+              <a href="#/ueben?tab=bloecke" className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                <span className="flex min-w-0 flex-1 items-center gap-2 font-medium"><Flag lang={b.deck.language} /><span className="truncate">{b.deck.name} · Blöcke</span></span>
+                <span className="flex gap-1.5">{b.states.map((x) => <span key={x.index} title={`Block ${x.index + 1}`}><GradeChip grade={x.grade} size="sm" /></span>)}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+
+function TimeChart({ data, week }: { data: { date: string; minutes: number; answers: number }[]; week: { thisWeek: { answers: number; minutes: number }; lastWeek: { answers: number; minutes: number } } }) {
+  const total = data.reduce((s, d) => s + d.minutes, 0)
+  const days = data.filter((d) => d.answers > 0).length
+  const rows = data.map((d) => ({ ...d, label: fmtShort.format(parseDay(d.date)) }))
+  const diff = week.thisWeek.minutes - week.lastWeek.minutes
+  return (
+    <div>
+      <p className="mb-4 text-sm text-muted tabular">
+        <span className="font-medium text-fg">{fmtMin(total)}</span> in 14 Tagen{days ? <> · Ø {fmtMin(total / days)} an Lerntagen</> : null}
+        {' · '}diese Woche {fmtMin(week.thisWeek.minutes)}{week.lastWeek.minutes > 0 && <> ({diff >= 0 ? '+' : '−'}{fmtMin(Math.abs(diff))} zur Vorwoche)</>}
+      </p>
+      <div className="h-40" role="img" aria-label={`Lernzeit pro Tag, insgesamt ${Math.round(total)} Minuten in 14 Tagen.`}>
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={rows} margin={{ top: 4, right: 0, bottom: 0, left: 0 }} barCategoryGap={3}>
+            <CartesianGrid vertical={false} stroke="var(--line)" />
+            <XAxis dataKey="label" tickLine={false} axisLine={{ stroke: 'var(--line)' }} tick={{ fill: 'var(--muted)', fontSize: 11 }} interval={3} tickMargin={6} />
+            <YAxis allowDecimals={false} tickLine={false} axisLine={false} tick={{ fill: 'var(--muted)', fontSize: 11 }} width={32} tickFormatter={(v: number) => `${v}′`} />
+            <Tooltip cursor={{ fill: 'var(--surface-2)' }} isAnimationActive={false} content={({ active, payload }) => {
+              const d = active && payload?.length ? (payload[0].payload as (typeof rows)[number]) : null
+              return d ? <div className="rounded-lg bg-surface px-3 py-2 text-sm shadow-lg shadow-card"><p className="text-xs text-muted">{fmtLong.format(parseDay(d.date))}</p><p className="font-semibold tabular">{fmtMin(d.minutes)} · {d.answers} Antworten</p></div> : null
+            }} />
+            <Bar dataKey="minutes" fill="var(--accent)" radius={[4, 4, 0, 0]} maxBarSize={24} isAnimationActive={false} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+      <p className="mt-2 text-xs text-muted">Gemessen wird die Zeit pro Antwort; Probetests auf Papier zählen als Abfragen, aber ohne Zeit.</p>
+    </div>
+  )
+}
+
+function Bars({ rows }: { rows: { key: string; answers: number; accuracy: number | null; hl?: boolean }[] }) {
+  const max = Math.max(1, ...rows.map((r) => r.answers))
+  return (
+    <ul className="space-y-2.5">
+      {rows.map((r) => (
+        <li key={r.key} className="grid grid-cols-[7.5rem_1fr_auto] items-center gap-3 text-sm desk:grid-cols-[10rem_1fr_auto]">
+          <span className={`truncate ${r.hl ? 'font-semibold text-fg' : 'text-muted'}`}>{r.key}</span>
+          <span className="h-2 overflow-hidden rounded-full bg-surface-2" aria-hidden>
+            <span className="block h-full rounded-full bg-accent" style={{ width: `${(r.answers / max) * 100}%` }} />
+          </span>
+          <span className="w-[8.5rem] text-right tabular"><span className="font-medium">{fmtNum.format(r.answers)}</span><span className="text-muted">{r.accuracy == null ? '' : ` · ${Math.round(r.accuracy * 100)} % ✓`}</span></span>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+function Modes({ rows }: { rows: ModeRow[] }) {
+  return <Bars rows={rows.map((r) => ({ key: r.mode, answers: r.answers, accuracy: r.accuracy }))} />
+}
+
+function Dayparts({ rows, best }: { rows: DaypartRow[]; best: string | null }) {
+  return (
+    <div>
+      <p className="mb-4 text-sm text-muted">{best ? <>Am besten klappt es am <span className="font-medium text-fg">{best}</span>.</> : 'Ab 20 Antworten pro Tageszeit siehst du, wann du am besten lernst.'}</p>
+      <Bars rows={rows.map((r) => ({ key: r.part, answers: r.answers, accuracy: r.accuracy, hl: r.part === best }))} />
+    </div>
+  )
+}
+
+function HardList({ rows }: { rows: (HardWord & { note: Note; deck?: Deck })[] }) {
+  return (
+    <ul className="divide-y divide-line">
+      {rows.map((r) => (
+        <li key={r.noteId}>
+          <a href={r.deck ? `#/deck/${r.deck.id}` : '#/statistik'} className="-mx-2 flex min-h-12 items-center gap-3 rounded-xl px-2 py-2 hover:bg-surface-2/60">
+            <span className="min-w-0 flex-1">
+              <span className="block truncate font-medium">{r.note.term}</span>
+              <span className="block truncate text-sm text-muted">{r.note.translation}</span>
+            </span>
+            <span className="shrink-0 rounded-full bg-bad-soft px-2.5 py-0.5 text-sm font-semibold text-bad tabular">{r.wrong}× falsch</span>
+            <span className="w-14 shrink-0 text-right text-sm text-muted tabular">{Math.round(((r.total - r.wrong) / r.total) * 100)} % ✓</span>
+          </a>
+        </li>
+      ))}
+    </ul>
   )
 }
