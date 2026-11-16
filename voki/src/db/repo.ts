@@ -1,10 +1,16 @@
 import { createEmptyCard } from 'ts-fsrs'
 import type { VokiDB } from './db'
-import type { Card, Deck, Direction, Language, Note } from '../lib/types'
+import type { Card, Deck, Direction, Language, Note, SyncTable } from '../lib/types'
 import type { NoteDraft } from '../lib/tsv'
 import { uid } from '../lib/id'
 
 export const NEVER = Number.MAX_SAFE_INTEGER
+
+/** Remember deletions so the sync can remove them on other devices too. */
+export async function addTombstones(db: VokiDB, table: SyncTable, ids: string[]): Promise<void> {
+  const deletedAt = new Date().toISOString()
+  await db.tombstones.bulkPut(ids.map((id) => ({ id: `${table}:${id}`, table, deletedAt })))
+}
 
 export async function createDeck(
   db: VokiDB,
@@ -69,7 +75,7 @@ export async function importNotes(db: VokiDB, deckId: string, drafts: NoteDraft[
 
 /** Keeps cards in sync when the directions of a deck change. */
 export async function syncDirections(db: VokiDB, deck: Deck): Promise<void> {
-  await db.transaction('rw', db.notes, db.cards, async () => {
+  await db.transaction('rw', db.notes, db.cards, db.tombstones, async () => {
     const notes = await db.notes.where('deckId').equals(deck.id).toArray()
     const cards = await db.cards.where('deckId').equals(deck.id).toArray()
     const have = new Set(cards.map((c) => `${c.noteId}|${c.direction}`))
@@ -80,11 +86,15 @@ export async function syncDirections(db: VokiDB, deck: Deck): Promise<void> {
     await db.cards.bulkAdd(add)
     const drop = cards.filter((c) => !deck.directions.includes(c.direction) && c.stage === 'new').map((c) => c.id)
     await db.cards.bulkDelete(drop)
+    await addTombstones(db, 'cards', drop)
   })
 }
 
 export async function deleteDeck(db: VokiDB, deckId: string): Promise<void> {
-  await db.transaction('rw', [db.decks, db.notes, db.cards, db.logs], async () => {
+  await db.transaction('rw', [db.decks, db.notes, db.cards, db.logs, db.tombstones], async () => {
+    await addTombstones(db, 'cards', (await db.cards.where('deckId').equals(deckId).primaryKeys()) as string[])
+    await addTombstones(db, 'notes', (await db.notes.where('deckId').equals(deckId).primaryKeys()) as string[])
+    await addTombstones(db, 'decks', [deckId])
     await db.cards.where('deckId').equals(deckId).delete()
     await db.notes.where('deckId').equals(deckId).delete()
     await db.logs.where('deckId').equals(deckId).delete()
@@ -93,7 +103,9 @@ export async function deleteDeck(db: VokiDB, deckId: string): Promise<void> {
 }
 
 export async function deleteNote(db: VokiDB, noteId: string): Promise<void> {
-  await db.transaction('rw', db.notes, db.cards, async () => {
+  await db.transaction('rw', db.notes, db.cards, db.tombstones, async () => {
+    await addTombstones(db, 'cards', (await db.cards.where('noteId').equals(noteId).primaryKeys()) as string[])
+    await addTombstones(db, 'notes', [noteId])
     await db.cards.where('noteId').equals(noteId).delete()
     await db.notes.delete(noteId)
   })

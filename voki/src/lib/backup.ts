@@ -1,5 +1,5 @@
 import type { VokiDB } from '../db/db'
-import type { Card, Deck, Note, ReviewLog, Settings } from './types'
+import type { Card, Deck, Note, ReviewLog, Settings, TestResult, Tombstone } from './types'
 
 export interface BackupV1 {
   app: 'voki'
@@ -10,6 +10,8 @@ export interface BackupV1 {
   cards: Card[]
   logs: ReviewLog[]
   settings: Settings[]
+  tests?: TestResult[]
+  tombstones?: Tombstone[]
 }
 
 export async function exportBackup(db: VokiDB): Promise<BackupV1> {
@@ -22,6 +24,8 @@ export async function exportBackup(db: VokiDB): Promise<BackupV1> {
     cards: await db.cards.toArray(),
     logs: await db.logs.toArray(),
     settings: await db.settings.toArray(),
+    tests: await db.tests.toArray(),
+    tombstones: await db.tombstones.toArray(),
   }
 }
 
@@ -46,8 +50,10 @@ export function validateBackup(x: unknown): BackupV1 {
 
 /** Replaces all data atomically. */
 export async function restoreBackup(db: VokiDB, b: BackupV1): Promise<void> {
-  await db.transaction('rw', [db.decks, db.notes, db.cards, db.logs, db.settings], async () => {
-    await Promise.all([db.decks.clear(), db.notes.clear(), db.cards.clear(), db.logs.clear(), db.settings.clear()])
+  await db.transaction('rw', [db.decks, db.notes, db.cards, db.logs, db.settings, db.tests, db.tombstones], async () => {
+    await Promise.all([db.decks.clear(), db.notes.clear(), db.cards.clear(), db.logs.clear(), db.settings.clear(), db.tests.clear(), db.tombstones.clear()])
+    await db.tests.bulkAdd(b.tests ?? [])
+    await db.tombstones.bulkAdd(b.tombstones ?? [])
     await db.decks.bulkAdd(b.decks)
     await db.notes.bulkAdd(b.notes)
     await db.cards.bulkAdd(b.cards)

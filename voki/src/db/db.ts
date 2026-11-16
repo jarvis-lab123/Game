@@ -1,5 +1,5 @@
 import { Dexie, type EntityTable } from 'dexie'
-import type { Card, Deck, Note, ReviewLog, Settings } from '../lib/types'
+import type { Card, Deck, Note, ReviewLog, Settings, TestResult, Tombstone } from '../lib/types'
 
 export interface Meta { key: string; value: unknown }
 
@@ -10,6 +10,8 @@ export class VokiDB extends Dexie {
   logs!: EntityTable<ReviewLog, 'id'>
   settings!: EntityTable<Settings, 'id'>
   meta!: EntityTable<Meta, 'key'>
+  tests!: EntityTable<TestResult, 'id'>
+  tombstones!: EntityTable<Tombstone, 'id'>
 
   constructor(name = 'voki') {
     super(name)
@@ -20,6 +22,10 @@ export class VokiDB extends Dexie {
       logs: 'id, cardId, deckId, timestamp',
       settings: 'id',
       meta: 'key',
+    })
+    this.version(2).stores({
+      tests: 'id, deckId, date',
+      tombstones: 'id, table',
     })
   }
 }

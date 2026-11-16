@@ -59,3 +59,23 @@ describe('backup validation (review)', () => {
     expect(() => validateBackup(b)).toThrow(/beschädigt/)
   })
 })
+
+describe('tombstones (sync deletes)', () => {
+  it('deleting a note records tombstones for the note and its cards', async () => {
+    const { deleteNote } = await import('./repo')
+    const deck = await createDeck(db, { name: 'E', language: 'en', directions: ['toTarget', 'toNative'] })
+    await importNotes(db, deck.id, [{ term: 'a', translation: 'b', valid: true, duplicate: false }], deck.directions)
+    const note = (await db.notes.toArray())[0]
+    await deleteNote(db, note.id)
+    const t = await db.tombstones.toArray()
+    expect(t.map((x) => x.table).sort()).toEqual(['cards', 'cards', 'notes'])
+  })
+  it('deleting a deck records tombstones for everything in it', async () => {
+    const { deleteDeck } = await import('./repo')
+    const deck = await createDeck(db, { name: 'E', language: 'en', directions: ['toTarget'] })
+    await importNotes(db, deck.id, [{ term: 'a', translation: 'b', valid: true, duplicate: false }], deck.directions)
+    await deleteDeck(db, deck.id)
+    const tables = (await db.tombstones.toArray()).map((x) => x.table).sort()
+    expect(tables).toEqual(['cards', 'decks', 'notes'])
+  })
+})

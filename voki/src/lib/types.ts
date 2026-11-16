@@ -27,6 +27,12 @@ export interface Note {
   plural?: string
   notes?: string
   mnemonic?: string
+  /** Visual memory aid (single emoji) */
+  emoji?: string
+  /** Hand-drawn memory sketch, PNG data URL */
+  sketch?: string
+  /** Own sentence / mini story */
+  story?: string
   tags: string[]
   updatedAt: string
 }
@@ -47,7 +53,7 @@ export interface Card {
   updatedAt: string
 }
 
-export type ReviewMode = 'intro' | 'mc' | 'type' | 'flip' | 'cram'
+export type ReviewMode = 'intro' | 'mc' | 'type' | 'flip' | 'cram' | 'hand' | 'listen' | 'drill' | 'test'
 
 export interface ReviewLog {
   id: string
@@ -61,6 +67,23 @@ export interface ReviewLog {
   durationMs: number
 }
 
+export interface TestItem { cardId: string; typed: string; correct: boolean; confident: boolean }
+export interface TestResult {
+  id: string
+  deckId: string
+  date: string
+  total: number
+  correct: number
+  grade: number
+  items: TestItem[]
+  updatedAt: string
+}
+
+export type SyncTable = 'decks' | 'notes' | 'cards' | 'logs' | 'tests'
+export interface Tombstone { id: string; table: SyncTable; deletedAt: string }
+
+export interface SyncConfig { token: string; gistId: string; lastSyncAt?: string; lastError?: string }
+
 export interface Settings {
   id: 'settings'
   dailyMinutesGoal: number
@@ -70,6 +93,7 @@ export interface Settings {
   ttsVoiceEn?: string
   ttsVoiceFr?: string
   lastBackupAt?: string
+  deviceId?: string
 }
 
 export const DEFAULT_SETTINGS: Settings = {
