@@ -17,3 +17,11 @@ export function pickTestCards(cards: Card[], n = TEST_SIZE, rng: () => number = 
   }
   return pool.slice(0, n)
 }
+
+/** Test length from the `?n=` param: '20' | '40' | 'all'. Invalid → TEST_SIZE; always capped at `available`. */
+export function testSize(param: string | null, available: number): number {
+  const avail = Math.max(0, Math.floor(available))
+  if (param === 'all') return avail
+  const n = param != null && /^\d+$/.test(param.trim()) ? parseInt(param, 10) : NaN
+  return Math.min(avail, Number.isFinite(n) && n > 0 ? n : TEST_SIZE)
+}

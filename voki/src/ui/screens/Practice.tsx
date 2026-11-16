@@ -123,21 +123,36 @@ function Fehlerheft() {
 function ProbeTestHome() {
   const decks = useLiveQuery(() => db.decks.filter((d) => !d.archived).toArray(), [])
   const tests = useLiveQuery(() => db.tests.orderBy('date').reverse().limit(10).toArray(), [])
+  const [size, setSize] = useState<'20' | '40' | 'all'>('20')
+  const [mode, setMode] = useState<'end' | 'live'>('end')
   if (!decks) return <div className="h-40" aria-busy="true" />
   if (decks.length === 0) return <Empty title="Noch kein Deck" action={<Button variant="primary" onClick={() => go('/import')}>Vokabeln importieren</Button>} />
+  const query = `&n=${size}${mode === 'live' ? '&live=1' : ''}`
   return (
     <div className="space-y-5">
       <Panel className="flex items-center gap-5">
         <Illustration kind="test" size={88} />
         <div className="min-w-0">
           <p className="text-[17px] font-semibold">Generalprobe wie im echten Voki</p>
-          <p className="mt-1 text-sm text-muted">20 zufällige Wörter, nur Tippen, Akzente streng, keine Hilfe. Vor jeder Antwort sagst du, wie sicher du bist. Am Schluss: Note nach Schweizer Skala.</p>
+          <p className="mt-1 text-sm text-muted">Zufällige Wörter, nur Tippen, keine Hilfe. Vor jeder Antwort sagst du, wie sicher du bist. Note nach Schweizer Skala.</p>
+          <p className="mt-2 text-sm font-medium">Ein Buchstabe falsch = kein Punkt · Akzente zählen</p>
+          <p className="text-sm text-muted">Auf Deutsch zählt die Bedeutung.</p>
         </div>
       </Panel>
+      <div className="flex flex-col gap-4 rounded-[22px] bg-surface p-5 shadow-card desk:flex-row desk:flex-wrap desk:items-center desk:gap-x-8">
+        <div className="flex flex-col gap-1.5 desk:flex-row desk:items-center desk:gap-3">
+          <span className="text-sm font-medium text-muted">Umfang</span>
+          <div className="self-start"><Segmented label="Umfang des Probetests" value={size} onChange={setSize} options={[{ value: '20', label: '20' }, { value: '40', label: '40' }, { value: 'all', label: 'Alle' }]} /></div>
+        </div>
+        <div className="flex flex-col gap-1.5 desk:flex-row desk:items-center desk:gap-3">
+          <span className="text-sm font-medium text-muted">Note</span>
+          <div className="self-start"><Segmented label="Auswertung" value={mode} onChange={setMode} options={[{ value: 'end', label: 'Am Schluss' }, { value: 'live', label: 'Sofort auswerten' }]} /></div>
+        </div>
+      </div>
       <ul className="divide-y divide-line overflow-hidden rounded-[22px] bg-surface shadow-card">
         {decks.map((d) => (
           <li key={d.id}>
-            <a href={`#/probetest?deck=${d.id}`} className="flex min-h-14 items-center gap-3 px-4 py-3 hover:bg-surface-2 desk:px-5">
+            <a href={`#/probetest?deck=${d.id}${query}`} className="flex min-h-14 items-center gap-3 px-4 py-3 hover:bg-surface-2 desk:px-5">
               <Flag lang={d.language} />
               <span className="min-w-0 flex-1 truncate font-medium">{d.name}</span>
               <span className="text-sm font-medium text-accent">Probetest starten</span>

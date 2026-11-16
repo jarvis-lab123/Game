@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { swissGrade, pickTestCards } from './probetest'
+import { swissGrade, pickTestCards, testSize } from './probetest'
 import { mkCard } from './testutil'
 
 describe('swissGrade (§6.4)', () => {
@@ -21,5 +21,21 @@ describe('pickTestCards', () => {
     expect(pickTestCards(cs, 20, () => 0.5)).toHaveLength(20)
     const few = [mkCard(), mkCard(), { ...mkCard(), suspended: true }]
     expect(pickTestCards(few, 20, Math.random)).toHaveLength(2)
+  })
+})
+
+describe('testSize', () => {
+  it('defaults to 20 for null or invalid', () => {
+    expect(testSize(null, 100)).toBe(20)
+    expect(testSize('', 100)).toBe(20)
+    expect(testSize('abc', 100)).toBe(20)
+    expect(testSize('0', 100)).toBe(20)
+    expect(testSize('-5', 100)).toBe(20)
+  })
+  it("'all' takes every available card", () => expect(testSize('all', 222)).toBe(222))
+  it('caps numbers at available', () => {
+    expect(testSize('40', 100)).toBe(40)
+    expect(testSize('40', 30)).toBe(30)
+    expect(testSize(null, 12)).toBe(12)
   })
 })

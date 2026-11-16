@@ -6,24 +6,38 @@ import { log } from '../../db/queries'
 import { requestSync } from '../../db/autosync'
 import type { Card, Deck, Note, TestItem } from '../../lib/types'
 import { diffChars, gradeAnswer, normalize } from '../../lib/grade'
-import { pickTestCards, swissGrade, TEST_SIZE } from '../../lib/probetest'
+import { pickTestCards, swissGrade, testSize } from '../../lib/probetest'
 import { uid } from '../../lib/id'
 import { Button, Empty, Kbd, Progress, cx } from '../components'
-import { IconX } from '../icons'
+import { IconCheck, IconX } from '../icons'
 import { Illustration } from '../illustrations'
 import { go } from '../router'
 import { AnswerInput, faceOf } from './cards'
 
 interface Q { card: Card; note: Note }
 interface A extends TestItem { expected: string }
+interface Feedback { correct: boolean; expected: string; typed: string; at: number }
+
+/** Extra options from the hash query: `n=20|40|all`, `live=1`. */
+function readOpts() {
+  const q = new URLSearchParams(location.hash.split('?')[1] ?? '')
+  return { n: q.get('n'), live: q.get('live') === '1' }
+}
+
+function ruleText(answerLang: string) {
+  return answerLang === 'de' ? 'Auf Deutsch zählt die Bedeutung' : 'Ein Buchstabe falsch = kein Punkt · Akzente zählen'
+}
 
 export function ProbeTest({ deckId }: { deckId: string }) {
   const deck = useLiveQuery(() => db.decks.get(deckId), [deckId])
+  const [opts] = useState(readOpts)
   const [qs, setQs] = useState<Q[] | null>(null)
   const [i, setI] = useState(0)
   const [confident, setConfident] = useState<boolean | null>(null)
   const [typed, setTyped] = useState('')
   const [answers, setAnswers] = useState<A[]>([])
+  const [feedback, setFeedback] = useState<Feedback | null>(null)
+  const [ended, setEnded] = useState(false)
   const [saved, setSaved] = useState<number | null>(null)
   const saving = useRef(false)
 
@@ -32,23 +46,45 @@ export function ProbeTest({ deckId }: { deckId: string }) {
       const d = await db.decks.get(deckId)
       if (!d) return setQs([])
       const cards = (await db.cards.where('deckId').equals(deckId).toArray()).filter((c) => d.directions.includes(c.direction))
-      const picked = pickTestCards(cards, TEST_SIZE)
+      const available = cards.filter((c) => !c.suspended).length
+      const picked = pickTestCards(cards, testSize(opts.n, available))
       const notes = new Map((await db.notes.bulkGet(picked.map((c) => c.noteId))).filter((n): n is Note => !!n).map((n) => [n.id, n]))
       setQs(picked.filter((c) => notes.has(c.noteId)).map((c) => ({ card: c, note: notes.get(c.noteId)! })))
     })()
-  }, [deckId])
+  }, [deckId, opts.n])
 
   const q = qs?.[i]
   const face = q && deck ? faceOf(q.card, q.note, deck) : null
-  const done = qs && i >= qs.length && qs.length > 0
+  const done = !!qs && qs.length > 0 && answers.length > 0 && !feedback && (i >= qs.length || ended)
+  const right = answers.filter((a) => a.correct).length
 
   const submit = () => {
-    if (!q || !face || confident == null) return
+    if (!q || !face || confident == null || feedback) return
     const r = gradeAnswer(typed, face.answer, { strictAccents: true, answerLang: face.answerLang })
-    setAnswers((a) => [...a, { cardId: q.card.id, typed, correct: r.verdict === 'correct' || r.verdict === 'spelling', confident, expected: r.matched }])
+    const correct = r.verdict === 'correct' || r.verdict === 'spelling'
+    setAnswers((a) => [...a, { cardId: q.card.id, typed, correct, confident, expected: r.matched }])
     setTyped('')
     setConfident(null)
+    if (opts.live) setFeedback({ correct, expected: r.matched, typed, at: Date.now() })
+    else setI((x) => x + 1)
+  }
+
+  const next = () => {
+    setFeedback(null)
     setI((x) => x + 1)
+  }
+
+  // live feedback: auto-advance (a wrong answer stays a bit longer to read the solution)
+  useEffect(() => {
+    if (!feedback) return
+    const t = setTimeout(next, feedback.correct ? 1200 : 2200)
+    return () => clearTimeout(t)
+  }, [feedback])
+
+  const finishEarly = () => {
+    if (answers.length === 0) return
+    setFeedback(null)
+    setEnded(true)
   }
 
   // save result once
@@ -78,10 +114,16 @@ export function ProbeTest({ deckId }: { deckId: string }) {
     })()
   }, [done, saved, deck, qs, answers])
 
-  // keys: S / U for confidence
+  // keys: S / U for confidence, Enter skips live feedback, Esc cancels
   useEffect(() => {
     const on = (e: KeyboardEvent) => {
       if (e.key === 'Escape') return go('/ueben')
+      if (done) return
+      if (feedback) {
+        // ignore the Enter that submitted the answer (it may still bubble up here)
+        if (e.key === 'Enter' && !e.repeat && Date.now() - feedback.at > 120) { e.preventDefault(); next() }
+        return
+      }
       if (confident == null && !(e.target instanceof HTMLInputElement)) {
         if (e.key.toLowerCase() === 's') setConfident(true)
         if (e.key.toLowerCase() === 'u') setConfident(false)
@@ -94,22 +136,44 @@ export function ProbeTest({ deckId }: { deckId: string }) {
   if (!qs || deck === undefined) return <div className="h-60" aria-busy="true" />
   if (!deck || qs.length === 0) return <div className="mx-auto max-w-[640px] px-4 pt-10"><Empty title="Keine Wörter für einen Probetest" action={<Button onClick={() => go('/ueben')}>Zurück</Button>} /></div>
 
+  const liveGrade = answers.length > 0 ? swissGrade(right, answers.length) : null
+  const isLast = i + 1 === qs.length
+
   return (
     <div className="flex min-h-full flex-col">
       <header className="safe-top sticky top-0 z-10 border-b border-line bg-bg/90 backdrop-blur">
         <div className="mx-auto flex max-w-[680px] items-center gap-3 px-4 py-3">
           <button onClick={() => go('/ueben')} className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-muted hover:bg-surface-2 hover:text-fg" aria-label="Probetest abbrechen (Esc)"><IconX /></button>
-          <Progress value={Math.min(i, qs.length) / qs.length} label="Fortschritt Probetest" />
-          <span className="w-14 shrink-0 text-right text-sm text-muted tabular">{Math.min(i + 1, qs.length)}/{qs.length}</span>
+          <Progress value={answers.length / qs.length} label="Fortschritt Probetest" />
+          <span className="shrink-0 text-right text-sm text-muted tabular">{done ? answers.length : Math.min(i + 1, qs.length)}/{qs.length}</span>
+          {opts.live && !done && (
+            <span className={cx('shrink-0 rounded-full px-2.5 py-1 text-sm font-semibold tabular', liveGrade == null ? 'bg-surface-2 text-muted' : liveGrade >= 5 ? 'bg-good-soft text-good' : liveGrade >= 4 ? 'bg-warn-soft text-warn' : 'bg-bad-soft text-bad')} aria-live="polite">
+              <span className="hidden font-medium desk:inline">Note bisher </span>
+              <span className="font-medium desk:hidden">Note </span>
+              {liveGrade == null ? '–' : liveGrade.toFixed(1)}
+            </span>
+          )}
         </div>
       </header>
       <div className="mx-auto w-full max-w-[680px] flex-1 px-4 pb-10 pt-6 desk:pt-10">
         {done ? (
-          <Result deck={deck} answers={answers} grade={saved ?? swissGrade(answers.filter((a) => a.correct).length, answers.length)} />
+          <Result deck={deck} answers={answers} total={qs.length} live={opts.live} n={opts.n} grade={saved ?? swissGrade(right, answers.length)} />
+        ) : feedback && face ? (
+          <div className={cx('rounded-[26px] p-6 shadow-card desk:p-10', feedback.correct ? 'bg-good-soft' : 'bg-bad-soft')} role="status" aria-live="assertive">
+            <p className={cx('flex items-center gap-2 text-[22px] font-semibold', feedback.correct ? 'text-good' : 'text-bad')}>
+              {feedback.correct ? <IconCheck width={26} height={26} /> : <IconX width={26} height={26} />}
+              {feedback.correct ? 'Richtig' : 'Falsch'}
+            </p>
+            <p className="mt-4 text-sm font-medium text-muted">{face.question} →</p>
+            <p className="mt-0.5 break-words text-[30px] font-semibold leading-tight tracking-tight" lang={face.answerLang}>{feedback.expected}</p>
+            {!feedback.correct && <p className="mt-2 text-sm text-muted">{feedback.typed.trim() ? <>du: <span className="line-through">{feedback.typed}</span></> : 'leer gelassen'}</p>}
+            <Button size="lg" className="mt-6 w-full desk:w-auto" onClick={next} kbd="Enter">{isLast ? 'Zur Note' : 'Weiter'}</Button>
+          </div>
         ) : face && q ? (
           <div className="rounded-[26px] bg-surface p-6 shadow-card desk:p-10">
-            <p className="text-sm font-medium text-muted">Probetest · {face.promptLabel} · Akzente zählen</p>
+            <p className="text-sm font-medium text-muted">Probetest · {face.promptLabel}</p>
             <p className="mt-1 break-words text-[32px] font-semibold leading-tight tracking-tight desk:text-[36px]">{face.question}</p>
+            <p className="mt-2 text-[13px] text-muted">{ruleText(face.answerLang)}</p>
             {confident == null ? (
               <div className="mt-6">
                 <p className="mb-3 text-[15px] font-medium">Wie sicher bist du – bevor du schreibst?</p>
@@ -121,17 +185,23 @@ export function ProbeTest({ deckId }: { deckId: string }) {
             ) : (
               <div className="mt-6">
                 <AnswerInput key={i} value={typed} onChange={setTyped} onSubmit={submit} lang={face.answerLang} showAccents={face.answerLang === 'fr'} placeholder="Antwort … (leer lassen = weiss nicht)" ariaLabel="Deine Antwort" />
-                <Button variant="primary" size="lg" className="mt-4 w-full desk:w-auto" onClick={submit} kbd="Enter">{i + 1 === qs.length ? 'Abgeben' : 'Weiter'}</Button>
+                <Button variant="primary" size="lg" className="mt-4 w-full desk:w-auto" onClick={submit} kbd="Enter">{isLast ? 'Abgeben' : 'Weiter'}</Button>
               </div>
             )}
           </div>
         ) : null}
+        {!done && answers.length > 0 && !(feedback && isLast) && (
+          <div className="mt-4 flex items-center justify-between gap-3 px-1">
+            <span className="text-sm text-muted tabular">{answers.length} beantwortet</span>
+            <Button size="sm" variant="ghost" onClick={finishEarly}>Test beenden & auswerten</Button>
+          </div>
+        )}
       </div>
     </div>
   )
 }
 
-function Result({ deck, answers, grade }: { deck: Deck; answers: A[]; grade: number }) {
+function Result({ deck, answers, grade, total, live, n }: { deck: Deck; answers: A[]; grade: number; total: number; live: boolean; n: string | null }) {
   const correct = answers.filter((a) => a.correct).length
   const m = {
     sr: answers.filter((a) => a.confident && a.correct).length,
@@ -154,6 +224,8 @@ function Result({ deck, answers, grade }: { deck: Deck; answers: A[]; grade: num
         <p className="mt-3 text-sm text-muted">{deck.name} · {correct} von {answers.length} richtig</p>
         <p className={cx('mt-1 text-[56px] font-semibold leading-none tracking-tight tabular', grade >= 5 ? 'text-good' : grade >= 4 ? 'text-warn' : 'text-bad')}>{grade.toFixed(1)}</p>
         <p className="mt-2 text-[15px] text-muted">Note nach Schweizer Skala (6 = alles richtig, 4 = 60 %)</p>
+        {answers.length < total && <p className="mt-1 text-sm text-muted tabular">Vorzeitig beendet: {answers.length} von {total} Fragen bewertet</p>}
+        <p className="mt-3 text-[13px] text-muted">Fremdsprache: ein Buchstabe falsch = kein Punkt · Auf Deutsch zählt die Bedeutung</p>
       </div>
 
       <div className="rounded-[26px] bg-surface p-6 shadow-card">
@@ -191,7 +263,7 @@ function Result({ deck, answers, grade }: { deck: Deck; answers: A[]; grade: num
       )}
       <div className="flex flex-col gap-2 desk:flex-row">
         <Button variant="primary" size="lg" onClick={() => go('/ueben')}>Zum Fehlerheft</Button>
-        <Button size="lg" onClick={() => go(`/probetest?deck=${deck.id}&t=${Date.now()}`)}>Neuer Probetest</Button>
+        <Button size="lg" onClick={() => go(`/probetest?deck=${deck.id}${n ? `&n=${n}` : ''}${live ? '&live=1' : ''}&t=${Date.now()}`)}>Neuer Probetest</Button>
       </div>
       <p className="hidden text-center text-xs text-muted desk:block"><Kbd>S</Kbd> sicher · <Kbd>U</Kbd> unsicher · <Kbd>Enter</Kbd> weiter · <Kbd>Esc</Kbd> abbrechen</p>
     </div>
