@@ -125,29 +125,46 @@ function ProbeTestHome() {
   const tests = useLiveQuery(() => db.tests.orderBy('date').reverse().limit(10).toArray(), [])
   const [size, setSize] = useState<'20' | '40' | 'all'>('20')
   const [mode, setMode] = useState<'end' | 'live'>('end')
+  const [kind, setKind] = useState<'screen' | 'paper'>('screen')
   if (!decks) return <div className="h-40" aria-busy="true" />
   if (decks.length === 0) return <Empty title="Noch kein Deck" action={<Button variant="primary" onClick={() => go('/import')}>Vokabeln importieren</Button>} />
-  const query = `&n=${size}${mode === 'live' ? '&live=1' : ''}`
+  const paper = kind === 'paper'
+  const query = `&n=${size}${paper ? '&paper=1' : mode === 'live' ? '&live=1' : ''}`
   return (
     <div className="space-y-5">
       <Panel className="flex items-center gap-5">
-        <Illustration kind="test" size={88} />
-        <div className="min-w-0">
-          <p className="text-[17px] font-semibold">Generalprobe wie im echten Voki</p>
-          <p className="mt-1 text-sm text-muted">Zufällige Wörter, nur Tippen, keine Hilfe. Vor jeder Antwort sagst du, wie sicher du bist. Note nach Schweizer Skala.</p>
-          <p className="mt-2 text-sm font-medium">Ein Buchstabe falsch = kein Punkt · Akzente zählen</p>
-          <p className="text-sm text-muted">Auf Deutsch zählt die Bedeutung.</p>
-        </div>
+        <div className="shrink-0"><Illustration kind="test" size={88} /></div>
+        {paper ? (
+          <div className="min-w-0">
+            <p className="text-[17px] font-semibold">Probetest mit Blatt und Stift</p>
+            <p className="mt-1 text-sm text-muted">Du siehst ein Wort nach dem anderen und schreibst die Übersetzung auf ein Blatt. Am Schluss korrigierst du selbst: richtig oder falsch. Dann kommt die Note.</p>
+            <p className="mt-2 text-sm font-medium">Ein Buchstabe falsch = kein Punkt</p>
+            <p className="text-sm text-muted">Sei ehrlich zu dir – so trainierst du wie im echten Test.</p>
+          </div>
+        ) : (
+          <div className="min-w-0">
+            <p className="text-[17px] font-semibold">Generalprobe wie im echten Voki</p>
+            <p className="mt-1 text-sm text-muted">Zufällige Wörter, nur Tippen, keine Hilfe. Vor jeder Antwort sagst du, wie sicher du bist. Note nach Schweizer Skala.</p>
+            <p className="mt-2 text-sm font-medium">Ein Buchstabe falsch = kein Punkt · Akzente zählen</p>
+            <p className="text-sm text-muted">Auf Deutsch zählt die Bedeutung.</p>
+          </div>
+        )}
       </Panel>
       <div className="flex flex-col gap-4 rounded-[22px] bg-surface p-5 shadow-card desk:flex-row desk:flex-wrap desk:items-center desk:gap-x-8">
+        <div className="flex flex-col gap-1.5 desk:flex-row desk:items-center desk:gap-3">
+          <span className="text-sm font-medium text-muted">Art</span>
+          <div className="self-start"><Segmented label="Art des Probetests" value={kind} onChange={setKind} options={[{ value: 'screen', label: 'Am Bildschirm' }, { value: 'paper', label: 'Auf Papier' }]} /></div>
+        </div>
         <div className="flex flex-col gap-1.5 desk:flex-row desk:items-center desk:gap-3">
           <span className="text-sm font-medium text-muted">Umfang</span>
           <div className="self-start"><Segmented label="Umfang des Probetests" value={size} onChange={setSize} options={[{ value: '20', label: '20' }, { value: '40', label: '40' }, { value: 'all', label: 'Alle' }]} /></div>
         </div>
-        <div className="flex flex-col gap-1.5 desk:flex-row desk:items-center desk:gap-3">
-          <span className="text-sm font-medium text-muted">Note</span>
-          <div className="self-start"><Segmented label="Auswertung" value={mode} onChange={setMode} options={[{ value: 'end', label: 'Am Schluss' }, { value: 'live', label: 'Sofort auswerten' }]} /></div>
-        </div>
+        {!paper && (
+          <div className="flex flex-col gap-1.5 desk:flex-row desk:items-center desk:gap-3">
+            <span className="text-sm font-medium text-muted">Note</span>
+            <div className="self-start"><Segmented label="Auswertung" value={mode} onChange={setMode} options={[{ value: 'end', label: 'Am Schluss' }, { value: 'live', label: 'Sofort auswerten' }]} /></div>
+          </div>
+        )}
       </div>
       <ul className="divide-y divide-line overflow-hidden rounded-[22px] bg-surface shadow-card">
         {decks.map((d) => (

@@ -13,15 +13,17 @@ import { IconCheck, IconX } from '../icons'
 import { Illustration } from '../illustrations'
 import { go } from '../router'
 import { AnswerInput, faceOf } from './cards'
+import { PaperTest } from '../probe/PaperTest'
 
 interface Q { card: Card; note: Note }
 interface A extends TestItem { expected: string }
 interface Feedback { correct: boolean; expected: string; typed: string; at: number }
 
-/** Extra options from the hash query: `n=20|40|all`, `live=1`. */
+/** Extra options from the hash query: `n=20|40|all`, `live=1`, `paper=1` (write on paper, self-check at the end). */
 function readOpts() {
   const q = new URLSearchParams(location.hash.split('?')[1] ?? '')
-  return { n: q.get('n'), live: q.get('live') === '1' }
+  const paper = q.get('paper') === '1'
+  return { n: q.get('n'), live: !paper && q.get('live') === '1', paper }
 }
 
 function ruleText(answerLang: string) {
@@ -116,6 +118,7 @@ export function ProbeTest({ deckId }: { deckId: string }) {
 
   // keys: S / U for confidence, Enter skips live feedback, Esc cancels
   useEffect(() => {
+    if (opts.paper) return // PaperTest handles its own keys
     const on = (e: KeyboardEvent) => {
       if (e.key === 'Escape') return go('/ueben')
       if (done) return
@@ -135,6 +138,18 @@ export function ProbeTest({ deckId }: { deckId: string }) {
 
   if (!qs || deck === undefined) return <div className="h-60" aria-busy="true" />
   if (!deck || qs.length === 0) return <div className="mx-auto max-w-[640px] px-4 pt-10"><Empty title="Keine Wörter für einen Probetest" action={<Button onClick={() => go('/ueben')}>Zurück</Button>} /></div>
+
+  if (opts.paper)
+    return (
+      <PaperTest
+        deck={deck}
+        n={opts.n}
+        items={qs.map(({ card, note }) => {
+          const f = faceOf(card, note, deck)
+          return { cardId: card.id, question: f.question, answer: f.answer, promptLabel: f.promptLabel, answerLang: f.answerLang }
+        })}
+      />
+    )
 
   const liveGrade = answers.length > 0 ? swissGrade(right, answers.length) : null
   const isLast = i + 1 === qs.length

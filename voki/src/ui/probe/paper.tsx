@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion, useSpring, useTransform } from 'framer-motion'
 import { confettiParticles } from '../../lib/papertest'
 import { cx } from '../components'
@@ -6,7 +6,7 @@ import { cx } from '../components'
 /** Paper colours: cream sheet, blue rules, red margin. Dark mode dims the sheet a little, ink stays dark. */
 export const PAPER_VARS =
   '[--paper:#fffdf7] [--paper-back:#f1ede1] [--rule:#c3d6f1] [--margin:#f1a7ad] [--ink:#1d2433] [--ink-2:#5d6474] [--ink-blue:#1e4fc2] [--ink-good:#1e7f3c] [--ink-bad:#cf1028] [--hl:rgba(255,204,0,0.2)] ' +
-  'dark:[--paper:#d9d4c5] dark:[--paper-back:#a9a497] dark:[--rule:#9fb5d6] dark:[--margin:#d48a91] dark:[--ink-2:#4b5161] dark:[--hl:rgba(255,204,0,0.26)]'
+  'dark:[--paper:#cec8b8] dark:[--paper-back:#8f8a7e] dark:[--rule:#9fb5d6] dark:[--margin:#d48a91] dark:[--ink-2:#4b5161] dark:[--hl:rgba(255,196,0,0.2)]'
 
 /** 32 px ruled lines. Text inside uses leading-[32px] so it sits on the rules. */
 export const RULED = { backgroundImage: 'repeating-linear-gradient(to bottom, transparent 0, transparent 31px, var(--rule) 31px, var(--rule) 32px)' }
@@ -42,7 +42,7 @@ export function PointBadge({ ok }: { ok: boolean }) {
   return (
     <motion.span
       aria-hidden
-      className={cx('pointer-events-none absolute right-1 top-0 z-10 whitespace-nowrap rounded-full px-2.5 py-1 text-[13px] font-bold shadow-[0_4px_14px_rgba(0,0,0,0.16)] tabular', ok ? 'bg-good text-white dark:text-black' : 'bg-[#8e8e93] text-white')}
+      className={cx('pointer-events-none absolute bottom-1 right-12 z-10 desk:right-16 whitespace-nowrap rounded-full px-2.5 py-1 text-[13px] font-bold shadow-[0_4px_14px_rgba(0,0,0,0.16)] tabular', ok ? 'bg-good text-white dark:text-black' : 'bg-[#8e8e93] text-white')}
       initial={{ opacity: 0, y: 10, scale: 0.5 }}
       animate={{ opacity: [0, 1, 1, 0], y: [10, -6, -22, -44], scale: [0.5, 1.15, 1, 0.96] }}
       transition={{ duration: 1.15, times: [0, 0.22, 0.6, 1], ease: 'easeOut' }}
@@ -115,10 +115,17 @@ export function PaperHint({ number, reduce, className }: { number: number; reduc
         </svg>
       </div>
       <p className="flex h-8 items-center pl-[56px] pr-3 text-[13px] font-medium text-[var(--ink-2)]">
-        <IconPencil className="mr-1.5 shrink-0" />Schreib die Übersetzung auf dein Blatt
+        <IconPencil className="mr-1.5 shrink-0" /><span className="truncate">Schreib die Übersetzung auf dein Blatt</span>
       </p>
     </div>
   )
+}
+
+/** Focus an element once it mounts without scrolling the page (autoFocus would jump on phones). */
+export function useCalmFocus<T extends HTMLElement>(when = true) {
+  const ref = useRef<T>(null)
+  useEffect(() => { if (when) ref.current?.focus({ preventScroll: true }) }, [when])
+  return ref
 }
 
 export function IconPencil({ className }: { className?: string }) {
