@@ -54,7 +54,8 @@ export function Today() {
       ) : (
         <Panel className="p-6 desk:p-8">
           {total > 0 ? (
-            <>
+            <div className="flex items-center gap-6">
+            <div className="min-w-0 flex-1">
               <p className="text-[15px] text-muted">Deine Aufgabe für heute</p>
               <p className="mt-1 text-[22px] font-semibold leading-snug tracking-tight desk:text-[26px]">
                 {[
@@ -74,7 +75,9 @@ export function Today() {
               <Button variant="primary" size="lg" className="mt-6 w-full desk:w-auto desk:min-w-64" onClick={() => go('/lernen')} kbd="Enter">
                 <IconPlay /> Lernen starten
               </Button>
-            </>
+            </div>
+            <div className="hidden shrink-0 desk:block"><Illustration kind="cards" size={132} /></div>
+            </div>
           ) : (
             <div className="flex items-start gap-4">
               <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-good-soft text-good"><IconCheck /></span>
@@ -107,7 +110,7 @@ export function Today() {
       {exams.length > 0 && (
         <section>
           <SectionTitle>Tests</SectionTitle>
-          <div className="grid gap-3 desk:grid-cols-2">
+          <div className={exams.length > 1 ? 'grid gap-3 desk:grid-cols-2' : 'grid gap-3'}>
             {exams.map((p) => <ExamCard key={p.deck.id} p={p} />)}
           </div>
         </section>

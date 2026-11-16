@@ -70,7 +70,7 @@ function SyncOff() {
             <li>
               <Label htmlFor="sync-token"><span className="font-medium">2.</span> Token einfügen</Label>
               <form
-                className="flex flex-wrap gap-2"
+                className="flex flex-col gap-2 desk:flex-row"
                 onSubmit={(e) => {
                   e.preventDefault()
                   void run(() => enableSync(db, token))
@@ -78,7 +78,7 @@ function SyncOff() {
               >
                 <Input
                   id="sync-token"
-                  className="min-w-0 flex-1 font-mono"
+                  className="min-w-0 w-full font-mono desk:flex-1"
                   type="password"
                   autoComplete="off"
                   spellCheck={false}
@@ -90,7 +90,7 @@ function SyncOff() {
               </form>
             </li>
           </ol>
-          <Button variant="ghost" className="mt-4 -ml-2" onClick={() => { setMode('join'); setMsg(null) }}>Ich habe schon einen Sync-Code</Button>
+          <Button variant="ghost" className="mt-4 -ml-2" onClick={() => { setMode('join'); setMsg(null) }}><span className="text-accent">Ich habe schon einen Sync-Code →</span></Button>
         </>
       ) : (
         <form
