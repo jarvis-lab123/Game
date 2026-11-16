@@ -1,5 +1,5 @@
 import { useEffect, useRef, type KeyboardEvent as RKE, type ReactNode } from 'react'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion, useAnimationControls, useReducedMotion } from 'framer-motion'
 import type { Card, Deck, Note } from '../../lib/types'
 import { diffChars, normalize, type AnswerLang, type GradeResult } from '../../lib/grade'
 import { ACCENT_BAR, baseOf, cycleAccent } from '../../lib/accents'
@@ -50,16 +50,22 @@ export function AudioButton({ text, lang }: { text: string; lang: Deck['language
 
 export function CardShell({ children, shake, label }: { children: ReactNode; shake?: number; label?: ReactNode }) {
   const reduce = useReducedMotion()
+  const controls = useAnimationControls()
+  // shake on a wrong answer without re-mounting (no fade flicker)
+  useEffect(() => {
+    if (shake && !reduce) void controls.start({ x: [0, -7, 7, -4, 4, 0], transition: { duration: 0.24 } })
+  }, [shake, reduce, controls])
   return (
-    <motion.div
-      initial={reduce ? false : { opacity: 0, y: 10 }}
-      animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0, x: shake ? [0, -7, 7, -4, 4, 0] : 0 }}
-      transition={{ duration: 0.22, ease: 'easeOut' }}
-      key={shake}
-      className="w-full rounded-3xl bg-surface p-6 ring-1 ring-line desk:p-10"
-    >
-      {label && <div className="mb-4 flex flex-wrap items-center gap-2">{label}</div>}
-      {children}
+    <motion.div animate={controls} className="w-full">
+      <motion.div
+        initial={reduce ? false : { opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.22, ease: 'easeOut' }}
+        className="w-full rounded-[26px] bg-surface p-6 shadow-card desk:p-10"
+      >
+        {label && <div className="mb-4 flex flex-wrap items-center gap-2">{label}</div>}
+        {children}
+      </motion.div>
     </motion.div>
   )
 }
@@ -93,7 +99,7 @@ export function IntroView({ note, deck, onSaved }: { note: Note; deck: Deck; onS
       <p className="mt-4 text-[22px] text-fg/90">{note.translation}</p>
       {note.example && <p className="mt-4 border-l-2 border-accent/50 pl-3 text-[16px] italic text-muted" lang={deck.language}>{note.example}</p>}
       {note.notes && <p className="mt-3 text-sm text-muted">{note.notes}</p>}
-      {note.sketch && <img src={note.sketch} alt="Deine Skizze" className="mt-4 h-24 rounded-xl bg-surface-2 object-contain ring-1 ring-line" />}
+      {note.sketch && <img src={note.sketch} alt="Deine Skizze" className="mt-4 h-24 rounded-xl bg-surface-2 object-contain shadow-card" />}
       <div className="mt-6 border-t border-line pt-5">
         <MnemonicStudio note={note} language={deck.language} compact onSaved={onSaved} />
       </div>

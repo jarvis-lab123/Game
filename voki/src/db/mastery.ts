@@ -3,7 +3,7 @@ import { loadSettings } from './queries'
 import { noteMastery, recentByNote, type Mastery } from '../lib/mastery'
 import type { Card } from '../lib/types'
 
-export interface MasteryInfo { byNote: Map<string, Mastery>; counts: Record<Mastery, number> }
+export interface MasteryInfo { byNote: Map<string, Mastery>; counts: Record<Mastery, number>; byDeck: Map<string, Record<Mastery, number>> }
 
 export function emptyCounts(): Record<Mastery, number> {
   return { sitzt: 0, lernt: 0, wackelt: 0, neu: 0 }
@@ -23,11 +23,15 @@ export async function masteryInfo(db: VokiDB, deckIds?: string[], now = new Date
   for (const c of cards) byNoteCards.set(c.noteId, [...(byNoteCards.get(c.noteId) ?? []), c])
   const byNote = new Map<string, Mastery>()
   const counts = emptyCounts()
+  const byDeck = new Map<string, Record<Mastery, number>>()
   for (const [noteId, cs] of byNoteCards) {
     if (cs.every((c) => c.suspended)) continue
     const m = noteMastery(cs, recent.get(noteId) ?? [], now, settings.desiredRetention)
     byNote.set(noteId, m)
     counts[m]++
+    const d = byDeck.get(cs[0].deckId) ?? emptyCounts()
+    d[m]++
+    byDeck.set(cs[0].deckId, d)
   }
-  return { byNote, counts }
+  return { byNote, counts, byDeck }
 }

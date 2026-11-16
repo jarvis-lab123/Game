@@ -4,6 +4,7 @@ import { useSettings, useTheme } from './settings'
 import { Shell } from './Shell'
 import { db } from '../db/db'
 import { startAutoSync } from '../db/autosync'
+import { seedBuiltinDecks } from '../db/seed'
 import { setDueBadge } from '../platform'
 import { Today } from './screens/Today'
 import { Session } from './screens/Session'
@@ -21,7 +22,10 @@ export function App() {
   const settings = useSettings()
   useTheme(settings.theme)
 
-  useEffect(() => startAutoSync(db), [])
+  useEffect(() => {
+    void seedBuiltinDecks(db).catch(() => {})
+    return startAutoSync(db)
+  }, [])
   useEffect(() => {
     void db.cards.toArray().then((cs) => setDueBadge(cs.filter((c) => c.stage === 'review' && !c.suspended && c.due <= Date.now()).length))
   }, [route.path])

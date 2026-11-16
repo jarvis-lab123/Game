@@ -1,6 +1,6 @@
 [package]
 name = "voki"
-version = "0.2.0"
+version = "0.2.1"
 description = "Voki – Vokabeltrainer"
 edition = "2021"
 

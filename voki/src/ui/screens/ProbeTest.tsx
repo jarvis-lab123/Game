@@ -107,7 +107,7 @@ export function ProbeTest({ deckId }: { deckId: string }) {
         {done ? (
           <Result deck={deck} answers={answers} grade={saved ?? swissGrade(answers.filter((a) => a.correct).length, answers.length)} />
         ) : face && q ? (
-          <div className="rounded-3xl bg-surface p-6 ring-1 ring-line desk:p-10">
+          <div className="rounded-[26px] bg-surface p-6 shadow-card desk:p-10">
             <p className="text-sm font-medium text-muted">Probetest · {face.promptLabel} · Akzente zählen</p>
             <p className="mt-1 break-words text-[32px] font-semibold leading-tight tracking-tight desk:text-[36px]">{face.question}</p>
             {confident == null ? (
@@ -149,14 +149,14 @@ function Result({ deck, answers, grade }: { deck: Deck; answers: A[]; grade: num
   const wrong = answers.filter((a) => !a.correct)
   return (
     <div className="space-y-5">
-      <div className="rounded-3xl bg-surface p-8 text-center ring-1 ring-line">
+      <div className="rounded-[26px] bg-surface p-8 text-center shadow-card">
         <div className="flex justify-center"><Illustration kind="test" size={96} /></div>
         <p className="mt-3 text-sm text-muted">{deck.name} · {correct} von {answers.length} richtig</p>
         <p className={cx('mt-1 text-[56px] font-semibold leading-none tracking-tight tabular', grade >= 5 ? 'text-good' : grade >= 4 ? 'text-warn' : 'text-bad')}>{grade.toFixed(1)}</p>
         <p className="mt-2 text-[15px] text-muted">Note nach Schweizer Skala (6 = alles richtig, 4 = 60 %)</p>
       </div>
 
-      <div className="rounded-3xl bg-surface p-6 ring-1 ring-line">
+      <div className="rounded-[26px] bg-surface p-6 shadow-card">
         <p className="text-[17px] font-semibold">{pattern.t}</p>
         <p className="mt-1 text-sm text-muted">{pattern.d}</p>
         <div className="mt-4 grid grid-cols-[auto_1fr_1fr] gap-1.5 text-sm" role="table" aria-label="Selbsteinschätzung">
@@ -175,7 +175,7 @@ function Result({ deck, answers, grade }: { deck: Deck; answers: A[]; grade: num
       </div>
 
       {wrong.length > 0 && (
-        <div className="rounded-3xl bg-surface p-6 ring-1 ring-line">
+        <div className="rounded-[26px] bg-surface p-6 shadow-card">
           <p className="mb-3 text-[17px] font-semibold">Korrektur</p>
           <ul className="space-y-3">
             {wrong.map((a) => (

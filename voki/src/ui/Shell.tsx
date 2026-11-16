@@ -14,7 +14,7 @@ const DESKTOP_EXTRA = [{ to: '/import', label: 'Import', icon: IconImport, match
 export function Logo() {
   return (
     <span className="flex items-center gap-2.5">
-      <span className="grid h-8 w-8 place-items-center rounded-[10px] bg-accent text-on-accent" aria-hidden><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 7l6 11 6-11" /></svg></span>
+      <span className="grid h-8 w-8 place-items-center rounded-[9px] bg-gradient-to-b from-[#3a8dff] to-[#0062d1] text-white shadow-sm" aria-hidden><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 7l6 11 6-11" /></svg></span>
       <span className="text-[17px] font-semibold tracking-tight">Voki</span>
     </span>
   )
@@ -27,7 +27,7 @@ export function Shell({ path, children }: { path: string; children: ReactNode })
         Zum Inhalt
       </a>
       {/* Desktop sidebar */}
-      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-line bg-surface px-3 py-5 desk:flex">
+      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col bg-glass px-3 py-5 backdrop-blur-xl desk:flex">
         <div className="px-3 pb-6"><Logo /></div>
         <nav aria-label="Hauptnavigation" className="flex flex-col gap-0.5">
           {[...NAV.slice(0, 4), ...DESKTOP_EXTRA, NAV[4]].map((n) => {
@@ -37,7 +37,7 @@ export function Shell({ path, children }: { path: string; children: ReactNode })
                 key={n.to}
                 href={`#${n.to}`}
                 aria-current={active ? 'page' : undefined}
-                className={cx('flex min-h-10 items-center gap-3 rounded-lg px-3 text-[15px] font-medium transition-colors duration-150', active ? 'bg-accent-soft text-accent' : 'text-muted hover:bg-surface-2 hover:text-fg')}
+                className={cx('flex min-h-10 items-center gap-3 rounded-[10px] px-3 text-[15px] font-medium transition-colors duration-150', active ? 'bg-accent text-on-accent' : 'text-fg/80 hover:bg-surface-2 hover:text-fg')}
               >
                 <n.icon />
                 {n.label}
@@ -53,7 +53,7 @@ export function Shell({ path, children }: { path: string; children: ReactNode })
       </main>
 
       {/* Mobile bottom navigation */}
-      <nav aria-label="Hauptnavigation" className="safe-bottom fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/95 backdrop-blur desk:hidden">
+      <nav aria-label="Hauptnavigation" className="safe-bottom fixed inset-x-0 bottom-0 z-40 border-t border-black/5 bg-glass backdrop-blur-xl backdrop-saturate-150 dark:border-white/10 desk:hidden">
         <div className="mx-auto grid max-w-lg grid-cols-5">
           {NAV.map((n) => {
             const active = n.match(path)
@@ -62,7 +62,7 @@ export function Shell({ path, children }: { path: string; children: ReactNode })
                 key={n.to}
                 href={`#${n.to}`}
                 aria-current={active ? 'page' : undefined}
-                className={cx('flex min-h-14 flex-col items-center justify-center gap-0.5 text-[11px] font-medium', active ? 'text-accent' : 'text-muted')}
+                className={cx('flex min-h-[54px] flex-col items-center justify-center gap-0.5 text-[10.5px] font-medium', active ? 'text-accent' : 'text-muted')}
               >
                 <n.icon width={22} height={22} />
                 {'mobileLabel' in n ? n.mobileLabel : n.label}

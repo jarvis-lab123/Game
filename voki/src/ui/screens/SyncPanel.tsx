@@ -182,7 +182,7 @@ function SyncOn({ code, lastSyncAt, lastError }: { code: string; lastSyncAt?: st
       <div className="mt-6 border-t border-line pt-5">
         <p className="mb-2 text-sm font-medium">Sync-Code für dein anderes Gerät</p>
         <div className="flex flex-wrap items-start gap-5">
-          {qr && <img src={qr} width={180} height={180} alt="QR-Code mit deinem Sync-Code" className="rounded-xl bg-white p-2 ring-1 ring-line" />}
+          {qr && <img src={qr} width={180} height={180} alt="QR-Code mit deinem Sync-Code" className="rounded-xl bg-white p-2 shadow-card" />}
           <div className="min-w-0 flex-1 basis-60">
             <p className="select-all break-all rounded-xl bg-surface-2 px-3.5 py-2.5 font-mono text-sm">{code}</p>
             <Button size="sm" className="mt-2" onClick={copy}>Code kopieren</Button>

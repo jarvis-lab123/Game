@@ -512,7 +512,7 @@ function SessionEnd({ answered, right, introduced, empty, drill }: { answered: n
   }, [])
   if (empty)
     return (
-      <div className="rounded-3xl bg-surface p-8 text-center ring-1 ring-line">
+      <div className="rounded-[26px] bg-surface p-8 text-center shadow-card">
         <div className="flex justify-center"><Illustration kind={drill ? 'notebook' : 'done'} /></div>
         <h1 className="mt-4 text-[22px] font-semibold tracking-tight">{drill ? 'Fehlerheft ist leer' : 'Gerade nichts zu lernen'}</h1>
         <p className="mt-1 text-[15px] text-muted">{drill ? 'Keine wackligen Wörter. Stark!' : 'Keine fälligen Wiederholungen und keine neuen Wörter. Morgen geht’s weiter.'}</p>
@@ -521,7 +521,7 @@ function SessionEnd({ answered, right, introduced, empty, drill }: { answered: n
     )
   const rate = answered ? Math.round((right / answered) * 100) : 0
   return (
-    <div className="rounded-3xl bg-surface p-8 text-center ring-1 ring-line">
+    <div className="rounded-[26px] bg-surface p-8 text-center shadow-card">
       <div className="flex justify-center"><Illustration kind="done" /></div>
       <h1 className="mt-4 text-[26px] font-semibold tracking-tight">{rate >= 80 ? 'Stark gemacht' : 'Geschafft'}</h1>
       <p className="mt-1 text-[15px] text-muted">Alles ist gespeichert{navigator.onLine ? ' und wird synchronisiert' : ''}.</p>

@@ -24,7 +24,7 @@ export function Decks() {
           Ein Deck ist eine Vokabelliste, z. B. „Englisch Unit 4“. Danach importierst du die Wörter.
         </Empty>
       ) : (
-        <ul className="divide-y divide-line overflow-hidden rounded-2xl bg-surface ring-1 ring-line">
+        <ul className="divide-y divide-line overflow-hidden rounded-[22px] bg-surface shadow-card">
           {plan.decks.map((p) => (
             <li key={p.deck.id}>
               <a href={`#/deck/${p.deck.id}`} className="flex min-h-16 items-center gap-3 px-4 py-3 transition-colors duration-150 hover:bg-surface-2 desk:px-5">
@@ -45,7 +45,7 @@ export function Decks() {
       {archived && archived.length > 0 && (
         <details className="mt-6">
           <summary className="cursor-pointer text-sm font-medium text-muted">Archiviert ({archived.length})</summary>
-          <ul className="mt-2 divide-y divide-line overflow-hidden rounded-2xl bg-surface ring-1 ring-line">
+          <ul className="mt-2 divide-y divide-line overflow-hidden rounded-[22px] bg-surface shadow-card">
             {archived.map((d) => (
               <li key={d.id}>
                 <a href={`#/deck/${d.id}`} className="flex min-h-12 items-center gap-3 px-4 py-2 text-muted hover:bg-surface-2"><Flag lang={d.language} />{d.name}</a>

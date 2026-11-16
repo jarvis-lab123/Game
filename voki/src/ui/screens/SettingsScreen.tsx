@@ -37,7 +37,7 @@ export function BackupReminder() {
   const days = s.lastBackupAt ? Math.floor((Date.now() - new Date(s.lastBackupAt).getTime()) / 86400000) : Infinity
   if (days < 7) return null
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-surface px-5 py-4 ring-1 ring-line">
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-[22px] bg-surface px-5 py-4 shadow-card">
       <p className="text-[15px]">
         <span className="font-medium">Backup fällig.</span>{' '}
         <span className="text-muted">{days === Infinity ? 'Du hast noch nie gesichert.' : `Letztes Backup vor ${days} Tagen.`}</span>

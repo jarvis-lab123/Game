@@ -101,7 +101,7 @@ export function StatsScreen() {
 
 function Tile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="min-w-0 rounded-2xl bg-surface px-4 py-3 ring-1 ring-line">
+    <div className="min-w-0 rounded-[22px] bg-surface px-4 py-3 shadow-card">
       <p className="truncate text-xs font-medium text-muted">{label}</p>
       <p className="mt-0.5 whitespace-nowrap text-[20px] font-semibold tracking-tight">{value}</p>
     </div>
@@ -230,7 +230,7 @@ function ForecastTip({ active, payload }: { active?: boolean; payload?: readonly
   const day = parseDay(d.date)
   const today = startOfDay(new Date()) === day.getTime()
   return (
-    <div className="rounded-lg bg-surface px-3 py-2 text-sm shadow-lg ring-1 ring-line">
+    <div className="rounded-lg bg-surface px-3 py-2 text-sm shadow-lg shadow-card">
       <p className="text-xs text-muted">{today ? 'Heute' : fmtLong.format(day)}</p>
       <p className="font-semibold tabular">{d.count} fällig</p>
     </div>

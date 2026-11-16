@@ -99,7 +99,7 @@ function WordList({ deck, notes, cards }: { deck: Deck; notes: Note[]; cards: Ca
         <IconSearch className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" width={18} height={18} />
         <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={`${notes.length} Wörter durchsuchen`} aria-label="Wörter durchsuchen" className="pl-10" />
       </div>
-      <ul className="divide-y divide-line overflow-hidden rounded-2xl bg-surface ring-1 ring-line">
+      <ul className="divide-y divide-line overflow-hidden rounded-[22px] bg-surface shadow-card">
         {list.slice(0, limit).map((n) => {
           const cs = byNote.get(n.id) ?? []
           const suspended = cs.length > 0 && cs.every((c) => c.suspended)
@@ -160,7 +160,7 @@ function NoteEditor({ note, cards, language, onClose }: { note: Note; cards: Car
           <Segmented label="Genus" value={n.gender ?? ''} onChange={(v) => setN({ ...n, gender: (v || undefined) as Note['gender'] })} options={[{ value: '', label: '–' }, { value: 'm', label: 'm' }, { value: 'f', label: 'f' }, { value: 'n', label: 'n' }, { value: 'pl', label: 'pl' }]} />
         </div>
       </div>
-      <div className="rounded-2xl bg-surface p-4 ring-1 ring-line">
+      <div className="rounded-[22px] bg-surface p-4 shadow-card">
         <MnemonicStudio note={note} language={language} />
       </div>
       <div className="flex flex-wrap gap-2">

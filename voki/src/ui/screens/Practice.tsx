@@ -101,7 +101,7 @@ function Fehlerheft() {
             <span className="inline-flex items-center gap-1.5">{g.icon}{g.title} · {g.items.length}</span>
           </SectionTitle>
           <p className="-mt-1 mb-3 text-sm text-muted">{g.tip}</p>
-          <ul className="divide-y divide-line overflow-hidden rounded-2xl bg-surface ring-1 ring-line">
+          <ul className="divide-y divide-line overflow-hidden rounded-[22px] bg-surface shadow-card">
             {g.items.slice(0, 30).map((e) => (
               <li key={e.note.id} className="flex min-h-14 items-center gap-3 px-4 py-2.5">
                 <span className="w-7 shrink-0 text-center text-[20px]">{e.note.emoji ?? <Flag lang={e.deck.language} size={16} />}</span>
@@ -134,7 +134,7 @@ function ProbeTestHome() {
           <p className="mt-1 text-sm text-muted">20 zufällige Wörter, nur Tippen, Akzente streng, keine Hilfe. Vor jeder Antwort sagst du, wie sicher du bist. Am Schluss: Note nach Schweizer Skala.</p>
         </div>
       </Panel>
-      <ul className="divide-y divide-line overflow-hidden rounded-2xl bg-surface ring-1 ring-line">
+      <ul className="divide-y divide-line overflow-hidden rounded-[22px] bg-surface shadow-card">
         {decks.map((d) => (
           <li key={d.id}>
             <a href={`#/probetest?deck=${d.id}`} className="flex min-h-14 items-center gap-3 px-4 py-3 hover:bg-surface-2 desk:px-5">
@@ -149,7 +149,7 @@ function ProbeTestHome() {
       {tests && tests.length > 0 && (
         <section>
           <SectionTitle>Bisherige Probetests</SectionTitle>
-          <ul className="divide-y divide-line overflow-hidden rounded-2xl bg-surface ring-1 ring-line">
+          <ul className="divide-y divide-line overflow-hidden rounded-[22px] bg-surface shadow-card">
             {tests.map((t) => {
               const d = decks.find((x) => x.id === t.deckId)
               const over = t.items.filter((i) => i.confident && !i.correct).length
@@ -230,7 +230,7 @@ function Werkstatt() {
         {data.todo.length === 0 ? (
           <Empty title="Alles verankert">Alle wackligen und neuen Wörter haben schon eine Eselsbrücke.</Empty>
         ) : (
-          <ul className="divide-y divide-line overflow-hidden rounded-2xl bg-surface ring-1 ring-line">
+          <ul className="divide-y divide-line overflow-hidden rounded-[22px] bg-surface shadow-card">
             {data.todo.map((n) => {
               const d = data.decks.get(n.deckId)!
               return (

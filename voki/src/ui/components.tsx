@@ -7,10 +7,10 @@ export function cx(...c: (string | false | null | undefined)[]) {
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger'
 const VARIANTS: Record<Variant, string> = {
-  primary: 'bg-accent text-on-accent hover:brightness-110 active:brightness-95 shadow-sm',
-  secondary: 'bg-surface text-fg ring-1 ring-inset ring-line hover:bg-surface-2',
+  primary: 'bg-accent text-on-accent hover:brightness-110 active:brightness-95',
+  secondary: 'bg-accent-soft text-accent hover:brightness-[0.97] dark:hover:brightness-125',
   ghost: 'text-fg hover:bg-surface-2',
-  danger: 'bg-surface text-bad ring-1 ring-inset ring-line hover:bg-bad-soft',
+  danger: 'bg-bad-soft text-bad hover:brightness-[0.97] dark:hover:brightness-125',
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant; size?: 'md' | 'lg' | 'sm'; kbd?: string }>(
@@ -20,8 +20,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonHTMLAttributes<HTMLBut
         ref={ref}
         type="button"
         className={cx(
-          'inline-flex select-none items-center justify-center gap-2 rounded-xl font-medium transition-[background,filter,transform] duration-150 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-40',
-          size === 'lg' ? 'min-h-14 px-6 text-[17px]' : size === 'sm' ? 'min-h-11 px-3 text-sm desk:min-h-9' : 'min-h-11 px-4 text-[15px]',
+          'inline-flex select-none items-center justify-center gap-2 rounded-full font-semibold transition-[background,filter,transform] duration-150 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-40',
+          size === 'lg' ? 'min-h-[52px] px-7 text-[17px]' : size === 'sm' ? 'min-h-11 px-4 text-sm desk:min-h-9' : 'min-h-11 px-5 text-[15px]',
           VARIANTS[variant],
           className,
         )}
@@ -43,13 +43,13 @@ export function Kbd({ children, className }: { children: ReactNode; className?: 
 }
 
 export function Panel({ children, className }: { children: ReactNode; className?: string }) {
-  return <section className={cx('rounded-2xl bg-surface p-5 ring-1 ring-line', className)}>{children}</section>
+  return <section className={cx('rounded-[22px] bg-surface p-5 shadow-card desk:p-6', className)}>{children}</section>
 }
 
 export function SectionTitle({ children, action }: { children: ReactNode; action?: ReactNode }) {
   return (
     <div className="mb-3 flex items-center justify-between gap-3">
-      <h2 className="text-[13px] font-semibold uppercase tracking-wide text-muted">{children}</h2>
+      <h2 className="text-[13px] font-semibold uppercase tracking-[0.04em] text-muted">{children}</h2>
       {action}
     </div>
   )
@@ -60,7 +60,7 @@ export function PageHeader({ title, subtitle, action, back }: { title: string; s
     <header className="mb-6 flex flex-wrap items-end justify-between gap-3">
       <div className="min-w-0">
         {back}
-        <h1 className="truncate text-[28px] font-semibold tracking-tight">{title}</h1>
+        <h1 className="truncate text-[34px] font-bold leading-tight tracking-[-0.02em]">{title}</h1>
         {subtitle && <p className="mt-1 text-[15px] text-muted">{subtitle}</p>}
       </div>
       {action}
@@ -89,7 +89,7 @@ export function Badge({ children, tone = 'neutral' }: { children: ReactNode; ton
   return <span className={cx('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium tabular', t)}>{children}</span>
 }
 
-const fieldCls = 'w-full rounded-xl bg-surface px-3.5 py-2.5 text-[15px] text-fg ring-1 ring-inset ring-line placeholder:text-muted/70 focus:outline-none focus:ring-2 focus:ring-accent'
+const fieldCls = 'w-full rounded-xl bg-surface-2 px-3.5 py-2.5 text-[16px] text-fg ring-0 placeholder:text-muted focus:bg-surface focus:outline-none focus:ring-2 focus:ring-accent'
 
 export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(function Input({ className, ...p }, ref) {
   return <input ref={ref} className={cx(fieldCls, 'min-h-11', className)} {...p} />
@@ -119,8 +119,8 @@ export function Toggle({ checked, onChange, label, description }: { checked: boo
       </span>
       <span className="relative inline-flex shrink-0">
         <input type="checkbox" className="peer sr-only" checked={checked} onChange={(e) => onChange(e.target.checked)} />
-        <span className="h-7 w-12 rounded-full bg-surface-2 ring-1 ring-inset ring-line transition-colors duration-150 peer-checked:bg-accent peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent" />
-        <span className="pointer-events-none absolute left-1 top-1 h-5 w-5 rounded-full bg-white shadow transition-transform duration-150 peer-checked:translate-x-5" />
+        <span className="h-[31px] w-[51px] rounded-full bg-surface-2 transition-colors duration-150 peer-checked:bg-good peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent" />
+        <span className="pointer-events-none absolute left-[2px] top-[2px] h-[27px] w-[27px] rounded-full bg-white shadow-md transition-transform duration-200 peer-checked:translate-x-5" />
       </span>
     </label>
   )
@@ -128,7 +128,7 @@ export function Toggle({ checked, onChange, label, description }: { checked: boo
 
 export function Segmented<T extends string>({ value, onChange, options, label }: { value: T; onChange: (v: T) => void; options: { value: T; label: string }[]; label: string }) {
   return (
-    <div role="radiogroup" aria-label={label} className="inline-flex rounded-xl bg-surface-2 p-1">
+    <div role="radiogroup" aria-label={label} className="inline-flex rounded-[10px] bg-surface-2 p-[3px]">
       {options.map((o) => (
         <button
           key={o.value}
@@ -136,7 +136,7 @@ export function Segmented<T extends string>({ value, onChange, options, label }:
           role="radio"
           aria-checked={value === o.value}
           onClick={() => onChange(o.value)}
-          className={cx('min-h-11 rounded-lg px-3 text-sm font-medium transition-colors duration-150 desk:min-h-9', value === o.value ? 'bg-surface text-fg shadow-sm ring-1 ring-line' : 'text-muted hover:text-fg')}
+          className={cx('min-h-11 rounded-[8px] px-3.5 text-sm font-semibold transition-all duration-150 desk:min-h-9', value === o.value ? 'bg-surface text-fg shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:bg-[#636366]' : 'text-muted hover:text-fg')}
         >
           {o.label}
         </button>
@@ -147,7 +147,7 @@ export function Segmented<T extends string>({ value, onChange, options, label }:
 
 export function Empty({ title, children, action }: { title: string; children?: ReactNode; action?: ReactNode }) {
   return (
-    <div className="rounded-2xl border border-dashed border-line px-6 py-10 text-center">
+    <div className="rounded-[22px] bg-surface px-6 py-10 text-center shadow-card">
       <p className="text-[17px] font-semibold">{title}</p>
       {children && <p className="mx-auto mt-1.5 max-w-sm text-[15px] text-muted">{children}</p>}
       {action && <div className="mt-5 flex justify-center">{action}</div>}
@@ -157,4 +157,26 @@ export function Empty({ title, children, action }: { title: string; children?: R
 
 export function pct(v: number | null | undefined) {
   return v == null ? '–' : `${Math.round(v * 100)} %`
+}
+
+/** Apple-style progress ring. value 0..1 */
+export function Ring({ value, size = 64, stroke = 7, tone = 'accent', label, children }: { value: number; size?: number; stroke?: number; tone?: 'accent' | 'good' | 'warn' | 'bad'; label: string; children?: ReactNode }) {
+  const r = (size - stroke) / 2
+  const c = 2 * Math.PI * r
+  const v = Math.max(0, Math.min(1, value))
+  const color = { accent: 'var(--accent)', good: 'var(--good)', warn: 'var(--warn)', bad: 'var(--bad)' }[tone]
+  return (
+    <div className="relative shrink-0" style={{ width: size, height: size }} role="img" aria-label={label}>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--surface-2)" strokeWidth={stroke} />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth={stroke} strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * (1 - v)} style={{ transition: 'stroke-dashoffset 600ms cubic-bezier(.2,.8,.2,1)' }} />
+      </svg>
+      <div className="absolute inset-0 grid place-items-center text-center">{children}</div>
+    </div>
+  )
+}
+
+export function readinessTone(v: number | null | undefined): 'accent' | 'good' | 'warn' | 'bad' {
+  if (v == null) return 'accent'
+  return v >= 0.8 ? 'good' : v >= 0.5 ? 'warn' : 'bad'
 }

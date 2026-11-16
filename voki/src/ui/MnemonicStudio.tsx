@@ -105,7 +105,7 @@ export function MemoryAids({ note }: { note: Note }) {
   return (
     <div className="flex items-start gap-3 rounded-2xl bg-warn-soft/60 px-4 py-3">
       {note.emoji && <span className="text-[28px] leading-none">{note.emoji}</span>}
-      {note.sketch && <img src={note.sketch} alt="Deine Skizze" className="h-14 w-24 rounded-lg bg-surface object-contain ring-1 ring-line" />}
+      {note.sketch && <img src={note.sketch} alt="Deine Skizze" className="h-14 w-24 rounded-lg bg-surface object-contain shadow-card" />}
       {note.mnemonic && <p className="min-w-0 flex-1 text-sm"><span className="font-medium">Eselsbrücke:</span> {note.mnemonic}</p>}
     </div>
   )

@@ -35,7 +35,7 @@ export function HandView({ face, note, revealed, onReveal }: { face: Face; note:
         </div>
       </div>
       {revealed ? (
-        <div className="mt-5 rounded-2xl bg-surface-2/70 px-4 py-3" role="status">
+        <div className="mt-5 rounded-[22px] bg-surface-2/70 px-4 py-3" role="status">
           <p className="text-sm text-muted">Lösung – vergleiche Buchstabe für Buchstabe</p>
           <p className="mt-1 break-words text-[30px] font-semibold leading-tight tracking-tight" lang={face.answerLang}>{face.answer}</p>
           <div className="mt-3"><MemoryAids note={note} /></div>
@@ -155,7 +155,7 @@ export function GroupBreak({ done, total, words, onNext }: { done: number; total
     return () => window.removeEventListener('keydown', on)
   }, [onNext])
   return (
-    <motion.div initial={reduce ? false : { opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.22 }} className="rounded-3xl bg-surface p-8 text-center ring-1 ring-line">
+    <motion.div initial={reduce ? false : { opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.22 }} className="rounded-[26px] bg-surface p-8 text-center shadow-card">
       <div className="flex justify-center"><Illustration kind="group" size={104} /></div>
       <h2 className="mt-4 text-[24px] font-semibold tracking-tight">Gruppe {done} von {total} geschafft</h2>
       <div className="mx-auto mt-3 flex max-w-xs justify-center gap-1.5" aria-hidden>
