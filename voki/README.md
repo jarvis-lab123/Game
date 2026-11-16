@@ -3,7 +3,7 @@
 Lernt Vokabeln mit **Spaced Repetition (FSRS)**, lässt dich die Wörter **schreiben** statt nur umdrehen und rechnet **rückwärts vom Testdatum**, wie viel heute dran ist.
 
 - **Handy (iPhone/Android):** https://jarvis-lab123.github.io/Game/voki/
-- **PC (Windows):** https://github.com/jarvis-lab123/Game/releases/tag/voki-v0.1.0 → `Voki-Setup-0.1.0.msi`
+- **PC (Windows):** https://github.com/jarvis-lab123/Game/releases/tag/voki-v0.2.0 → `Voki-Setup-0.2.0.msi`
 
 ## Installieren
 
@@ -21,25 +21,47 @@ Danach funktioniert Voki auch **ohne Internet** (Tram, Flugmodus).
 
 Format (Tab-getrennt): `Fremdwort  Deutsch  Beispielsatz  Genus  Notiz`. Mehrere Bedeutungen mit `;` trennen, z. B. `die Bäckerei; der Bäcker`. Teile in Klammern sind optional: `(sich) erinnern`.
 
+## Lernen
+
+**Heute → Lernen starten:** Du wählst, wie viel Zeit du hast (5–40 Min) und wie du üben willst. Voki packt genau so viel hinein und teilt es in **Gruppen à max. 5 neue Wörter** (kurze Pause dazwischen).
+
+| Modus | So geht's |
+|---|---|
+| **Tippen** | Wie im Test. Automatische Bewertung (Akzente, Tippfehler, Genus). Bei Fehlern: Lösung farbig, einmal abtippen. 💡 Hinweis-Leiter: Satz mit Lücke → Buchstabenzahl → erster Buchstabe (jeder Hinweis senkt die Bewertung). |
+| **Handschrift** | Mit Finger/Stift aufs Feld schreiben oder „Lieber auf Papier“, dann Lösung zeigen und selbst bewerten: Falsch · Fast · Richtig. |
+| **Hören** | Voki spricht das Fremdwort, du tippst die Bedeutung. |
+| **Umdrehen** | Schnell durch: Karte umdrehen, Nochmal/Schwer/Gut/Leicht – oder wischen (links = nochmal, rechts = gut). |
+
+Neue Wörter: **Kennenlernen → Auswählen → selbst schreiben**. **Was sitzt?** Voki erkennt pro Wort *sitzt · lernt · wackelt · neu* (aus Gedächtnisstärke und deinen letzten Antworten) und zeigt es auf „Heute“ und im Deck.
+
+**Eselsbrücken:** Beim neuen Wort und in **Üben → Eselsbrücken** schlägt Voki Merkhilfen vor (Genus-Regeln wie *-tion = la*, Wortteile wie *-erie = Laden*, ähnliche Wörter im Deutschen oder deinem Englisch-Deck). Dazu: eigener Satz, Emoji, eigene Skizze. Für viele Wörter: „Prompt kopieren“ → an Claude → Antwort einfügen. Problemwörter (4× vergessen) verlangen eine Eselsbrücke, bevor es weitergeht.
+
+**Üben:** *Fehlerheft* (nach Ursache sortiert: nicht gewusst · Genus · Akzente/Tippfehler · überschätzt) mit Drill · *Probetest*: 20 Wörter, Akzente streng, vor jeder Antwort „sicher/unsicher“, am Schluss Note (6 = alles, 4 = 60 %) und deine Selbsteinschätzung.
+
+**PC-Tasten:** `Enter` prüfen/weiter · `Leertaste` umdrehen · `1`–`4` auswählen/bewerten · `Ctrl+Leertaste` Aussprache · `Alt`+Buchstabe Akzent (e → é → è → ê → ë) · `S`/`U` sicher/unsicher im Probetest · `Esc` beenden. Die PC-App sitzt im Tray („Voki – 12 fällig“); Fenster schliessen = in den Tray.
+
 ## Prüfungsmodus
 
 Beim Deck ein **Testdatum** setzen. Dann:
-- Neue Wörter pro Tag = Rest ÷ (Tage bis Test − 2). Die **letzten 2 Tage nur Wiederholung**.
-- **Prüfungsbereitschaft** = wie wahrscheinlich du die Wörter **am Testtag** noch weisst, getrennt für **Erkennen** (FR→DE) und **Schreiben** (DE→FR).
-- In den **letzten 3 Tagen** kommen zusätzlich wackelige Wörter dran (zählen nicht doppelt für den Algorithmus).
-- Nach dem Test geht das Deck automatisch zurück in den normalen Modus, die Wörter bleiben.
+- Neue Wörter pro Tag = Rest ÷ (Tage bis Test − 2). Die **letzten 2 Tage nur Wiederholung** (spät importierte Wörter kommen trotzdem noch dran).
+- **Prüfungsbereitschaft** = wie wahrscheinlich du die Wörter **am Testtag** noch weisst, getrennt für **Erkennen** und **Schreiben**.
+- In den **letzten 3 Tagen** kommen wackelige Wörter zusätzlich dran.
 
-## Lernen
+## Sync PC ↔ Handy (gratis, ohne Login)
 
-Neue Wörter: **Kennenlernen → Auswählen (4 Optionen) → selbst schreiben**. Erst wenn das Schreiben einmal klappt, kommt das Wort in die normale Wiederholung. Bei Fehlern siehst du farbig, welche Buchstaben falsch waren, und tippst die Lösung einmal ab.
+Läuft über ein **privates GitHub-Gist** in deinem GitHub-Konto.
 
-**Bewertung beim Tippen:** Gross/Klein und Punkt am Ende egal. Nur Akzent falsch = „fast“ (bei „Akzente streng“ = falsch). Ein Tippfehler in langen Wörtern = „fast“. Falscher Artikel im Französisch (le/la) = falsch („Genus!“).
+1. Am PC: **Einstellungen → Sync → „Token erstellen“**. GitHub öffnet sich mit dem Häkchen **gist** schon gesetzt. Ablaufdatum wählen (z. B. „No expiration“ oder 1 Jahr), **Generate token**, Token kopieren.
+2. In Voki einfügen → **Sync einschalten**. Voki zeigt einen **Sync-Code** (und QR-Code).
+3. Am Handy: Voki öffnen → **Mehr → Sync → „Ich habe schon einen Sync-Code“** → Code einfügen (z. B. dir selbst per Nachricht schicken und kopieren) → **Verbinden**.
 
-**PC-Tasten:** `Enter` prüfen/weiter · `Leertaste` umdrehen · `1`–`4` auswählen/bewerten · `Ctrl+Leertaste` Aussprache · `Alt`+Buchstabe Akzent (e → é → è → ê → ë) · `Esc` beenden.
+Danach synchronisieren beide automatisch (beim Start, nach jeder Session, alle 5 Min). Offline geht alles weiter; nichts geht verloren, der neueste Stand gewinnt. **Den Sync-Code nicht teilen** – er enthält deinen Token. Der Token steckt nicht im Backup.
 
 ## Backup
 
-**Einstellungen → Backup herunterladen** speichert alles (inkl. Lernfortschritt) als JSON. Handy und PC haben **getrennte Speicher**; bis der Sync kommt (Phase 2), bringst du Daten per Backup auf das andere Gerät (**Backup laden …**). Voki erinnert dich wöchentlich.
+**Einstellungen → Backup herunterladen** speichert alles (inkl. Lernfortschritt) als JSON, zusätzlich zum Sync. Voki erinnert dich wöchentlich.
+
+**TSV-Export:** im Deck unten „TSV exportieren“ (für Anki & Co.).
 
 ## Entwicklung
 
