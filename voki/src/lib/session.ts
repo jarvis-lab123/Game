@@ -8,7 +8,7 @@ export const REVIEWS_BETWEEN_NEW = 3
 export const BOOST_DAYS = 3
 export const BOOST_THRESHOLD = 0.85
 
-export type Step = 'intro' | 'mc' | 'type' | 'review' | 'cram' | 'practice'
+export type Step = 'intro' | 'mc' | 'type' | 'review' | 'cram' | 'practice' | 'dmc'
 export interface Item { step: Step; card: Card }
 
 interface Pending { step: Step; card: Card; readyAt: number }
@@ -29,13 +29,15 @@ export function isDue(c: Card, now: Date): boolean {
 export class SessionEngine {
   private reviews: Card[]
   private cram: Card[]
+  private drill: Card[]
   private fresh: Card[]
   private pending: Pending[] = []
   private turn = 0
   private reviewsSinceNew = 0
   private rng: () => number
 
-  constructor(o: { reviews: Card[]; fresh: Card[]; cram: Card[]; rng?: () => number }) {
+  constructor(o: { reviews: Card[]; fresh: Card[]; cram: Card[]; drill?: Card[]; rng?: () => number }) {
+    this.drill = [...(o.drill ?? [])]
     this.reviews = [...o.reviews]
     this.fresh = [...o.fresh]
     this.cram = [...o.cram]
@@ -43,7 +45,7 @@ export class SessionEngine {
   }
 
   private ladderCount(): number {
-    return new Set(this.pending.filter((p) => p.step !== 'practice').map((p) => p.card.id)).size
+    return new Set(this.pending.filter((p) => p.step !== 'practice' && p.step !== 'dmc').map((p) => p.card.id)).size
   }
 
   private takePending(onlyReady: boolean): Item | null {
@@ -66,6 +68,7 @@ export class SessionEngine {
     }
     if (this.reviews.length) return { step: 'review', card: this.reviews.shift()! }
     if (this.cram.length) return { step: 'cram', card: this.cram.shift()! }
+    if (this.drill.length) return { step: 'dmc', card: this.drill.shift()! }
     return this.takePending(false)
   }
 
@@ -96,6 +99,9 @@ export class SessionEngine {
         this.reviewsSinceNew++
         if (!ok) this.push('practice', c, this.offset())
         break
+      case 'dmc':
+        this.push('practice', c, 2)
+        break
       case 'practice':
         if (!ok) this.push('practice', c, this.offset())
         break
@@ -113,12 +119,13 @@ export class SessionEngine {
 
   /** Items still waiting (for "Fertig?" checks and the progress bar). */
   remaining(): number {
-    return this.reviews.length + this.fresh.length + this.cram.length + this.pending.length
+    return this.reviews.length + this.fresh.length + this.cram.length + this.drill.length + this.pending.length
   }
 
   /** Stop introducing new material (time is up); in-flight items still finish. */
   wrapUp(): number {
-    const dropped = this.fresh.length + this.reviews.length + this.cram.length
+    const dropped = this.fresh.length + this.reviews.length + this.cram.length + this.drill.length
+    this.drill = []
     this.fresh = []
     this.reviews = []
     this.cram = []

@@ -150,3 +150,18 @@ describe('wrapUp (review #3)', () => {
     expect(e.wrapUp()).toBe(3)
   })
 })
+
+describe('drill (Fehlerheft: MC → Tippen, §5.7)', () => {
+  it('asks each drill word as multiple choice, then typing', () => {
+    const d = { ...reviewCard(), id: 'd' }
+    const e = new SessionEngine({ reviews: [], fresh: [], cram: [], drill: [d], rng })
+    expect(run(e)).toEqual(['dmc:d', 'practice:d'])
+  })
+  it('a wrong drill typing answer comes back', () => {
+    const d = { ...reviewCard(), id: 'd' }
+    const e = new SessionEngine({ reviews: [], fresh: [], cram: [], drill: [d], rng })
+    let failedOnce = false
+    const seen = run(e, (step) => step === 'practice' && !failedOnce && (failedOnce = true))
+    expect(seen).toEqual(['dmc:d', 'practice:d', 'practice:d'])
+  })
+})
