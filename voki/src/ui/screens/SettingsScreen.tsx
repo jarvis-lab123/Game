@@ -2,8 +2,8 @@ import { useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '../../db/db'
 import { exportBackup, restoreBackup, validateBackup } from '../../lib/backup'
-import { downloadFile, isTauri } from '../../platform'
-import { Button, Input, Label, PageHeader, Panel, SectionTitle, Segmented } from '../components'
+import { downloadFile, fullscreenSupported, isTauri } from '../../platform'
+import { Button, Input, Label, PageHeader, Panel, SectionTitle, Segmented, Toggle } from '../components'
 import { saveSettings, useSettings } from '../settings'
 import { SyncPanel } from './SyncPanel'
 import { go } from '../router'
@@ -110,6 +110,11 @@ export function SettingsScreen() {
       <Panel>
         <SectionTitle>Darstellung</SectionTitle>
         <Segmented label="Farbschema" value={s.theme} onChange={(v) => saveSettings({ theme: v })} options={[{ value: 'system', label: 'System' }, { value: 'light', label: 'Hell' }, { value: 'dark', label: 'Dunkel' }]} />
+        {fullscreenSupported() && (
+          <div className="mt-4 border-t border-line pt-3">
+            <Toggle checked={!!s.autoFullscreen} onChange={(v) => saveSettings({ autoFullscreen: v })} label="Beim Lernen automatisch Vollbild" description={`Keine Ablenkung durch Fenster und Leisten. Jederzeit mit F${isTauri ? ' oder F11' : ''} umschalten.`} />
+          </div>
+        )}
       </Panel>
 
       <SyncPanel />

@@ -94,6 +94,8 @@ export interface Settings {
   ttsVoiceFr?: string
   lastBackupAt?: string
   deviceId?: string
+  /** Enter fullscreen automatically when a study session starts */
+  autoFullscreen?: boolean
 }
 
 export const DEFAULT_SETTINGS: Settings = {

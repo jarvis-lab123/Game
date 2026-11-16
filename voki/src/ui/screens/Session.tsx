@@ -11,7 +11,8 @@ import { advanceLadder, applyReview } from '../../lib/srs'
 import { gradeAnswer, normalize, type GradeResult } from '../../lib/grade'
 import { applyHints, hintSteps } from '../../lib/hints'
 import type { Card, Deck, Note, ReviewMode, Settings } from '../../lib/types'
-import { setDueBadge, speak, vibrate } from '../../platform'
+import { setDueBadge, setFullscreen, speak, toggleFullscreen, vibrate } from '../../platform'
+import { FullscreenButton } from '../fullscreen'
 import { Button, Empty, Kbd, Progress, cx } from '../components'
 import { IconCheck, IconX } from '../icons'
 import { Illustration } from '../illustrations'
@@ -117,6 +118,13 @@ export function Session({ deckId, minutes, mode, drill }: { deckId?: string; min
   useEffect(() => {
     const t = setInterval(() => setElapsed(Date.now() - startedAt.current), 1000)
     return () => clearInterval(t)
+  }, [])
+
+  // leaving the session ends an automatic fullscreen
+  useEffect(() => () => {
+    void loadSettings(db).then((s) => {
+      if (s.autoFullscreen) void setFullscreen(false)
+    })
   }, [])
 
   const resetCard = () => {
@@ -333,6 +341,11 @@ export function Session({ deckId, minutes, mode, drill }: { deckId?: string; min
         speak(face.foreign, face.foreignLang)
         return
       }
+      if (!inField && !e.ctrlKey && !e.metaKey && !e.altKey && e.key.toLowerCase() === 'f') {
+        e.preventDefault()
+        void toggleFullscreen()
+        return
+      }
       if (!item || inField || phase === 'between' || phase === 'leech') return
       if (item.step === 'intro' && e.key === 'Enter') {
         e.preventDefault()
@@ -391,6 +404,7 @@ export function Session({ deckId, minutes, mode, drill }: { deckId?: string; min
             {ctx && ctx.groups.length > 1 && !finished && <p className="mt-1 text-center text-[11px] font-medium text-muted tabular">Gruppe {groupIndex + 1} von {ctx.groups.length}</p>}
           </div>
           <span className="w-12 shrink-0 text-right text-sm text-muted tabular" aria-label="Zeit">{mm}:{ss}</span>
+          <FullscreenButton />
         </div>
       </header>
 
@@ -495,7 +509,7 @@ export function Session({ deckId, minutes, mode, drill }: { deckId?: string; min
             )}
             {error && <p role="alert" className="mt-4 rounded-xl bg-bad-soft px-4 py-3 text-sm text-bad">{error}</p>}
             <p className="mt-auto hidden pt-10 text-center text-xs text-muted desk:block">
-              <Kbd>Enter</Kbd> prüfen/weiter · <Kbd>Leertaste</Kbd> umdrehen · <Kbd>1</Kbd>–<Kbd>4</Kbd> wählen · <Kbd>Ctrl</Kbd>+<Kbd>Leertaste</Kbd> Audio · <Kbd>Alt</Kbd>+Buchstabe Akzent · <Kbd>Esc</Kbd> beenden
+              <Kbd>Enter</Kbd> prüfen/weiter · <Kbd>F</Kbd> Vollbild · <Kbd>Leertaste</Kbd> umdrehen · <Kbd>1</Kbd>–<Kbd>4</Kbd> wählen · <Kbd>Ctrl</Kbd>+<Kbd>Leertaste</Kbd> Audio · <Kbd>Alt</Kbd>+Buchstabe Akzent · <Kbd>Esc</Kbd> beenden
             </p>
           </>
         )}

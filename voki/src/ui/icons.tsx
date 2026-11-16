@@ -44,3 +44,5 @@ export function Flag({ lang, size = 18 }: { lang: 'en' | 'fr' | 'other'; size?: 
 }
 export const IconPractice = (p: SVGProps<SVGSVGElement>) => <svg {...base(p)}><path d="M12 3.5l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.6-4.8 2.6.9-5.4L4.2 9.2l5.4-.8z" /></svg>
 export const IconStats = (p: SVGProps<SVGSVGElement>) => <svg {...base(p)}><path d="M4 20h16M7 16v-5M12 16V7M17 16v-8" /></svg>
+export const IconExpand = (p: SVGProps<SVGSVGElement>) => <svg {...base(p)}><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></svg>
+export const IconCollapse = (p: SVGProps<SVGSVGElement>) => <svg {...base(p)}><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" /></svg>

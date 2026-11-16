@@ -54,3 +54,50 @@ export function speak(text: string, lang: 'fr' | 'en' | 'de' | 'other') {
 export function vibrate(pattern: number | number[]) {
   if ('vibrate' in navigator) navigator.vibrate(pattern)
 }
+
+/* ---------- Vollbild ---------- */
+type FsDoc = Document & { webkitFullscreenElement?: Element; webkitExitFullscreen?: () => Promise<void>; webkitFullscreenEnabled?: boolean }
+type FsEl = HTMLElement & { webkitRequestFullscreen?: () => Promise<void> }
+
+/** Real fullscreen is possible here (Tauri window, desktop browsers, Android). Not on iPhone Safari. */
+export function fullscreenSupported(): boolean {
+  if (isTauri) return true
+  const d = document as FsDoc
+  return !!(d.fullscreenEnabled || d.webkitFullscreenEnabled)
+}
+
+export async function isFullscreen(): Promise<boolean> {
+  if (isTauri) {
+    try {
+      const { getCurrentWindow } = await import('@tauri-apps/api/window')
+      return await getCurrentWindow().isFullscreen()
+    } catch {
+      return false
+    }
+  }
+  const d = document as FsDoc
+  return !!(d.fullscreenElement || d.webkitFullscreenElement)
+}
+
+/** Must be called from a click/key handler (browsers need a user gesture). */
+export async function setFullscreen(on: boolean): Promise<void> {
+  try {
+    if (isTauri) {
+      const { getCurrentWindow } = await import('@tauri-apps/api/window')
+      await getCurrentWindow().setFullscreen(on)
+    } else {
+      const d = document as FsDoc
+      const el = document.documentElement as FsEl
+      const active = !!(d.fullscreenElement || d.webkitFullscreenElement)
+      if (on && !active) await (el.requestFullscreen?.({ navigationUI: 'hide' }) ?? el.webkitRequestFullscreen?.())
+      if (!on && active) await (d.exitFullscreen?.() ?? d.webkitExitFullscreen?.())
+    }
+  } catch {
+    /* refused (no gesture / not allowed): stay windowed */
+  }
+  window.dispatchEvent(new Event('voki-fullscreen'))
+}
+
+export async function toggleFullscreen(): Promise<void> {
+  await setFullscreen(!(await isFullscreen()))
+}

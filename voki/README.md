@@ -3,7 +3,7 @@
 Lernt Vokabeln mit **Spaced Repetition (FSRS)**, lässt dich die Wörter **schreiben** statt nur umdrehen und rechnet **rückwärts vom Testdatum**, wie viel heute dran ist.
 
 - **Handy (iPhone/Android):** https://jarvis-lab123.github.io/Game/voki/
-- **PC (Windows):** https://github.com/jarvis-lab123/Game/releases/tag/voki-v0.2.1 → `Voki-Setup-0.2.1.msi`
+- **PC (Windows):** https://github.com/jarvis-lab123/Game/releases/tag/voki-v0.2.2 → `Voki-Setup-0.2.2.msi`
 
 ## Installieren
 
@@ -38,7 +38,7 @@ Neue Wörter: **Kennenlernen → Auswählen → selbst schreiben**. **Was sitzt?
 
 **Üben:** *Fehlerheft* (nach Ursache sortiert: nicht gewusst · Genus · Akzente/Tippfehler · überschätzt) mit Drill · *Probetest*: 20 Wörter, Akzente streng, vor jeder Antwort „sicher/unsicher“, am Schluss Note (6 = alles, 4 = 60 %) und deine Selbsteinschätzung.
 
-**PC-Tasten:** `Enter` prüfen/weiter · `Leertaste` umdrehen · `1`–`4` auswählen/bewerten · `Ctrl+Leertaste` Aussprache · `Alt`+Buchstabe Akzent (e → é → è → ê → ë) · `S`/`U` sicher/unsicher im Probetest · `Esc` beenden. Die PC-App sitzt im Tray („Voki – 12 fällig“); Fenster schliessen = in den Tray.
+**PC-Tasten:** `Enter` prüfen/weiter · `Leertaste` umdrehen · `1`–`4` auswählen/bewerten · `Ctrl+Leertaste` Aussprache · `Alt`+Buchstabe Akzent (e → é → è → ê → ë) · `S`/`U` sicher/unsicher im Probetest · `F` Vollbild (PC-App auch `F11`) · `Esc` beenden. Die PC-App sitzt im Tray („Voki – 12 fällig“); Fenster schliessen = in den Tray.
 
 ## Prüfungsmodus
 

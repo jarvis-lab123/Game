@@ -5,7 +5,7 @@ import { Shell } from './Shell'
 import { db } from '../db/db'
 import { startAutoSync } from '../db/autosync'
 import { seedBuiltinDecks } from '../db/seed'
-import { setDueBadge } from '../platform'
+import { isTauri, setDueBadge, toggleFullscreen } from '../platform'
 import { Today } from './screens/Today'
 import { Session } from './screens/Session'
 import { SessionSetup, type StudyMode } from './screens/SessionSetup'
@@ -26,6 +26,19 @@ export function App() {
     void seedBuiltinDecks(db).catch(() => {})
     return startAutoSync(db)
   }, [])
+  // PC app: F11 toggles fullscreen like in a browser
+  useEffect(() => {
+    if (!isTauri) return
+    const on = (e: KeyboardEvent) => {
+      if (e.key === 'F11') {
+        e.preventDefault()
+        void toggleFullscreen()
+      }
+    }
+    window.addEventListener('keydown', on)
+    return () => window.removeEventListener('keydown', on)
+  }, [])
+
   useEffect(() => {
     void db.cards.toArray().then((cs) => setDueBadge(cs.filter((c) => c.stage === 'review' && !c.suspended && c.due <= Date.now()).length))
   }, [route.path])

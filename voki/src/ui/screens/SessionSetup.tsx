@@ -7,6 +7,7 @@ import { Button, cx } from '../components'
 import { Flag, IconBack, IconPlay } from '../icons'
 import { go } from '../router'
 import { useSettings } from '../settings'
+import { setFullscreen } from '../../platform'
 
 export type StudyMode = 'type' | 'hand' | 'listen' | 'flip'
 export const MODES: { value: StudyMode; label: string; hint: string }[] = [
@@ -58,6 +59,7 @@ export function SessionSetup({ deckId: initialDeck }: { deckId?: string }) {
   const start = () => {
     localStorage.setItem('voki.minutes', String(minutes))
     localStorage.setItem('voki.mode', mode)
+    if (settings.autoFullscreen) void setFullscreen(true) // inside the click/Enter gesture
     go(`/lernen?go=1&min=${minutes}&mode=${mode}${deck ? `&deck=${deck}` : ''}&t=${Date.now()}`)
   }
   useEffect(() => {
