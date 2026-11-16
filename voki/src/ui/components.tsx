@@ -126,9 +126,9 @@ export function Toggle({ checked, onChange, label, description }: { checked: boo
   )
 }
 
-export function Segmented<T extends string>({ value, onChange, options, label }: { value: T; onChange: (v: T) => void; options: { value: T; label: string }[]; label: string }) {
+export function Segmented<T extends string>({ value, onChange, options, label, fill }: { value: T; onChange: (v: T) => void; options: { value: T; label: string }[]; label: string; fill?: boolean }) {
   return (
-    <div role="radiogroup" aria-label={label} className="inline-flex rounded-[10px] bg-surface-2 p-[3px]">
+    <div role="radiogroup" aria-label={label} className={cx('rounded-[10px] bg-surface-2 p-[3px]', fill ? 'flex w-full desk:inline-flex desk:w-auto' : 'inline-flex')}>
       {options.map((o) => (
         <button
           key={o.value}
@@ -136,7 +136,7 @@ export function Segmented<T extends string>({ value, onChange, options, label }:
           role="radio"
           aria-checked={value === o.value}
           onClick={() => onChange(o.value)}
-          className={cx('min-h-11 rounded-[8px] px-3.5 text-sm font-semibold transition-all duration-150 desk:min-h-9', value === o.value ? 'bg-surface text-fg shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:bg-[#636366]' : 'text-muted hover:text-fg')}
+          className={cx('min-h-11 rounded-[8px] font-semibold transition-all duration-150 desk:min-h-9', fill ? 'flex-1 px-1 text-[13px] desk:flex-none desk:px-3.5 desk:text-sm' : 'px-3.5 text-sm', value === o.value ? 'bg-surface text-fg shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:bg-[#636366]' : 'text-muted hover:text-fg')}
         >
           {o.label}
         </button>

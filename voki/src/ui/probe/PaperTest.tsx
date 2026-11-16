@@ -23,7 +23,10 @@ function forControl(e: KeyboardEvent) {
   return t instanceof HTMLButtonElement && (e.key === 'Enter' || e.key === ' ')
 }
 
-export function PaperTest({ deck, items, n }: { deck: Deck; items: PaperItem[]; n: string | null }) {
+export interface PaperBlock { index: number; count: number; exitTo: string; againTo: string; title: string }
+
+export function PaperTest({ deck, items, n, block }: { deck: Deck; items: PaperItem[]; n: string | null; block?: PaperBlock }) {
+  const exitTo = block?.exitTo ?? '/ueben'
   const reduce = !!useReducedMotion()
   const N = items.length
   const [phase, setPhase] = useState<Phase>('intro')
@@ -81,16 +84,16 @@ export function PaperTest({ deck, items, n }: { deck: Deck; items: PaperItem[]; 
       const now = new Date().toISOString()
       const graded = items.map((it, k) => ({ cardId: it.cardId, typed: '', correct: decisions[k] === true, confident: false, decided: decisions[k] != null })).filter((x) => x.decided)
       await db.transaction('rw', db.tests, db.logs, async () => {
-        await db.tests.add({ id: uid(), deckId: deck.id, date: now, total: graded.length, correct: points, grade, items: graded.map(({ decided: _d, ...x }) => x), updatedAt: now })
+        await db.tests.add({ id: uid(), deckId: deck.id, date: now, total: graded.length, correct: points, grade, items: graded.map(({ decided: _d, ...x }) => x), ...(block ? { block: block.index, blocks: block.count } : {}), updatedAt: now })
         for (const a of graded) await log(db, { cardId: a.cardId, deckId: deck.id, timestamp: now, mode: 'test', rating: Rating.Manual, typedAnswer: '', correct: a.correct, durationMs: 0 })
       })
       requestSync()
     })()
-  }, [phase, decisions, items, deck.id])
+  }, [phase, decisions, items, deck.id, block])
 
   useEffect(() => {
     const on = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') return go('/ueben')
+      if (e.key === 'Escape') return go(exitTo)
       if (e.metaKey || e.ctrlKey || e.altKey || forControl(e)) return
       const k = e.key.toLowerCase()
       if (phase === 'intro' && (k === 'enter' || k === ' ')) { e.preventDefault(); start() }
@@ -114,7 +117,7 @@ export function PaperTest({ deck, items, n }: { deck: Deck; items: PaperItem[]; 
     <div className="flex min-h-full flex-col">
       <header className="safe-top sticky top-0 z-30 border-b border-line bg-bg/90 backdrop-blur">
         <div className="mx-auto flex max-w-[680px] items-center gap-3 px-4 py-3">
-          <button onClick={() => go('/ueben')} className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-muted hover:bg-surface-2 hover:text-fg" aria-label="Probetest abbrechen (Esc)"><IconX /></button>
+          <button onClick={() => go(exitTo)} className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-muted hover:bg-surface-2 hover:text-fg" aria-label="Probetest abbrechen (Esc)"><IconX /></button>
           <Progress value={progress} tone={phase === 'write' || phase === 'intro' ? 'accent' : 'good'} label={phase === 'write' ? 'Fortschritt Schreiben' : 'Fortschritt Korrigieren'} />
           {phase === 'correct' ? (
             <span className="shrink-0 rounded-full bg-good-soft px-3 py-1 text-sm font-semibold text-good tabular" aria-label={`${score.points} von ${score.total} Punkten`}>
@@ -127,19 +130,19 @@ export function PaperTest({ deck, items, n }: { deck: Deck; items: PaperItem[]; 
       </header>
       <p className="sr-only" aria-live="polite">{said}</p>
       <div className="mx-auto w-full max-w-[680px] flex-1 px-4 pb-10 pt-6 desk:pt-10">
-        {phase === 'intro' && <Intro n={N} reduce={reduce} onStart={start} />}
+        {phase === 'intro' && <Intro n={N} reduce={reduce} onStart={start} title={block?.title} />}
         {phase === 'write' && <Write item={items[i]} i={i} N={N} dir={dir} reduce={reduce} onNext={forward} onBack={backward} />}
         {phase === 'correct' && (
           <Correct deck={deck} items={items} decisions={decisions} cur={cur} reduce={reduce} canUndo={history.length > 0} onDecide={decide} onUndo={undo} onGrade={toGrade} points={score.points} />
         )}
-        {phase === 'grade' && <GradeReveal deck={deck} items={items} decisions={decisions} reduce={reduce} onAgain={() => go(`/probetest?deck=${deck.id}${n ? `&n=${n}` : ''}&paper=1&t=${Date.now()}`)} />}
+        {phase === 'grade' && <GradeReveal deck={deck} items={items} decisions={decisions} reduce={reduce} block={block} onAgain={() => go(`/probetest?deck=${deck.id}${n ? `&n=${n}` : ''}&paper=1&t=${Date.now()}`)} />}
       </div>
     </div>
   )
 }
 
 /* ---------------- Intro ---------------- */
-function Intro({ n, reduce, onStart }: { n: number; reduce: boolean; onStart: () => void }) {
+function Intro({ n, reduce, onStart, title }: { n: number; reduce: boolean; onStart: () => void; title?: string }) {
   const focus = useCalmFocus<HTMLButtonElement>()
   const steps = [
     ['Wort ansehen', 'Du siehst immer nur das Wort. Schreib die Übersetzung auf dein Blatt.'],
@@ -148,7 +151,7 @@ function Intro({ n, reduce, onStart }: { n: number; reduce: boolean; onStart: ()
   ]
   return (
     <motion.div className="rounded-[26px] bg-surface p-6 shadow-card desk:p-10" initial={reduce ? false : { opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-      <p className="text-sm font-medium text-muted">Probetest auf Papier</p>
+      <p className="text-sm font-medium text-muted">{title ?? 'Probetest auf Papier'}</p>
       <h1 className="mt-1 text-[28px] font-bold leading-tight tracking-[-0.02em] desk:text-[32px]">Hol dir ein Blatt und einen Stift</h1>
       <SheetPreview n={n} reduce={reduce} />
       <ol className="mt-6 space-y-4">

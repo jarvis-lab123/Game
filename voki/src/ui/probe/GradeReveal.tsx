@@ -5,7 +5,7 @@ import { gradeTone, paperScore, rollSteps, type Decision } from '../../lib/paper
 import { Button, Kbd, Ring, cx } from '../components'
 import { go } from '../router'
 import { Confetti, useCalmFocus } from './paper'
-import type { PaperItem } from './PaperTest'
+import type { PaperBlock, PaperItem } from './PaperTest'
 
 type Stage = 'count' | 'roll' | 'stamp'
 
@@ -22,7 +22,7 @@ function message(grade: number) {
  * The finale: points count up and the ring fills, then the grade rolls up from 1.0
  * and lands with a teacher's stamp (plus confetti from 5.0). Click / Enter skips ahead.
  */
-export function GradeReveal({ deck, items, decisions, reduce, onAgain }: { deck: Deck; items: PaperItem[]; decisions: Decision[]; reduce: boolean; onAgain: () => void }) {
+export function GradeReveal({ deck, items, decisions, reduce, onAgain, block }: { deck: Deck; items: PaperItem[]; decisions: Decision[]; reduce: boolean; onAgain: () => void; block?: PaperBlock }) {
   const { points, total, grade } = paperScore(decisions)
   const tone = gradeTone(grade)
   const [stage, setStage] = useState<Stage>(reduce ? 'stamp' : 'count')
@@ -89,7 +89,7 @@ export function GradeReveal({ deck, items, decisions, reduce, onAgain }: { deck:
         onClick={stamped ? undefined : finish}
         title={stamped ? undefined : 'Tippen zum Überspringen'}
       >
-        <p className="text-sm font-medium text-muted">{deck.name} · Probetest auf Papier</p>
+        <p className="text-sm font-medium text-muted">{deck.name} · {block ? block.title : 'Probetest auf Papier'}</p>
         <motion.div
           className="mt-6 flex items-center justify-center gap-6 desk:gap-12"
           animate={stamped && !reduce ? { y: [0, 3, 0] } : { y: 0 }}
@@ -146,7 +146,7 @@ export function GradeReveal({ deck, items, decisions, reduce, onAgain }: { deck:
           {stamped ? (
             <motion.div initial={reduce ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: reduce ? 0 : 0.35, duration: 0.3 }}>
               <p className="text-[19px] font-semibold">{msg.t}</p>
-              <p className="mx-auto mt-1 max-w-[420px] text-[15px] text-muted">{wrong.length > 0 ? msg.d : 'Alles richtig – nichts für das Fehlerheft.'}</p>
+              <p className="mx-auto mt-1 max-w-[420px] text-[15px] text-muted">{block ? (wrong.length > 0 ? 'Die Note ist gespeichert. Sind alle Blöcke durch, kommt der mit der schlechtesten Note nochmals dran.' : 'Alles richtig – Block mit Bestnote abgeschlossen!') : wrong.length > 0 ? msg.d : 'Alles richtig – nichts für das Fehlerheft.'}</p>
               <p className="mt-3 text-[13px] text-muted">Schweizer Skala: 6 = alles richtig, 4 = 60 %</p>
             </motion.div>
           ) : (
@@ -173,8 +173,17 @@ export function GradeReveal({ deck, items, decisions, reduce, onAgain }: { deck:
             </div>
           )}
           <div className="flex flex-col gap-2 desk:flex-row">
-            <Button ref={focus} variant="primary" size="lg" onClick={() => go('/ueben')}>Zum Fehlerheft</Button>
-            <Button size="lg" onClick={onAgain}>Neuer Probetest</Button>
+            {block ? (
+              <>
+                <Button ref={focus} variant="primary" size="lg" onClick={() => go(block.exitTo)}>Block abschliessen</Button>
+                <Button size="lg" onClick={() => go(`${block.againTo}&t=${Date.now()}`)}>Block nochmals lernen</Button>
+              </>
+            ) : (
+              <>
+                <Button ref={focus} variant="primary" size="lg" onClick={() => go('/ueben')}>Zum Fehlerheft</Button>
+                <Button size="lg" onClick={onAgain}>Neuer Probetest</Button>
+              </>
+            )}
           </div>
         </motion.div>
       )}

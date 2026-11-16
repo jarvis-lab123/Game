@@ -15,6 +15,7 @@ import { ImportScreen } from './screens/ImportScreen'
 import { SettingsScreen } from './screens/SettingsScreen'
 import { Practice } from './screens/Practice'
 import { ProbeTest } from './screens/ProbeTest'
+import { BlockRun } from './screens/BlockLearn'
 import { StatsScreen } from './screens/StatsScreen'
 
 export function App() {
@@ -57,6 +58,7 @@ export function App() {
       />
     )
   }
+  if (route.parts[0] === 'bloecke' && q.get('deck') && q.get('start') != null) return <BlockRun key={q.toString()} deckId={q.get('deck')!} index={Number(q.get('start')) || 0} />
   if (route.parts[0] === 'probetest' && q.get('deck')) return <ProbeTest key={q.toString()} deckId={q.get('deck')!} />
 
   let screen
@@ -74,7 +76,7 @@ export function App() {
       screen = <SettingsScreen />
       break
     case 'ueben':
-      screen = <Practice tab={(q.get('tab') as 'fehlerheft' | 'probetest' | 'werkstatt') ?? undefined} />
+      screen = <Practice tab={(q.get('tab') as 'fehlerheft' | 'bloecke' | 'probetest' | 'werkstatt') ?? undefined} />
       break
     case 'statistik':
       screen = <StatsScreen />

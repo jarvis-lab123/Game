@@ -76,6 +76,9 @@ export interface TestResult {
   correct: number
   grade: number
   items: TestItem[]
+  /** Blocklernen: block index and the number of blocks the deck was split into */
+  block?: number
+  blocks?: number
   updatedAt: string
 }
 

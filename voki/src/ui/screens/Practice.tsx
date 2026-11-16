@@ -11,8 +11,9 @@ import { Flag, IconCheck, IconChevron, IconCopy, IconFlame, IconPlay } from '../
 import { Illustration } from '../illustrations'
 import { MnemonicStudio } from '../MnemonicStudio'
 import { go } from '../router'
+import { BlockHome } from './BlockLearn'
 
-type Tab = 'fehlerheft' | 'probetest' | 'werkstatt'
+type Tab = 'fehlerheft' | 'bloecke' | 'probetest' | 'werkstatt'
 
 export function Practice({ tab: initial }: { tab?: Tab }) {
   const [tab, setTab] = useState<Tab>(initial ?? 'fehlerheft')
@@ -20,9 +21,9 @@ export function Practice({ tab: initial }: { tab?: Tab }) {
     <div>
       <PageHeader title="Üben" subtitle="Schwache Wörter gezielt stärken und den Test proben." />
       <div className="mb-5">
-        <Segmented label="Bereich" value={tab} onChange={setTab} options={[{ value: 'fehlerheft', label: 'Fehlerheft' }, { value: 'probetest', label: 'Probetest' }, { value: 'werkstatt', label: 'Eselsbrücken' }]} />
+        <Segmented fill label="Bereich" value={tab} onChange={setTab} options={[{ value: 'fehlerheft', label: 'Fehlerheft' }, { value: 'bloecke', label: 'Blöcke' }, { value: 'probetest', label: 'Probetest' }, { value: 'werkstatt', label: 'Eselsbrücken' }]} />
       </div>
-      {tab === 'fehlerheft' ? <Fehlerheft /> : tab === 'probetest' ? <ProbeTestHome /> : <Werkstatt />}
+      {tab === 'fehlerheft' ? <Fehlerheft /> : tab === 'bloecke' ? <BlockHome /> : tab === 'probetest' ? <ProbeTestHome /> : <Werkstatt />}
     </div>
   )
 }
