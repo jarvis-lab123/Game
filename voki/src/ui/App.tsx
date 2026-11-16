@@ -53,6 +53,7 @@ export function App() {
         minutes={Number(q.get('min')) || settings.dailyMinutesGoal}
         mode={(q.get('mode') as StudyMode) || 'type'}
         drill={q.get('drill') === '1'}
+        crunch={q.get('crunch') === '1'}
       />
     )
   }

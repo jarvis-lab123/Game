@@ -8,8 +8,9 @@ import { requestSync } from '../../db/autosync'
 import { SessionEngine, type Item } from '../../lib/session'
 import { planGroups, type Group } from '../../lib/groups'
 import { advanceLadder, applyReview } from '../../lib/srs'
-import { gradeAnswer, normalize, type GradeResult } from '../../lib/grade'
+import { gradeAnswer, normalize, solutions, type GradeResult } from '../../lib/grade'
 import { applyHints, hintSteps } from '../../lib/hints'
+import { clozeGap, GAP } from '../../lib/cloze'
 import type { Card, Deck, Note, ReviewMode, Settings } from '../../lib/types'
 import { setDueBadge, setFullscreen, speak, toggleFullscreen, vibrate } from '../../platform'
 import { FullscreenButton } from '../fullscreen'
@@ -33,7 +34,9 @@ interface Ctx {
   drill: boolean
 }
 
-const RECALL = new Set(['review', 'practice', 'cram'])
+const RECALL = new Set(['review', 'practice', 'cram', 'recheck'])
+/** Steps that never change FSRS: logged with Rating.Manual */
+const NO_FSRS = new Set(['cram', 'practice', 'dmc', 'cloze', 'recheck'])
 /** right answer, no retyping needed (German: other spelling also counts) */
 const isRight = (v: GradeResult['verdict']) => v === 'correct' || v === 'spelling'
 
@@ -63,10 +66,12 @@ function mcOptions(card: Card, face: Face, note: Note, notes: Map<string, Note>)
   return shuffle([face.answer, ...pick])
 }
 
-export function Session({ deckId, minutes, mode, drill }: { deckId?: string; minutes: number; mode: StudyMode; drill: boolean }) {
+export function Session({ deckId, minutes, mode, drill, crunch = false }: { deckId?: string; minutes: number; mode: StudyMode; drill: boolean; crunch?: boolean }) {
   const [ctx, setCtx] = useState<Ctx | null>(null)
   const [groupIndex, setGroupIndex] = useState(0)
   const engine = useRef<SessionEngine | null>(null)
+  /** Not-Modus: which cards can be asked as a gap sentence */
+  const clozeOk = useRef<(c: Card) => boolean>(() => false)
   const [item, setItem] = useState<Item | null>(null)
   const [finished, setFinished] = useState(false)
   const [answered, setAnswered] = useState(0)
@@ -104,20 +109,26 @@ export function Session({ deckId, minutes, mode, drill }: { deckId?: string; min
         deckIds = [...new Set(cards.map((c) => c.deckId))]
       } else {
         const plan = await planDay(db, now, deckId)
-        groups = planGroups(sessionCards(plan, now), minutes)
+        groups = planGroups(sessionCards(plan, now), minutes, { crunch })
         deckIds = plan.decks.map((d) => d.deck.id)
       }
       const notes = new Map((await db.notes.where('deckId').anyOf(deckIds).toArray()).map((n) => [n.id, n]))
       const decks = new Map((await db.decks.bulkGet(deckIds)).filter((d): d is Deck => !!d).map((d) => [d.id, d]))
       if (!alive) return
-      const total = groups.reduce((s, g) => s + g.reviews.length + g.fresh.length * 2 + g.cram.length * (drill ? 2 : 1), 0)
+      // cloze only for the writing direction (unless the deck never asks it), and only if the example contains the word
+      clozeOk.current = (c) => {
+        const n = notes.get(c.noteId)
+        const d = decks.get(c.deckId)
+        return !!n && !!clozeGap(n.term, n.example) && (c.direction === 'toTarget' || !d?.directions.includes('toTarget'))
+      }
+      const total = groups.reduce((s, g) => s + g.reviews.length + g.fresh.length * (crunch ? 4 : 2) + g.cram.length * (drill ? 2 : 1), 0)
       setCtx({ groups, notes, decks, settings, total, drill })
       startGroup(groups, 0, drill, notes)
     })()
     return () => {
       alive = false
     }
-  }, [deckId, minutes, drill]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [deckId, minutes, drill, crunch]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const t = setInterval(() => pausedAt.current == null && setElapsed(Date.now() - startedAt.current), 1000)
@@ -148,7 +159,11 @@ export function Session({ deckId, minutes, mode, drill }: { deckId?: string; min
       setFinished(true)
       return
     }
-    engine.current = new SessionEngine(isDrill ? { reviews: [], fresh: [], cram: [], drill: g.cram } : { reviews: g.reviews, fresh: g.fresh, cram: g.cram })
+    engine.current = new SessionEngine(
+      isDrill
+        ? { reviews: [], fresh: [], cram: [], drill: g.cram }
+        : { reviews: g.reviews, fresh: g.fresh, cram: g.cram, crunch, hasCloze: (c) => clozeOk.current(c) },
+    )
     setGroupIndex(i)
     showNext(notes)
   }
@@ -175,13 +190,25 @@ export function Session({ deckId, minutes, mode, drill }: { deckId?: string; min
 
   const note = item && ctx ? ctx.notes.get(item.card.noteId) : undefined
   const deck = item && ctx ? ctx.decks.get(item.card.deckId) : undefined
-  const face = item && note && deck ? faceOf(item.card, note, deck) : null
+  const cloze = item?.step === 'cloze' && note ? clozeGap(note.term, note.example) : null
+  const baseFace = item && note && deck ? faceOf(item.card, note, deck) : null
+  // Lückentext: the foreign word is the answer; the exact words cut out of the sentence also count
+  const face: Face | null =
+    baseFace && cloze && note && deck
+      ? {
+          ...baseFace,
+          question: cloze.sentence,
+          answer: solutions(note.term).some((x) => normalize(x) === normalize(cloze.gap)) ? note.term : `${note.term}; ${cloze.gap}`,
+          answerLang: deck.language === 'other' ? 'other' : deck.language,
+          promptLabel: 'Lückentext – welches Wort fehlt?',
+        }
+      : baseFace
   const isRecall = !!item && RECALL.has(item.step)
-  const typingStep = !!item && (item.step === 'type' || isRecall)
-  const effMode: StudyMode = !typingStep ? 'type' : item!.step === 'type' && (mode === 'flip' || mode === 'listen') ? 'type' : mode
+  const typingStep = !!item && (item.step === 'type' || item.step === 'cloze' || isRecall)
+  const effMode: StudyMode = !typingStep || item!.step === 'cloze' ? 'type' : item!.step === 'type' && (mode === 'flip' || mode === 'listen') ? 'type' : mode
   const listenOk = effMode === 'listen' && item?.card.direction === 'toNative' && face?.foreignLang !== 'other' && 'speechSynthesis' in window
   const view: 'type' | 'hand' | 'listen' | 'flip' = effMode === 'listen' ? (listenOk ? 'listen' : 'type') : effMode
-  const hintList = useMemo(() => (face && note ? hintSteps(face.answer, item?.card.direction === 'toTarget' ? note.example : undefined) : []), [face?.answer, note?.example, item?.card.direction]) // eslint-disable-line react-hooks/exhaustive-deps
+  const hintList = useMemo(() => (face && note ? hintSteps(face.answer, item?.card.direction === 'toTarget' && item.step !== 'cloze' ? note.example : undefined) : []), [face?.answer, note?.example, item?.card.direction, item?.step]) // eslint-disable-line react-hooks/exhaustive-deps
   const options = useMemo(() => ((item?.step === 'mc' || item?.step === 'dmc') && face && note && ctx ? mcOptions(item.card, face, note, ctx.notes) : []), [item, face?.answer]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const updateNote = (n: Note) => {
@@ -218,6 +245,9 @@ export function Session({ deckId, minutes, mode, drill }: { deckId?: string; min
           case 'dmc':
             logMode = 'drill'
             break
+          case 'cloze':
+            logMode = 'type'
+            break
           case 'type':
             updated = advanceLadder(card, 'type', ok, now, ret, (rating || Rating.Good) as Grade).card
             break
@@ -237,7 +267,7 @@ export function Session({ deckId, minutes, mode, drill }: { deckId?: string; min
             deckId: card.deckId,
             timestamp: now.toISOString(),
             mode: logMode,
-            rating: ['cram', 'practice', 'dmc'].includes(item.step) ? Rating.Manual : rating,
+            rating: NO_FSRS.has(item.step) ? Rating.Manual : rating,
             typedAnswer,
             correct: ok,
             durationMs: now.getTime() - shownAt.current,
@@ -317,7 +347,7 @@ export function Session({ deckId, minutes, mode, drill }: { deckId?: string; min
   const overrideRight = async (addAsSolution: boolean) => {
     if (!result || !note || !item) return
     if (addAsSolution && typed.trim()) {
-      const field = item.card.direction === 'toTarget' ? 'term' : 'translation'
+      const field = item.card.direction === 'toTarget' || item.step === 'cloze' ? 'term' : 'translation'
       const n = { ...note, [field]: `${note[field]}; ${typed.trim()}`, updatedAt: new Date().toISOString() }
       await db.notes.put(n)
       updateNote(n)
@@ -414,7 +444,7 @@ export function Session({ deckId, minutes, mode, drill }: { deckId?: string; min
 
   // ----- render -----
   const remaining = engine.current?.remaining() ?? 0
-  const laterGroups = ctx ? ctx.groups.slice(groupIndex + 1).reduce((s, g) => s + g.reviews.length + g.fresh.length * 2 + g.cram.length, 0) : 0
+  const laterGroups = ctx ? ctx.groups.slice(groupIndex + 1).reduce((s, g) => s + g.reviews.length + g.fresh.length * (crunch ? 4 : 2) + g.cram.length, 0) : 0
   const progress = answered / Math.max(1, answered + remaining + laterGroups + (item ? 1 : 0))
   const mm = Math.floor(elapsed / 60000)
   const ss = String(Math.floor(elapsed / 1000) % 60).padStart(2, '0')
@@ -431,7 +461,13 @@ export function Session({ deckId, minutes, mode, drill }: { deckId?: string; min
           </button>
           <div className="flex-1">
             <Progress value={finished ? 1 : progress} label="Fortschritt der Session" />
-            {ctx && ctx.groups.length > 1 && !finished && <p className="mt-1 text-center text-[11px] font-medium text-muted tabular">Gruppe {groupIndex + 1} von {ctx.groups.length}</p>}
+            {ctx && !finished && (ctx.groups.length > 1 || (crunch && !ctx.drill)) && (
+              <p className="mt-1 whitespace-nowrap text-center text-[11px] font-medium text-muted tabular">
+                {crunch && !ctx.drill && <span className="font-semibold text-warn">Not-Modus</span>}
+                {crunch && !ctx.drill && ctx.groups.length > 1 && ' · '}
+                {ctx.groups.length > 1 && (crunch && !ctx.drill ? <>Gruppe {groupIndex + 1}/{ctx.groups.length}</> : <>Gruppe {groupIndex + 1} von {ctx.groups.length}</>)}
+              </p>
+            )}
           </div>
           <span className="w-12 shrink-0 text-right text-sm text-muted tabular" aria-label="Zeit">{mm}:{ss}</span>
           {!finished && ctx && ctx.total > 0 && (
@@ -459,7 +495,7 @@ export function Session({ deckId, minutes, mode, drill }: { deckId?: string; min
         {!ctx ? (
           <div className="h-60" aria-busy="true" />
         ) : finished || (!item && phase !== 'between') ? (
-          <SessionEnd answered={answered} right={right} introduced={introduced} empty={ctx.total === 0} drill={ctx.drill} />
+          <SessionEnd answered={answered} right={right} introduced={introduced} empty={ctx.total === 0} drill={ctx.drill} crunch={crunch && !ctx.drill} />
         ) : phase === 'between' ? (
           <GroupBreak done={groupIndex + 1} total={ctx.groups.length} words={groupWords} onNext={nextGroup} />
         ) : !face || !note || !deck || !item ? (
@@ -488,6 +524,8 @@ export function Session({ deckId, minutes, mode, drill }: { deckId?: string; min
                   <div>
                     {view === 'listen' ? (
                       <ListenPrompt face={face} />
+                    ) : item.step === 'cloze' ? (
+                      <ClozePrompt sentence={face.question} hint={note.translation} lang={deck.language} />
                     ) : (
                       <>
                         <p className="text-sm font-medium text-muted">{face.promptLabel}</p>
@@ -508,6 +546,9 @@ export function Session({ deckId, minutes, mode, drill }: { deckId?: string; min
                           )}
                         </>
                       )
+                    )}
+                    {item.step === 'cloze' && phase !== 'ask' && note.example && (
+                      <p className="mt-4 border-l-2 border-accent/50 pl-3 text-[15px] italic text-muted" lang={deck.language}>{note.example}</p>
                     )}
                     {phase !== 'ask' && result && !isRight(result.verdict) && <div className="mt-4"><MemoryAids note={note} /></div>}
                     {phase === 'retype' && result && (
@@ -565,7 +606,23 @@ export function Session({ deckId, minutes, mode, drill }: { deckId?: string; min
   )
 }
 
-function SessionEnd({ answered, right, introduced, empty, drill }: { answered: number; right: number; introduced: number; empty: boolean; drill: boolean }) {
+/** Lückentext prompt: the example sentence with a visible gap, German meaning below. */
+function ClozePrompt({ sentence, hint, lang }: { sentence: string; hint: string; lang: Deck['language'] }) {
+  const [before, ...rest] = sentence.split(GAP)
+  return (
+    <>
+      <p className="text-sm font-medium text-muted">Lückentext – welches Wort fehlt?</p>
+      <p className="mt-2 break-words text-[26px] font-semibold leading-snug tracking-tight desk:text-[30px]" lang={lang === 'other' ? undefined : lang}>
+        {before}
+        <span className="mx-0.5 inline-block min-w-[4.5ch] translate-y-[2px] border-b-[3px] border-accent align-baseline"><span className="sr-only">Lücke</span></span>
+        {rest.join(GAP)}
+      </p>
+      <p className="mt-3 text-[15px] text-muted">Deutsch: <span className="font-medium text-fg">{hint}</span></p>
+    </>
+  )
+}
+
+function SessionEnd({ answered, right, introduced, empty, drill, crunch }: { answered: number; right: number; introduced: number; empty: boolean; drill: boolean; crunch?: boolean }) {
   useEffect(() => {
     const on = (e: KeyboardEvent) => e.key === 'Enter' && !(e.target instanceof HTMLButtonElement) && go('/')
     window.addEventListener('keydown', on)
@@ -586,6 +643,7 @@ function SessionEnd({ answered, right, introduced, empty, drill }: { answered: n
       <div className="flex justify-center"><Illustration kind="done" /></div>
       <h1 className="mt-4 text-[26px] font-semibold tracking-tight">{rate >= 80 ? 'Stark gemacht' : 'Geschafft'}</h1>
       <p className="mt-1 text-[15px] text-muted">Alles ist gespeichert{navigator.onLine ? ' und wird synchronisiert' : ''}.</p>
+      {crunch && <p className="mx-auto mt-4 max-w-sm rounded-2xl bg-warn-soft px-4 py-3 text-[15px] text-warn">Not-Modus: Mach jetzt eine Pause und die nächste Session in ein paar Stunden – so bleibt mehr hängen.</p>}
       <dl className="mx-auto mt-6 grid max-w-sm grid-cols-3 gap-3">
         <div><dt className="text-xs text-muted">Abgefragt</dt><dd className="text-[22px] font-semibold tabular">{answered}</dd></div>
         <div><dt className="text-xs text-muted">Richtig</dt><dd className={cx('text-[22px] font-semibold tabular', rate >= 80 ? 'text-good' : rate >= 60 ? 'text-warn' : 'text-bad')}>{rate} %</dd></div>

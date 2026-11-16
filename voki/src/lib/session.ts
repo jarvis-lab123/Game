@@ -7,8 +7,13 @@ export const BACKLOG_LIMIT = 150
 export const REVIEWS_BETWEEN_NEW = 3
 export const BOOST_DAYS = 3
 export const BOOST_THRESHOLD = 0.85
+/** Not-Modus: a correctly typed new word comes back once more this many items later (successive relearning). */
+export const RECHECK_GAP = 6
 
-export type Step = 'intro' | 'mc' | 'type' | 'review' | 'cram' | 'practice' | 'dmc'
+/** Steps that don't hold a place on the new-word ladder (MAX_IN_FLIGHT). */
+const OFF_LADDER = new Set<Step>(['practice', 'dmc', 'recheck'])
+
+export type Step = 'intro' | 'mc' | 'cloze' | 'type' | 'recheck' | 'review' | 'cram' | 'practice' | 'dmc'
 export interface Item { step: Step; card: Card }
 
 interface Pending { step: Step; card: Card; readyAt: number }
@@ -25,6 +30,9 @@ export function isDue(c: Card, now: Date): boolean {
  * Orders one study session (§5.1, §5.2):
  * due reviews first, new words scattered in (one after every 3 reviews),
  * at most 4 new words on the ladder at once, wrong answers come back 3–5 items later.
+ * Not-Modus (crunch): new words go intro → mc → cloze (if possible) → type, and after the
+ * first right typing come back once more as 'recheck' ~6 items later (must be right twice);
+ * new cards of the writing direction (toTarget) come first.
  */
 export class SessionEngine {
   private reviews: Card[]
@@ -35,17 +43,32 @@ export class SessionEngine {
   private turn = 0
   private reviewsSinceNew = 0
   private rng: () => number
+  private crunch: boolean
+  private hasCloze: (c: Card) => boolean
 
-  constructor(o: { reviews: Card[]; fresh: Card[]; cram: Card[]; drill?: Card[]; rng?: () => number }) {
+  constructor(o: {
+    reviews: Card[]
+    fresh: Card[]
+    cram: Card[]
+    drill?: Card[]
+    rng?: () => number
+    /** Not-Modus: cloze + recheck steps, writing direction first */
+    crunch?: boolean
+    /** Can this card be asked as a gap sentence? (only used in crunch) */
+    hasCloze?: (c: Card) => boolean
+  }) {
     this.drill = [...(o.drill ?? [])]
     this.reviews = [...o.reviews]
-    this.fresh = [...o.fresh]
+    this.crunch = !!o.crunch
+    // stable sort: toTarget (what the test asks in writing) before toNative
+    this.fresh = this.crunch ? [...o.fresh].sort((a, b) => Number(a.direction !== 'toTarget') - Number(b.direction !== 'toTarget')) : [...o.fresh]
     this.cram = [...o.cram]
     this.rng = o.rng ?? Math.random
+    this.hasCloze = o.hasCloze ?? (() => false)
   }
 
   private ladderCount(): number {
-    return new Set(this.pending.filter((p) => p.step !== 'practice' && p.step !== 'dmc').map((p) => p.card.id)).size
+    return new Set(this.pending.filter((p) => !OFF_LADDER.has(p.step)).map((p) => p.card.id)).size
   }
 
   private takePending(onlyReady: boolean): Item | null {
@@ -89,10 +112,18 @@ export class SessionEngine {
         this.push('mc', c, 2)
         break
       case 'mc':
-        this.push(ok ? 'type' : 'mc', c, ok ? 2 : this.offset())
+        if (!ok) this.push('mc', c, this.offset())
+        else this.push(this.crunch && this.hasCloze(c) ? 'cloze' : 'type', c, 2)
+        break
+      case 'cloze':
+        this.push(ok ? 'type' : 'cloze', c, ok ? 2 : this.offset())
         break
       case 'type':
         if (!ok) this.push('type', c, this.offset())
+        else if (this.crunch) this.push('recheck', c, RECHECK_GAP)
+        break
+      case 'recheck':
+        if (!ok) this.push('recheck', c, this.offset())
         break
       case 'review':
       case 'cram':

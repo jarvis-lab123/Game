@@ -165,3 +165,117 @@ describe('drill (Fehlerheft: MC → Tippen, §5.7)', () => {
     expect(seen).toEqual(['dmc:d', 'practice:d', 'practice:d'])
   })
 })
+
+describe('crunch mode (Not-Modus)', () => {
+  const yes = () => true
+  it('walks a new word intro -> mc -> cloze -> type and back once as recheck', () => {
+    const c = mkCard({ id: 'x' })
+    const e = new SessionEngine({ reviews: [], fresh: [c], cram: [], rng, crunch: true, hasCloze: yes })
+    expect(run(e)).toEqual(['intro:x', 'mc:x', 'cloze:x', 'type:x', 'recheck:x'])
+  })
+  it('skips the cloze when the card cannot make one', () => {
+    const c = mkCard({ id: 'x' })
+    const e = new SessionEngine({ reviews: [], fresh: [c], cram: [], rng, crunch: true, hasCloze: () => false })
+    expect(run(e)).toEqual(['intro:x', 'mc:x', 'type:x', 'recheck:x'])
+  })
+  it('without hasCloze there is no cloze step', () => {
+    const e = new SessionEngine({ reviews: [], fresh: [mkCard({ id: 'x' })], cram: [], rng, crunch: true })
+    expect(run(e)).toEqual(['intro:x', 'mc:x', 'type:x', 'recheck:x'])
+  })
+  it('normal mode never asks cloze or recheck, even with hasCloze', () => {
+    const e = new SessionEngine({ reviews: [], fresh: [mkCard({ id: 'x' })], cram: [], rng, hasCloze: yes })
+    expect(run(e)).toEqual(['intro:x', 'mc:x', 'type:x'])
+  })
+  it('the recheck comes about 6 items after the correct type', () => {
+    const fresh = Array.from({ length: 8 }, (_, i) => mkCard({ id: `n${i}` }))
+    const e = new SessionEngine({ reviews: [], fresh, cram: [], rng, crunch: true, hasCloze: yes })
+    const seen = run(e)
+    const t = seen.indexOf('type:n0')
+    const r = seen.indexOf('recheck:n0')
+    expect(r - t).toBeGreaterThanOrEqual(5)
+    expect(r - t).toBeLessThanOrEqual(8)
+    // every word: exactly one recheck when always right
+    for (let i = 0; i < 8; i++) expect(seen.filter((s) => s === `recheck:n${i}`)).toHaveLength(1)
+  })
+  it('a wrong cloze comes back as cloze 3-5 items later, then type', () => {
+    const fresh = Array.from({ length: 5 }, (_, i) => mkCard({ id: `n${i}` }))
+    const e = new SessionEngine({ reviews: [], fresh, cram: [], rng, crunch: true, hasCloze: yes })
+    let failedOnce = false
+    const seen = run(e, (step, id) => step === 'cloze' && id === 'n0' && !failedOnce && (failedOnce = true))
+    const a = seen.indexOf('cloze:n0')
+    const b = seen.indexOf('cloze:n0', a + 1)
+    expect(b - a).toBeGreaterThanOrEqual(3)
+    expect(b - a).toBeLessThanOrEqual(6)
+    expect(seen.indexOf('type:n0')).toBeGreaterThan(b)
+    expect(seen).toContain('recheck:n0')
+  })
+  it('a wrong type requeues type, then recheck after the right one', () => {
+    const e = new SessionEngine({ reviews: [], fresh: [mkCard({ id: 'x' })], cram: [], rng, crunch: true, hasCloze: yes })
+    let failedOnce = false
+    const seen = run(e, (step) => step === 'type' && !failedOnce && (failedOnce = true))
+    expect(seen).toEqual(['intro:x', 'mc:x', 'cloze:x', 'type:x', 'type:x', 'recheck:x'])
+  })
+  it('a wrong recheck comes back until it is right', () => {
+    const e = new SessionEngine({ reviews: [], fresh: [mkCard({ id: 'x' })], cram: [], rng, crunch: true, hasCloze: yes })
+    let fails = 0
+    const seen = run(e, (step) => step === 'recheck' && fails++ < 2)
+    expect(seen).toEqual(['intro:x', 'mc:x', 'cloze:x', 'type:x', 'recheck:x', 'recheck:x', 'recheck:x'])
+  })
+  it(`keeps at most ${MAX_IN_FLIGHT} new words on the ladder (intro..type) at once`, () => {
+    const fresh = Array.from({ length: 12 }, (_, i) => mkCard({ id: `n${i}` }))
+    const e = new SessionEngine({ reviews: [], fresh, cram: [], rng, crunch: true, hasCloze: yes })
+    const seen = run(e, (_s, _id, i) => i % 7 === 3, 500)
+    const active = new Set<string>()
+    let maxActive = 0
+    const typedOk = new Set<string>()
+    let i = 0
+    for (const s of seen) {
+      const [step, id] = s.split(':')
+      if (step === 'intro') active.add(id)
+      maxActive = Math.max(maxActive, active.size)
+      if (step === 'type' && i % 7 !== 3) {
+        active.delete(id)
+        typedOk.add(id)
+      }
+      i++
+    }
+    expect(maxActive).toBeLessThanOrEqual(MAX_IN_FLIGHT)
+    expect(typedOk.size).toBe(12)
+    expect(e.remaining()).toBe(0)
+  })
+  it('due reviews still come first', () => {
+    const reviews = Array.from({ length: 4 }, (_, i) => ({ ...reviewCard(), id: `r${i}` }))
+    const e = new SessionEngine({ reviews, fresh: [mkCard({ id: 'n' })], cram: [], rng, crunch: true, hasCloze: yes })
+    expect(run(e)[0]).toBe('review:r0')
+  })
+  it('puts the writing direction (toTarget) first among new cards', () => {
+    const a = mkCard({ id: 'a-nat', noteId: 'a', direction: 'toNative' })
+    const b = mkCard({ id: 'a-tar', noteId: 'a', direction: 'toTarget' })
+    const c = mkCard({ id: 'c-nat', noteId: 'c', direction: 'toNative' })
+    const e = new SessionEngine({ reviews: [], fresh: [a, b, c], cram: [], rng, crunch: true })
+    expect(e.next()).toMatchObject({ step: 'intro', card: { id: 'a-tar' } })
+  })
+  it('normal mode keeps the given fresh order', () => {
+    const a = mkCard({ id: 'a-nat', noteId: 'a', direction: 'toNative' })
+    const b = mkCard({ id: 'a-tar', noteId: 'a', direction: 'toTarget' })
+    const e = new SessionEngine({ reviews: [], fresh: [a, b], cram: [], rng })
+    expect(e.next()).toMatchObject({ card: { id: 'a-nat' } })
+  })
+  it('a resumed mc card goes on to cloze', () => {
+    const e = new SessionEngine({ reviews: [], fresh: [mkCard({ id: 'm', stage: 'mc' })], cram: [], rng, crunch: true, hasCloze: yes })
+    expect(run(e)).toEqual(['mc:m', 'cloze:m', 'type:m', 'recheck:m'])
+  })
+  it('wrapUp still lets pending rechecks finish', () => {
+    const e = new SessionEngine({ reviews: [], fresh: [mkCard({ id: 'x' }), mkCard({ id: 'y' })], cram: [], rng, crunch: true, hasCloze: yes })
+    const seen: string[] = []
+    for (let k = 0; k < 4; k++) {
+      const it = e.next()!
+      seen.push(`${it.step}:${it.card.id}`)
+      e.answer(it, true)
+    }
+    e.wrapUp()
+    const rest = run(e)
+    expect(rest.filter((s) => s.startsWith('recheck:'))).not.toHaveLength(0)
+    expect(e.remaining()).toBe(0)
+  })
+})

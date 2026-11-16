@@ -1,0 +1,29 @@
+import { normalize, solutions, splitArticle } from './grade'
+
+export const GAP = '____'
+
+const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+const wholeWord = (s: string) => new RegExp(`(?<![\\p{L}\\p{N}])${esc(s).replace(/ /g, '\\s+').replace(/'/g, "['’‘]")}(?![\\p{L}\\p{N}])`, 'iu')
+
+/** Gap sentence plus the exact words cut out of the example (whole words, case-insensitive). */
+export function clozeGap(answer: string, example?: string): { sentence: string; gap: string } | null {
+  if (!example?.trim()) return null
+  // longest candidates first: "la boulangerie" before "boulangerie"
+  const cands = new Set<string>()
+  for (const s of solutions(answer)) {
+    const n = normalize(s)
+    cands.add(n)
+    const { article, rest } = splitArticle(n)
+    if (article) cands.add(rest)
+  }
+  for (const c of [...cands].filter((c) => /\p{L}/u.test(c)).sort((a, b) => b.length - a.length)) {
+    const m = wholeWord(c).exec(example)
+    if (m) return { sentence: example.slice(0, m.index) + GAP + example.slice(m.index + m[0].length), gap: m[0] }
+  }
+  return null
+}
+
+/** Example sentence with the answer's word(s) replaced by "____"; null if the example doesn't contain it. */
+export function clozeFor(answer: string, example?: string): string | null {
+  return clozeGap(answer, example)?.sentence ?? null
+}

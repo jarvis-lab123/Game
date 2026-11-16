@@ -71,10 +71,10 @@ export function CardShell({ children, shake, label }: { children: ReactNode; sha
 }
 
 export function StepLabel({ step, leech }: { step: string; leech?: boolean }) {
-  const text = { intro: 'Neues Wort', mc: 'Auswählen', type: 'Schreiben', review: 'Wiederholung', practice: 'Nochmal üben', cram: 'Extra vor dem Test', dmc: 'Fehlerheft' }[step] ?? step
+  const text = { intro: 'Neues Wort', mc: 'Auswählen', cloze: 'Lückentext', type: 'Schreiben', recheck: 'Nochmal zur Sicherheit', review: 'Wiederholung', practice: 'Nochmal üben', cram: 'Extra vor dem Test', dmc: 'Fehlerheft' }[step] ?? step
   return (
     <>
-      <Badge tone={step === 'intro' || step === 'mc' || step === 'type' ? 'accent' : 'neutral'}>{text}</Badge>
+      <Badge tone={step === 'intro' || step === 'mc' || step === 'cloze' || step === 'type' ? 'accent' : 'neutral'}>{text}</Badge>
       {leech && <Badge tone="warn"><IconFlame width={12} height={12} /> Problemwort</Badge>}
     </>
   )

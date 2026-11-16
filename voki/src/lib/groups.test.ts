@@ -35,3 +35,15 @@ describe('planGroups – Zeit wählen, in Gruppen einteilen', () => {
     expect(g[0].seconds).toBe(60)
   })
 })
+
+describe('planGroups – Not-Modus', () => {
+  it('a word takes longer in crunch (cloze + recheck), so fewer fit into the time', () => {
+    const g = planGroups({ reviews: [], fresh: words(20), cram: [] }, 10, { crunch: true })
+    expect(g.reduce((s, x) => s + notesIn(x.fresh), 0)).toBe(8) // 8 × 75 s ≤ 600 s
+    for (const x of g) expect(notesIn(x.fresh)).toBeLessThanOrEqual(MAX_NEW_PER_GROUP)
+  })
+  it('reviews cost the same as in normal mode', () => {
+    const g = planGroups({ reviews: reviews(40), fresh: [], cram: [] }, 5, { crunch: true })
+    expect(g.reduce((s, x) => s + x.reviews.length, 0)).toBe(30)
+  })
+})

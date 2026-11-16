@@ -3,7 +3,9 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '../../db/db'
 import { planDay, type DeckPlan } from '../../db/queries'
 import { masteryInfo } from '../../db/mastery'
-import { Button, Ring, pct, readinessTone } from '../components'
+import { allDeckForecasts } from '../../db/forecast'
+import { crunchPlan, type CrunchPlan } from '../../lib/crunch'
+import { Badge, Button, Ring, pct, readinessTone } from '../components'
 import { Flag, IconCheck, IconChevron, IconPlay } from '../icons'
 import { Illustration } from '../illustrations'
 import { go } from '../router'
@@ -22,6 +24,7 @@ function plural(n: number, one: string, many: string) {
 export function Today() {
   const plan = useLiveQuery(() => planDay(db, new Date()), [])
   const mastery = useLiveQuery(() => masteryInfo(db), [])
+  const forecasts = useLiveQuery(() => allDeckForecasts(db), [])
   const settings = useSettings()
   const total = plan ? plan.reviews + plan.news + plan.cram : 0
 
@@ -44,6 +47,13 @@ export function Today() {
   const heroLabel = next?.exam ? 'bereit' : 'heute'
   const heroTone = next?.exam ? readinessTone(next.exam.readiness.overall) : 'accent'
   const sessions = Math.ceil(plan.minutes / settings.dailyMinutesGoal)
+  const crunchOf = (p: DeckPlan): CrunchPlan | null => {
+    const need = forecasts?.byDeck.get(p.deck.id)?.minutes
+    if (need == null || !p.exam) return null
+    const c = crunchPlan({ days: p.exam.days, unintroduced: p.unintroduced, minutesNeeded: need, dailyGoal: settings.dailyMinutesGoal })
+    return c.active ? c : null
+  }
+  const nextCrunch = next ? crunchOf(next) : null
 
   return (
     <div className="space-y-7">
@@ -77,7 +87,8 @@ export function Today() {
                     {[plan.news > 0 && plural(plan.news, 'neues Wort', 'neue Wörter'), plan.reviews + plan.cram > 0 && plural(plan.reviews + plan.cram, 'Wiederholung', 'Wiederholungen')].filter(Boolean).join(' · ')}
                   </p>
                   <p className="mt-1 text-[15px] text-muted tabular">
-                    ca. {Math.max(1, plan.minutes)} Min{sessions > 1 ? ` · ${sessions} Sessions à ${settings.dailyMinutesGoal} Min` : ''}
+                    ca. {Math.max(1, plan.minutes)} Min
+                    {nextCrunch ? ` · Not-Modus: ${nextCrunch.sessionsPerDay} ${nextCrunch.sessionsPerDay === 1 ? 'Session' : 'Sessions'} à ${nextCrunch.sessionMinutes} Min` : sessions > 1 ? ` · ${sessions} Sessions à ${settings.dailyMinutesGoal} Min` : ''}
                   </p>
                   {next?.exam && <p className="mt-1 text-[15px] text-muted">{next.deck.name}: Test {when(next.exam.days)}</p>}
                 </div>
@@ -103,7 +114,7 @@ export function Today() {
         <section>
           <h2 className="mb-2.5 px-1 text-[13px] font-semibold uppercase tracking-[0.04em] text-muted">Tests</h2>
           <div className={exams.length > 1 ? 'grid gap-3 desk:grid-cols-2' : 'grid gap-3'}>
-            {exams.map((p) => <ExamCard key={p.deck.id} p={p} />)}
+            {exams.map((p) => <ExamCard key={p.deck.id} p={p} crunch={crunchOf(p)} />)}
           </div>
         </section>
       )}
@@ -150,7 +161,7 @@ function when(days: number) {
 }
 
 
-function ExamCard({ p }: { p: DeckPlan }) {
+function ExamCard({ p, crunch }: { p: DeckPlan; crunch: CrunchPlan | null }) {
   const e = p.exam!
   return (
     <a href={`#/deck/${p.deck.id}`} className="block rounded-[22px] bg-surface p-5 shadow-card transition-transform duration-150 active:scale-[0.99]">
@@ -159,8 +170,11 @@ function ExamCard({ p }: { p: DeckPlan }) {
           <span className="text-[15px] font-bold tabular">{Math.round((e.readiness.overall ?? 0) * 100)}%</span>
         </Ring>
         <div className="min-w-0 flex-1">
-          <p className="flex items-center gap-2 truncate text-[17px] font-semibold"><Flag lang={p.deck.language} size={16} />{p.deck.name}</p>
-          <p className={`text-[15px] font-medium ${e.days <= 3 ? 'text-warn' : 'text-muted'}`}>Test {when(e.days)}</p>
+          <p className="flex min-w-0 items-center gap-2 text-[17px] font-semibold"><Flag lang={p.deck.language} size={16} /><span className="truncate">{p.deck.name}</span></p>
+          <p className={`flex flex-wrap items-center gap-x-2 gap-y-1 text-[15px] font-medium ${e.days <= 3 ? 'text-warn' : 'text-muted'}`}>
+            Test {when(e.days)}
+            {crunch && <Badge tone="warn">Not-Modus</Badge>}
+          </p>
           <p className="text-[13px] text-muted tabular">
             {e.readiness.toNative != null && <>Erkennen {pct(e.readiness.toNative)}</>}
             {e.readiness.toNative != null && e.readiness.toTarget != null && ' · '}
@@ -177,7 +191,12 @@ function ExamCard({ p }: { p: DeckPlan }) {
           <span><span className="font-semibold tabular">{e.perDay} neue Wörter/Tag</span><span className="text-muted"> · noch {p.unintroduced} nicht eingeführt</span></span>
         )}
       </p>
-      {e.warning && (
+      {crunch ? (
+        <p className="mt-2 rounded-xl bg-warn-soft px-3 py-2 text-[13px] text-warn">
+          <span className="font-semibold tabular">Heute: {crunch.sessionsPerDay} {crunch.sessionsPerDay === 1 ? 'Session' : 'Sessions'} à {crunch.sessionMinutes} Min</span>
+          <span> · über den Tag verteilt</span>
+        </p>
+      ) : e.warning && (
         <p className="mt-2 rounded-xl bg-bad-soft px-3 py-2 text-[13px] text-bad">
           {e.days <= 2 ? 'Sehr knapp: Lern die restlichen Wörter heute, am besten in mehreren Sessions.' : 'Knapp! Mehr als 40 neue Wörter pro Tag. Mach heute 2 Sessions.'}
         </p>
