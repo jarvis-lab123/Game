@@ -42,9 +42,22 @@ export async function seedDeck(db: VokiDB, b: BuiltinDeck): Promise<boolean> {
   })
 }
 
-/** Decks bundled with this version of the app (loaded lazily, not part of the start bundle). */
+import catalog from '../data/decks.json'
+
+export interface CatalogEntry { key: string; name: string; language: Language; directions: Direction[]; examDate?: string; file: string }
+
+/** Wörtli-Sets that ship with Voki. Add a TSV in src/data/decks/ and an entry in decks.json – pushed = everyone has it. */
+export const CATALOG = catalog as CatalogEntry[]
+
+const FILES = import.meta.glob('../data/decks/*.tsv', { query: '?raw', import: 'default' }) as Record<string, () => Promise<string>>
+
+/** Adds every catalog set that this device doesn't have yet (and never re-adds deleted ones). */
 export async function seedBuiltinDecks(db: VokiDB): Promise<void> {
-  if (await db.meta.get('seed:englisch-voki-2')) return
-  const { default: tsv } = await import('../data/englisch-voki-2.tsv?raw')
-  await seedDeck(db, { key: 'englisch-voki-2', name: 'Englisch Voki 2', language: 'en', directions: ['toTarget', 'toNative'], examDate: '2026-11-18', tsv })
+  for (const entry of CATALOG) {
+    if (await db.meta.get(`seed:${entry.key}`)) continue
+    const load = FILES[`../data/decks/${entry.file}`]
+    if (!load) continue
+    const tsv = await load()
+    await seedDeck(db, { key: entry.key, name: entry.name, language: entry.language, directions: entry.directions, examDate: entry.examDate, tsv })
+  }
 }

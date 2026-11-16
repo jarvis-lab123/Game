@@ -10,6 +10,7 @@ import { go } from '../router'
 import { useSettings } from '../settings'
 import { BackupReminder } from './SettingsScreen'
 import { UpdateBanner } from '../UpdateCheck'
+import { InstallCard } from '../install'
 
 const dateFmt = new Intl.DateTimeFormat('de-CH', { weekday: 'long', day: 'numeric', month: 'long' })
 
@@ -143,6 +144,7 @@ export function Today() {
         </div>
       )}
 
+      <InstallCard />
       <BackupReminder />
     </div>
   )

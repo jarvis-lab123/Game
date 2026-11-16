@@ -32,3 +32,16 @@ describe('built-in decks', () => {
     expect(await db.decks.count()).toBe(0)
   })
 })
+
+describe('Wörtli-Set catalog (src/data/decks.json)', () => {
+  it('every catalog set is added once, with all its words', async () => {
+    const { seedBuiltinDecks, CATALOG } = await import('./seed')
+    const db = new VokiDB('c-' + Math.random())
+    await seedBuiltinDecks(db)
+    await seedBuiltinDecks(db)
+    expect(await db.decks.count()).toBe(CATALOG.length)
+    const voki2 = await db.decks.get('builtin-englisch-voki-2')
+    expect(voki2?.name).toBe('Englisch Voki 2')
+    expect(await db.notes.where('deckId').equals('builtin-englisch-voki-2').count()).toBe(222)
+  })
+})

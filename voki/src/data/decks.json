@@ -1,0 +1,10 @@
+[
+  {
+    "key": "englisch-voki-2",
+    "name": "Englisch Voki 2",
+    "language": "en",
+    "directions": ["toTarget", "toNative"],
+    "examDate": "2026-11-18",
+    "file": "englisch-voki-2.tsv"
+  }
+]

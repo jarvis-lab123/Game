@@ -19,6 +19,26 @@ fn show_main_window(app: &AppHandle) {
 }
 
 /// Called by the frontend (`setDueBadge`) whenever the number of due cards changes.
+/// One-time data move: the bundled start page leaves the old data here,
+/// the web version (same window) picks it up once and it is deleted.
+#[tauri::command]
+fn stash_migration(app: AppHandle, json: String) -> Result<(), String> {
+    let dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
+    std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    std::fs::write(dir.join("migration.json"), json).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn take_migration(app: AppHandle) -> Result<Option<String>, String> {
+    let file = app.path().app_data_dir().map_err(|e| e.to_string())?.join("migration.json");
+    if !file.exists() {
+        return Ok(None);
+    }
+    let json = std::fs::read_to_string(&file).map_err(|e| e.to_string())?;
+    let _ = std::fs::remove_file(&file);
+    Ok(Some(json))
+}
+
 #[tauri::command]
 fn set_due_count(app: AppHandle, count: u32) -> Result<(), String> {
     let text = if count == 0 {
@@ -79,7 +99,7 @@ fn main() {
                 }
             }
         })
-        .invoke_handler(tauri::generate_handler![set_due_count])
+        .invoke_handler(tauri::generate_handler![set_due_count, stash_migration, take_migration])
         .run(tauri::generate_context!())
         .expect("Voki konnte nicht gestartet werden");
 }

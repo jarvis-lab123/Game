@@ -17,8 +17,21 @@ if (import.meta.env.MODE !== 'tauri') {
   )
 }
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
+import { captureInstallPrompt } from './ui/install'
+captureInstallPrompt()
+
+async function boot() {
+  const { isBundledShell, isLiveInShell, switchToLive, takeOverBundledData, markBundledUsed } = await import('./platform/shell')
+  if (isBundledShell()) {
+    if (await switchToLive()) return
+    markBundledUsed()
+  } else if (isLiveInShell()) {
+    await takeOverBundledData()
+  }
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  )
+}
+void boot()

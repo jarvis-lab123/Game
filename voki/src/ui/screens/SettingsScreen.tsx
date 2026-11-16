@@ -7,6 +7,7 @@ import { Button, Input, Label, PageHeader, Panel, SectionTitle, Segmented, Toggl
 import { saveSettings, useSettings } from '../settings'
 import { SyncPanel } from './SyncPanel'
 import { VersionPanel } from '../UpdateCheck'
+import { InstallCard } from '../install'
 import { go } from '../router'
 
 export async function downloadBackup() {
@@ -89,6 +90,7 @@ export function SettingsScreen() {
     <div className="space-y-6">
       <PageHeader title="Einstellungen" />
       <VersionPanel />
+      <InstallCard />
 
       <Panel>
         <SectionTitle>Lernen</SectionTitle>

@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Standardrechte f\u00fcr das Hauptfenster",
+  "description": "Rechte für das Hauptfenster (gebündelte Startseite und die Voki-Webseite auf GitHub Pages)",
   "windows": [
     "main"
   ],
@@ -9,6 +9,14 @@
     "core:default",
     "core:window:allow-set-fullscreen",
     "core:window:allow-is-fullscreen",
-    "opener:default"
-  ]
+    "opener:default",
+    "allow-set-due-count",
+    "allow-stash-migration",
+    "allow-take-migration"
+  ],
+  "remote": {
+    "urls": [
+      "https://jarvis-lab123.github.io/Game/voki/*"
+    ]
+  }
 }

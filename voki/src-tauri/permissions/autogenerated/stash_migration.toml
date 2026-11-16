@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-stash-migration"
+description = "Enables the stash_migration command without any pre-configured scope."
+commands.allow = ["stash_migration"]
+
+[[permission]]
+identifier = "deny-stash-migration"
+description = "Denies the stash_migration command without any pre-configured scope."
+commands.deny = ["stash_migration"]

@@ -3,15 +3,24 @@
 Lernt Vokabeln mit **Spaced Repetition (FSRS)**, lässt dich die Wörter **schreiben** statt nur umdrehen und rechnet **rückwärts vom Testdatum**, wie viel heute dran ist.
 
 - **Handy (iPhone/Android):** https://jarvis-lab123.github.io/Game/voki/
-- **PC (Windows):** https://github.com/jarvis-lab123/Game/releases/tag/voki-v0.2.5 → `Voki-Setup-0.2.5.msi`
+- **PC (Windows-Programm, optional):** https://github.com/jarvis-lab123/Game/releases/tag/voki-v0.3.0 → `Voki-Setup-0.3.0.msi`
 
 ## Installieren
 
-**iPhone:** Link oben in **Safari** öffnen → Teilen-Symbol → **„Zum Home-Bildschirm“**.
-**Android:** Link in **Chrome** öffnen → Menü ⋮ → **„App installieren“**.
-Danach funktioniert Voki auch **ohne Internet** (Tram, Flugmodus).
+**Empfohlen für alle (PC und Handy) – ohne Download, ohne Windows-Warnung:**
+1. https://jarvis-lab123.github.io/Game/voki/ in **Edge** oder **Chrome** öffnen.
+2. Auf „Heute“ bei **„Voki als App installieren“** auf **Installieren** klicken (oder in der Adressleiste das App-Symbol).
+3. Voki hat jetzt ein eigenes Fenster und ein Startmenü-Symbol, läuft offline und **aktualisiert sich selbst**.
 
-**Windows:** `.msi` herunterladen und doppelklicken. Kommt „Der Computer wurde durch Windows geschützt“: **Weitere Informationen → Trotzdem ausführen** (die App ist nicht kostenpflichtig signiert). Alternativ läuft Voki am PC auch einfach im Browser über den Link oben.
+iPhone: Link in Safari → Teilen → „Zum Home-Bildschirm“. Android: Chrome → ⋮ → „App installieren“.
+
+**Windows-Programm (optional, mit Tray-Symbol „X fällig“):** `Voki-Setup-….msi` aus den [Releases](https://github.com/jarvis-lab123/Game/releases). Windows warnt einmal („Weitere Informationen“ → „Trotzdem ausführen“), weil das Programm nicht kostenpflichtig signiert ist. Ab Version 0.3.0 lädt das Programm die App immer aktuell von der Webseite: **neue Funktionen und Wörtli-Sets kommen automatisch**, ein neuer Installer ist nur für Änderungen am Windows-Programm selbst nötig (Voki zeigt das dann an).
+
+## Neues Wörtli-Set für alle veröffentlichen
+
+1. TSV-Datei nach `voki/src/data/decks/<name>.tsv` legen (Spalten wie beim Import: Fremdwort⇥Deutsch⇥Beispiel⇥Genus⇥Notiz).
+2. In `voki/src/data/decks.json` einen Eintrag ergänzen: `key`, `name`, `language` (`en`/`fr`), `directions`, optional `examDate` (JJJJ-MM-TT), `file`.
+3. Auf den Hauptbranch pushen. Nach ca. 2 Minuten hat **jeder** das Set beim nächsten Öffnen – PC-Programm, installierte App und Handy. Wer ein Set löscht, bekommt es nicht wieder.
 
 ## Vokabeln importieren (2 Minuten)
 
