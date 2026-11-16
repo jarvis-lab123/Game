@@ -2,6 +2,20 @@
 export const isTauri = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window
 export const platform: 'desktop' | 'mobile' = isTauri ? 'desktop' : 'mobile'
 
+/**
+ * Update the Windows tray tooltip („Voki – 12 fällig“). No-op outside Tauri;
+ * errors are swallowed. The Tauri API is imported lazily to keep it out of the PWA startup bundle.
+ */
+export async function setDueBadge(count: number): Promise<void> {
+  if (!isTauri) return
+  try {
+    const { invoke } = await import('@tauri-apps/api/core')
+    await invoke('set_due_count', { count: Math.max(0, Math.floor(count)) })
+  } catch {
+    /* tray is optional */
+  }
+}
+
 export async function copyText(text: string): Promise<boolean> {
   try {
     await navigator.clipboard.writeText(text)

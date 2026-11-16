@@ -13,8 +13,8 @@ export function mkCard(p: Partial<Card> & { stage?: Stage; direction?: Direction
     stage: p.stage ?? 'new',
     fsrs: p.fsrs ?? fsrs,
     due: p.due ?? Number.MAX_SAFE_INTEGER,
-    leech: false,
-    suspended: false,
+    leech: p.leech ?? false,
+    suspended: p.suspended ?? false,
     order: p.order ?? n,
     updatedAt: '',
   }
