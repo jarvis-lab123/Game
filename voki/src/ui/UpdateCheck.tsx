@@ -57,7 +57,11 @@ export function VersionPanel() {
       <div>
         <p className="text-[17px] font-semibold">Voki {APP_VERSION}</p>
         <p className="text-[13px] text-muted">
-          {isTauri ? `PC-App · Windows-Programm ${shell ?? '…'} · aktualisiert sich selbst` : 'Web-App · aktualisiert sich selbst'}
+          {isTauri
+            ? shell
+              ? `PC-App · Windows-Programm ${shell} · aktualisiert sich selbst`
+              : 'PC-App · Verbindung zum Windows-Programm eingeschränkt (Vollbild läuft über den Browser)'
+            : 'Web-App · aktualisiert sich selbst'}
           {msg ? ` · ${msg}` : ''}
         </p>
       </div>

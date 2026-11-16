@@ -66,34 +66,58 @@ export function fullscreenSupported(): boolean {
   return !!(d.fullscreenEnabled || d.webkitFullscreenEnabled)
 }
 
-export async function isFullscreen(): Promise<boolean> {
-  if (isTauri) {
-    try {
-      const { getCurrentWindow } = await import('@tauri-apps/api/window')
-      return await getCurrentWindow().isFullscreen()
-    } catch {
-      return false
-    }
-  }
+function domFullscreen(): boolean {
   const d = document as FsDoc
   return !!(d.fullscreenElement || d.webkitFullscreenElement)
 }
 
-/** Must be called from a click/key handler (browsers need a user gesture). */
-export async function setFullscreen(on: boolean): Promise<void> {
-  try {
-    if (isTauri) {
-      const { getCurrentWindow } = await import('@tauri-apps/api/window')
-      await getCurrentWindow().setFullscreen(on)
-    } else {
-      const d = document as FsDoc
-      const el = document.documentElement as FsEl
-      const active = !!(d.fullscreenElement || d.webkitFullscreenElement)
-      if (on && !active) await (el.requestFullscreen?.({ navigationUI: 'hide' }) ?? el.webkitRequestFullscreen?.())
-      if (!on && active) await (d.exitFullscreen?.() ?? d.webkitExitFullscreen?.())
+async function setDomFullscreen(on: boolean): Promise<void> {
+  const d = document as FsDoc
+  const el = document.documentElement as FsEl
+  if (on && !domFullscreen()) await (el.requestFullscreen?.({ navigationUI: 'hide' }) ?? el.webkitRequestFullscreen?.())
+  if (!on && domFullscreen()) await (d.exitFullscreen?.() ?? d.webkitExitFullscreen?.())
+}
+
+async function tauriWindow() {
+  const { getCurrentWindow } = await import('@tauri-apps/api/window')
+  return getCurrentWindow()
+}
+
+export async function isFullscreen(): Promise<boolean> {
+  if (domFullscreen()) return true
+  if (isTauri) {
+    try {
+      return await (await tauriWindow()).isFullscreen()
+    } catch {
+      return false
     }
-  } catch {
-    /* refused (no gesture / not allowed): stay windowed */
+  }
+  return false
+}
+
+/**
+ * Must be called from a click/key handler (browsers need a user gesture).
+ * PC app: asks Windows for real fullscreen; if that is refused or has no effect,
+ * falls back to the built-in browser fullscreen so the button always works.
+ */
+export async function setFullscreen(on: boolean): Promise<void> {
+  let done = false
+  if (isTauri) {
+    try {
+      const w = await tauriWindow()
+      await w.setFullscreen(on)
+      done = (await w.isFullscreen()) === on
+    } catch {
+      done = false
+    }
+    if (!on) await setDomFullscreen(false).catch(() => {})
+  }
+  if (!done) {
+    try {
+      await setDomFullscreen(on)
+    } catch {
+      /* refused (no gesture / not allowed): stay windowed */
+    }
   }
   window.dispatchEvent(new Event('voki-fullscreen'))
 }
