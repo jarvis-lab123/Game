@@ -101,3 +101,24 @@ export async function setFullscreen(on: boolean): Promise<void> {
 export async function toggleFullscreen(): Promise<void> {
   await setFullscreen(!(await isFullscreen()))
 }
+
+/** Open a link in the normal browser (PC app: system browser). */
+export async function openExternal(url: string): Promise<void> {
+  if (isTauri) {
+    try {
+      const { openUrl } = await import('@tauri-apps/plugin-opener')
+      await openUrl(url)
+      return
+    } catch {
+      /* fall through */
+    }
+  }
+  window.open(url, '_blank', 'noopener')
+}
+
+/** Web/PWA: look for a new version now (the page reloads itself when one is found). */
+export async function checkWebUpdate(): Promise<void> {
+  if (isTauri || !('serviceWorker' in navigator)) return
+  const reg = await navigator.serviceWorker.getRegistration()
+  await reg?.update()
+}

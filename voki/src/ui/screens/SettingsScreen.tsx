@@ -6,6 +6,7 @@ import { downloadFile, fullscreenSupported, isTauri } from '../../platform'
 import { Button, Input, Label, PageHeader, Panel, SectionTitle, Segmented, Toggle } from '../components'
 import { saveSettings, useSettings } from '../settings'
 import { SyncPanel } from './SyncPanel'
+import { VersionPanel } from '../UpdateCheck'
 import { go } from '../router'
 
 export async function downloadBackup() {
@@ -87,6 +88,7 @@ export function SettingsScreen() {
   return (
     <div className="space-y-6">
       <PageHeader title="Einstellungen" />
+      <VersionPanel />
 
       <Panel>
         <SectionTitle>Lernen</SectionTitle>

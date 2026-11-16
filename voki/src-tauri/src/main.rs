@@ -39,6 +39,7 @@ fn main() {
     tauri::Builder::default()
         // Starting Voki again while it sits in the tray brings the existing window back.
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| show_main_window(app)))
+        .plugin(tauri_plugin_opener::init())
         .setup(|app| {
             let open = MenuItem::with_id(app, "open", "Voki öffnen", true, None::<&str>)?;
             let quit = MenuItem::with_id(app, "quit", "Beenden", true, None::<&str>)?;

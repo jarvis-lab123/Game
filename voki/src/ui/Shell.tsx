@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { IconDecks, IconImport, IconPractice, IconSettings, IconStats, IconToday } from './icons'
 import { cx } from './components'
+import { APP_VERSION } from '../lib/version'
 
 const NAV = [
   { to: '/', label: 'Heute', icon: IconToday, match: (p: string) => p === '/' },
@@ -46,6 +47,7 @@ export function Shell({ path, children }: { path: string; children: ReactNode })
           })}
         </nav>
         <p className="mt-auto px-3 text-xs text-muted">Tipp: <kbd className="font-sans">Enter</kbd> startet das Lernen auf „Heute“.</p>
+        <a href="#/einstellungen" className="mt-2 px-3 text-xs font-medium text-muted hover:text-fg">Voki {APP_VERSION}</a>
       </aside>
 
       <main id="main" className="safe-top mx-auto w-full max-w-3xl px-4 pb-28 pt-6 desk:max-w-4xl desk:px-10 desk:pb-12 desk:pt-10">

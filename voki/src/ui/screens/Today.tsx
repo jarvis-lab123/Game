@@ -9,6 +9,7 @@ import { Illustration } from '../illustrations'
 import { go } from '../router'
 import { useSettings } from '../settings'
 import { BackupReminder } from './SettingsScreen'
+import { UpdateBanner } from '../UpdateCheck'
 
 const dateFmt = new Intl.DateTimeFormat('de-CH', { weekday: 'long', day: 'numeric', month: 'long' })
 
@@ -48,6 +49,8 @@ export function Today() {
         <p className="text-[13px] font-semibold uppercase tracking-[0.04em] text-muted">{dateFmt.format(new Date())}</p>
         <h1 className="mt-0.5 text-[34px] font-bold leading-tight tracking-[-0.02em]">Heute</h1>
       </header>
+
+      <UpdateBanner />
 
       {words === 0 ? (
         <section className="rounded-[26px] bg-surface px-6 py-12 text-center shadow-card">
