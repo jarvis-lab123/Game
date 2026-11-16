@@ -46,3 +46,4 @@ export const IconPractice = (p: SVGProps<SVGSVGElement>) => <svg {...base(p)}><p
 export const IconStats = (p: SVGProps<SVGSVGElement>) => <svg {...base(p)}><path d="M4 20h16M7 16v-5M12 16V7M17 16v-8" /></svg>
 export const IconExpand = (p: SVGProps<SVGSVGElement>) => <svg {...base(p)}><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></svg>
 export const IconCollapse = (p: SVGProps<SVGSVGElement>) => <svg {...base(p)}><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" /></svg>
+export const IconPause = (p: SVGProps<SVGSVGElement>) => <svg {...base(p)}><path d="M9 5.5v13M15 5.5v13" strokeWidth={2.4} /></svg>

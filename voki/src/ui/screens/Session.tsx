@@ -14,7 +14,7 @@ import type { Card, Deck, Note, ReviewMode, Settings } from '../../lib/types'
 import { setDueBadge, setFullscreen, speak, toggleFullscreen, vibrate } from '../../platform'
 import { FullscreenButton } from '../fullscreen'
 import { Button, Empty, Kbd, Progress, cx } from '../components'
-import { IconCheck, IconX } from '../icons'
+import { IconCheck, IconPause, IconX } from '../icons'
 import { Illustration } from '../illustrations'
 import { MemoryAids } from '../MnemonicStudio'
 import { go } from '../router'
@@ -81,6 +81,8 @@ export function Session({ deckId, minutes, mode, drill }: { deckId?: string; min
   const [hints, setHints] = useState(0)
   const [shake, setShake] = useState(0)
   const [elapsed, setElapsed] = useState(0)
+  const [paused, setPaused] = useState(false)
+  const pausedAt = useRef<number | null>(null)
   const [error, setError] = useState('')
   const [, force] = useState(0)
   const shownAt = useRef(Date.now())
@@ -118,7 +120,7 @@ export function Session({ deckId, minutes, mode, drill }: { deckId?: string; min
   }, [deckId, minutes, drill]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    const t = setInterval(() => setElapsed(Date.now() - startedAt.current), 1000)
+    const t = setInterval(() => pausedAt.current == null && setElapsed(Date.now() - startedAt.current), 1000)
     return () => clearInterval(t)
   }, [])
 
@@ -267,6 +269,20 @@ export function Session({ deckId, minutes, mode, drill }: { deckId?: string; min
     [ctx, item, deck, view, afterGroup],
   )
 
+  /** Pause: clock stops, card hidden; paused time doesn't count for the time budget or answer speed. */
+  const togglePause = useCallback(() => {
+    if (pausedAt.current == null) {
+      pausedAt.current = Date.now()
+      setPaused(true)
+    } else {
+      const d = Date.now() - pausedAt.current
+      startedAt.current += d
+      shownAt.current += d
+      pausedAt.current = null
+      setPaused(false)
+    }
+  }, [])
+
   // ----- actions -----
   const check = () => {
     if (!face || !deck || phase !== 'ask' || !typed.trim()) return
@@ -343,6 +359,18 @@ export function Session({ deckId, minutes, mode, drill }: { deckId?: string; min
         speak(face.foreign, face.foreignLang)
         return
       }
+      if (!inField && !e.ctrlKey && !e.metaKey && !e.altKey && e.key.toLowerCase() === 'p') {
+        e.preventDefault()
+        togglePause()
+        return
+      }
+      if (paused) {
+        if (e.key === 'Enter' || e.code === 'Space') {
+          e.preventDefault()
+          togglePause()
+        }
+        return
+      }
       if (!inField && !e.ctrlKey && !e.metaKey && !e.altKey && e.key.toLowerCase() === 'f') {
         e.preventDefault()
         void toggleFullscreen()
@@ -406,9 +434,26 @@ export function Session({ deckId, minutes, mode, drill }: { deckId?: string; min
             {ctx && ctx.groups.length > 1 && !finished && <p className="mt-1 text-center text-[11px] font-medium text-muted tabular">Gruppe {groupIndex + 1} von {ctx.groups.length}</p>}
           </div>
           <span className="w-12 shrink-0 text-right text-sm text-muted tabular" aria-label="Zeit">{mm}:{ss}</span>
+          {!finished && ctx && ctx.total > 0 && (
+            <button type="button" onClick={togglePause} className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-muted hover:bg-surface-2 hover:text-fg" aria-label="Pause (P)" title="Pause (P)" aria-pressed={paused}>
+              <IconPause />
+            </button>
+          )}
           <FullscreenButton />
         </div>
       </header>
+
+      {paused && (
+        <div className="fixed inset-0 z-30 grid place-items-center bg-bg/85 px-6 backdrop-blur-xl" role="dialog" aria-modal="true" aria-label="Pause">
+          <div className="text-center">
+            <span className="mx-auto grid h-20 w-20 place-items-center rounded-full bg-accent-soft text-accent"><IconPause width={34} height={34} /></span>
+            <p className="mt-5 text-[28px] font-bold tracking-tight">Pause</p>
+            <p className="mt-1 text-[15px] text-muted tabular">Die Uhr steht bei {mm}:{ss}. Alles ist gespeichert.</p>
+            <Button variant="primary" size="lg" className="mt-7 min-w-56" onClick={togglePause} kbd="Enter" autoFocus>Weiter lernen</Button>
+            <div><Button variant="ghost" className="mt-2" onClick={() => go('/')}>Für heute aufhören</Button></div>
+          </div>
+        </div>
+      )}
 
       <div className="mx-auto flex w-full max-w-[680px] flex-1 flex-col px-4 pb-10 pt-6 desk:pt-10">
         {!ctx ? (
@@ -511,7 +556,7 @@ export function Session({ deckId, minutes, mode, drill }: { deckId?: string; min
             )}
             {error && <p role="alert" className="mt-4 rounded-xl bg-bad-soft px-4 py-3 text-sm text-bad">{error}</p>}
             <p className="mt-auto hidden pt-10 text-center text-xs text-muted desk:block">
-              <Kbd>Enter</Kbd> prüfen/weiter · <Kbd>F</Kbd> Vollbild · <Kbd>Leertaste</Kbd> umdrehen · <Kbd>1</Kbd>–<Kbd>4</Kbd> wählen · <Kbd>Ctrl</Kbd>+<Kbd>Leertaste</Kbd> Audio · <Kbd>Alt</Kbd>+Buchstabe Akzent · <Kbd>Esc</Kbd> beenden
+              <Kbd>Enter</Kbd> prüfen/weiter · <Kbd>P</Kbd> Pause · <Kbd>F</Kbd> Vollbild · <Kbd>Leertaste</Kbd> umdrehen · <Kbd>1</Kbd>–<Kbd>4</Kbd> wählen · <Kbd>Ctrl</Kbd>+<Kbd>Leertaste</Kbd> Audio · <Kbd>Alt</Kbd>+Buchstabe Akzent · <Kbd>Esc</Kbd> beenden
             </p>
           </>
         )}

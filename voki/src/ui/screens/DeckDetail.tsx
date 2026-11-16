@@ -14,6 +14,7 @@ import { ExportButton } from './ExportButton'
 import { masteryInfo } from '../../db/mastery'
 import { MasteryBar, MASTERY_TONE } from '../MasteryBar'
 import { MnemonicStudio } from '../MnemonicStudio'
+import type { Mastery } from '../../lib/mastery'
 
 const STAGE_LABEL: Record<Card['stage'], string> = { new: 'neu', intro: 'neu', mc: 'lernt', type: 'lernt', review: 'gelernt' }
 
@@ -35,7 +36,7 @@ export function DeckDetail({ id }: { id: string }) {
         title={deck.name}
         subtitle={<span className="inline-flex items-center gap-2"><Flag lang={deck.language} /> {p?.total ?? 0} Wörter · {p?.due ?? 0} fällig · {p?.unintroduced ?? 0} neu</span>}
         action={
-          <div className="flex gap-2">
+          <div className="flex w-full flex-wrap gap-2 desk:w-auto">
             <Button onClick={() => go(`/import?deck=${deck.id}`)}><IconImport /> Import</Button>
             <Button onClick={() => go(`/probetest?deck=${deck.id}`)}>Probetest</Button>
             <Button variant="primary" disabled={todo === 0} onClick={() => go(`/lernen?deck=${deck.id}`)}><IconPlay /> Lernen{todo > 0 && ` (${todo})`}</Button>
@@ -50,7 +51,7 @@ export function DeckDetail({ id }: { id: string }) {
             <p className="text-[22px] font-semibold tabular">{pct(p.exam.readiness.overall)} bereit</p>
           </div>
           <Progress className="mt-3" value={p.exam.readiness.overall ?? 0} tone={(p.exam.readiness.overall ?? 0) >= 0.8 ? 'good' : (p.exam.readiness.overall ?? 0) >= 0.5 ? 'warn' : 'bad'} label="Prüfungsbereitschaft" />
-          <p className="mt-2 text-sm text-muted tabular">Erkennen {pct(p.exam.readiness.toNative)} · Schreiben {pct(p.exam.readiness.toTarget)} · {p.exam.days <= 2 ? 'nur Wiederholung' : `${p.exam.perDay} neue/Tag`}</p>
+          <p className="mt-2 text-sm text-muted tabular">Erkennen {pct(p.exam.readiness.toNative)} · Schreiben {pct(p.exam.readiness.toTarget)} · {p.exam.days <= 2 && p.unintroduced === 0 ? 'nur Wiederholung' : p.exam.days <= 2 ? `alle ${p.unintroduced} restlichen Wörter heute` : `${p.exam.perDay} neue/Tag`}</p>
         </Panel>
       )}
 
@@ -79,6 +80,7 @@ function WordList({ deck, notes, cards }: { deck: Deck; notes: Note[]; cards: Ca
   const [q, setQ] = useState('')
   const [open, setOpen] = useState<string | null>(null)
   const [limit, setLimit] = useState(50)
+  const [level, setLevel] = useState<'alle' | Mastery>('alle')
   const byNote = useMemo(() => {
     const m = new Map<string, Card[]>()
     for (const c of cards) m.set(c.noteId, [...(m.get(c.noteId) ?? []), c])
@@ -86,8 +88,10 @@ function WordList({ deck, notes, cards }: { deck: Deck; notes: Note[]; cards: Ca
   }, [cards])
   const order = useMemo(() => new Map(cards.map((c) => [c.noteId, c.order])), [cards])
   const mastery = useLiveQuery(() => masteryInfo(db, [deck.id]), [deck.id, cards])
+  const levelCount = (m: Mastery) => mastery?.counts[m] ?? 0
   const list = notes
     .filter((n) => !q || normalize(`${n.term} ${n.translation}`).includes(normalize(q)))
+    .filter((n) => level === 'alle' || mastery?.byNote.get(n.id) === level)
     .sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0))
 
   if (notes.length === 0)
@@ -98,6 +102,20 @@ function WordList({ deck, notes, cards }: { deck: Deck; notes: Note[]; cards: Ca
       <div className="relative mb-3">
         <IconSearch className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" width={18} height={18} />
         <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={`${notes.length} Wörter durchsuchen`} aria-label="Wörter durchsuchen" className="pl-10" />
+      </div>
+      <div className="-mx-1 mb-3 overflow-x-auto px-1">
+        <Segmented
+          label="Wie gut kannst du's?"
+          value={level}
+          onChange={(v) => { setLevel(v); setLimit(50) }}
+          options={[
+            { value: 'alle', label: `Alle ${notes.length}` },
+            { value: 'sitzt', label: `Sitzt ${levelCount('sitzt')}` },
+            { value: 'lernt', label: `Lernt ${levelCount('lernt')}` },
+            { value: 'wackelt', label: `Wackelt ${levelCount('wackelt')}` },
+            { value: 'neu', label: `Neu ${levelCount('neu')}` },
+          ]}
+        />
       </div>
       <ul className="divide-y divide-line overflow-hidden rounded-[22px] bg-surface shadow-card">
         {list.slice(0, limit).map((n) => {
@@ -119,7 +137,7 @@ function WordList({ deck, notes, cards }: { deck: Deck; notes: Note[]; cards: Ca
             </li>
           )
         })}
-        {list.length === 0 && <li className="px-5 py-6 text-center text-sm text-muted">Kein Treffer für „{q}“.</li>}
+        {list.length === 0 && <li className="px-5 py-6 text-center text-sm text-muted">{q ? `Kein Treffer für „${q}“.` : 'Keine Wörter in dieser Stufe.'}</li>}
       </ul>
       <div className="mt-4"><ExportButton deckId={deck.id} /></div>
       {list.length > limit && (

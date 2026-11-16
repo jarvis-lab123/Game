@@ -2,7 +2,8 @@ name: Voki Windows-Installer
 on:
   push:
     branches: [claude/2d-story-game-kazh5h]
-    paths: ['voki/**', '.github/workflows/voki-windows.yml']
+    # Only the Windows shell needs a new installer; the app itself loads live from GitHub Pages.
+    paths: ['voki/src-tauri/**', '.github/workflows/voki-windows.yml']
   workflow_dispatch:
 permissions:
   contents: write
@@ -34,7 +35,7 @@ jobs:
       - name: Name installer
         shell: bash
         run: |
-          v=$(node -p "require('./package.json').version")
+          v=$(node -p "require('./src-tauri/tauri.conf.json').version")
           cp "$(ls src-tauri/target/release/bundle/msi/*.msi | head -1)" "Voki-Setup-$v.msi"
       # Always available (needs only read access): Actions run page -> Artifacts
       - uses: actions/upload-artifact@v4
@@ -49,7 +50,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          v=$(node -p "require('./package.json').version")
+          v=$(node -p "require('./src-tauri/tauri.conf.json').version")
           tag="voki-v$v"
           if gh release view "$tag" >/dev/null 2>&1; then
             gh release upload "$tag" "Voki-Setup-$v.msi" --clobber || { echo "::warning::Release nicht erlaubt: Settings > Actions > General > Workflow permissions auf 'Read and write' stellen. Installer liegt unter Artifacts."; exit 1; }
