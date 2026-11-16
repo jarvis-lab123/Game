@@ -3,6 +3,8 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '../../db/db'
 import { planDay, sessionCards } from '../../db/queries'
 import { planGroups } from '../../lib/groups'
+import { deckForecast } from '../../db/forecast'
+import { daysToFinish } from '../../lib/forecast'
 import { Button, cx } from '../components'
 import { Flag, IconBack, IconPlay } from '../icons'
 import { go } from '../router'
@@ -49,7 +51,8 @@ export function SessionSetup({ deckId: initialDeck }: { deckId?: string }) {
     const words = groups.reduce((s, g) => s + new Set(g.fresh.map((c) => c.noteId)).size, 0)
     const reviews = groups.reduce((s, g) => s + g.reviews.length + g.cram.length, 0)
     const all = plan.reviews + plan.news + plan.cram
-    return { groups: groups.length, words, reviews, all }
+    const fc = await deckForecast(db, deck || undefined)
+    return { groups: groups.length, words, reviews, all, effort: fc.minutes, pace: fc.pace }
   }, [deck, minutes])
 
   useEffect(() => {
@@ -109,6 +112,13 @@ export function SessionSetup({ deckId: initialDeck }: { deckId?: string }) {
       )}
 
       <div className="mt-auto pt-10">
+        {preview && preview.effort > 0 && (
+          <p className="mb-2 text-center text-[13px] text-muted tabular">
+            Bis alles sitzt: ca. {preview.effort >= 60 ? `${Math.floor(preview.effort / 60)} h ${preview.effort % 60} min` : `${preview.effort} min`}
+            {' '}· bei {minutes} Min/Tag ≈ {daysToFinish(preview.effort, minutes)} {daysToFinish(preview.effort, minutes) === 1 ? 'Tag' : 'Tage'}
+            {preview.pace.samples >= 20 ? ` · dein Tempo ${Math.round(preview.pace.secPerAnswer)} s/Antwort` : ''}
+          </p>
+        )}
         {preview && (
           <p className="mb-3 text-center text-[15px] text-muted tabular" aria-live="polite">
             {preview.groups === 0

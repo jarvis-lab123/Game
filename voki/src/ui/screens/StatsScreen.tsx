@@ -1,16 +1,23 @@
 import { useLayoutEffect, useMemo, useRef } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { db } from '../../db/db'
-import { startOfDay, streak } from '../../db/queries'
-import { accuracy, activityByDay, dueForecast, learnedWords, type Accuracy, type DayCount } from '../../lib/stats'
-import type { Deck } from '../../lib/types'
-import { Button, Empty, PageHeader, Panel, SectionTitle, pct } from '../components'
+import { loadSettings, startOfDay } from '../../db/queries'
+import { masteryInfo, emptyCounts } from '../../db/mastery'
+import { allDeckForecasts } from '../../db/forecast'
+import { daysToFinish, type Pace } from '../../lib/forecast'
+import type { Mastery } from '../../lib/mastery'
+import { accuracy, activityByDay, dayKey, dueForecast, GRADED_MODES, learnedWords, type Accuracy, type DayCount } from '../../lib/stats'
+import type { Deck, ReviewLog } from '../../lib/types'
+import { Button, Empty, PageHeader, Panel, Ring, SectionTitle, pct } from '../components'
 import { Flag } from '../icons'
+import { MasteryBar } from '../MasteryBar'
+import { StreakCard } from '../StreakCard'
 import { go } from '../router'
 
 const WEEKS = 20
 const FORECAST_DAYS = 30
+const ACC_DAYS = 14
 const DAY = 86400000
 
 const fmtNum = new Intl.NumberFormat('de-CH')
@@ -24,9 +31,44 @@ function parseDay(s: string): Date {
   return new Date(y, m - 1, d)
 }
 
+/** "45 min", "2 h 10 min", "3 h" — longer spans rounded to 5 min. */
+function fmtDuration(min: number): string {
+  if (min < 60) return `${Math.max(1, Math.round(min))} min`
+  const r = Math.round(min / 5) * 5
+  const h = Math.floor(r / 60)
+  const m = r % 60
+  return m ? `${h} h ${m} min` : `${h} h`
+}
+
+interface AccDay { date: string; label: string; value: number | null; n: number; correct: number }
+
+/** Share correct per local day (graded answers only); null on days without answers. */
+function accuracyByDay(logs: ReviewLog[], days: number, now: Date): AccDay[] {
+  const keys = Array.from({ length: days }, (_, i) => dayKey(new Date(now.getFullYear(), now.getMonth(), now.getDate() - (days - 1) + i)))
+  const t = new Map(keys.map((k) => [k, [0, 0]]))
+  for (const l of logs) {
+    if (!GRADED_MODES.includes(l.mode)) continue
+    const v = t.get(dayKey(new Date(l.timestamp)))
+    if (!v) continue
+    v[1]++
+    if (l.correct) v[0]++
+  }
+  return keys.map((date) => {
+    const [c, n] = t.get(date)!
+    return { date, label: fmtShort.format(parseDay(date)), value: n ? Math.round((c / n) * 100) : null, n, correct: c }
+  })
+}
+
 async function loadStats() {
   const now = new Date()
-  const [decks, cards, logs, days] = await Promise.all([db.decks.toArray(), db.cards.toArray(), db.logs.toArray(), streak(db, now)])
+  const [decks, cards, logs, settings, mastery, fc] = await Promise.all([
+    db.decks.toArray(),
+    db.cards.toArray(),
+    db.logs.toArray(),
+    loadSettings(db),
+    masteryInfo(db, undefined, now),
+    allDeckForecasts(db),
+  ])
   const dirById = new Map(cards.map((c) => [c.id, c.direction]))
   const dirOf = (id: string) => dirById.get(id)
   const since = new Date(startOfDay(now) - 29 * DAY).toISOString()
@@ -35,15 +77,19 @@ async function loadStats() {
   // heatmap: WEEKS columns, Monday first; the last column is the current week
   const weekday = (now.getDay() + 6) % 7 // Mon = 0
   const heatDays = (WEEKS - 1) * 7 + weekday + 1
-  const activeDecks = decks.filter((d) => !d.archived)
+  const activeDecks = decks.filter((d) => !d.archived).sort((a, b) => a.name.localeCompare(b.name, 'de'))
+  const withWords = activeDecks.filter((d) => mastery.byDeck.has(d.id))
   return {
     now,
     totalLogs: logs.length,
     learned: learnedWords(cards.filter((c) => !c.suspended)),
-    streak: days,
     acc30: accuracy(recent, dirOf),
     activity: activityByDay(logs, heatDays, now),
     forecast: dueForecast(cards.filter((c) => activeDecks.some((d) => d.id === c.deckId)), FORECAST_DAYS, now),
+    accDays: accuracyByDay(logs, ACC_DAYS, now),
+    mastery: { counts: mastery.counts, decks: withWords.map((deck) => ({ deck, counts: mastery.byDeck.get(deck.id) ?? emptyCounts() })) },
+    effort: { pace: fc.pace, total: fc.total, decks: withWords.map((deck) => ({ deck, ...(fc.byDeck.get(deck.id) ?? { answers: 0, minutes: 0 }) })) },
+    dailyMinutes: settings.dailyMinutesGoal,
     perDeck: activeDecks
       .map((deck) => ({ deck, acc: accuracy(recent, dirOf, { deckId: deck.id }) }))
       .filter((r) => r.acc.n > 0)
@@ -69,12 +115,37 @@ export function StatsScreen() {
     <div className="space-y-6">
       <PageHeader title="Statistik" />
 
-      <div className="grid grid-cols-2 gap-3 desk:grid-cols-4">
-        <Tile label="Gelernte Wörter" value={fmtNum.format(s.learned)} />
-        <Tile label="Serie" value={`${s.streak} ${s.streak === 1 ? 'Tag' : 'Tage'}`} />
-        <Tile label="Abfragen gesamt" value={fmtNum.format(s.totalLogs)} />
-        <Tile label="Trefferquote 30 Tage" value={pct(s.acc30.total)} />
+      <div className="grid gap-3 desk:grid-cols-2 desk:gap-4">
+        <StreakCard />
+        <div className="grid grid-cols-2 gap-3">
+          <Tile label="Gelernte Wörter" value={fmtNum.format(s.learned)} />
+          <Tile label="Sitzen sicher" value={fmtNum.format(s.mastery.counts.sitzt)} />
+          <Tile label="Abfragen gesamt" value={fmtNum.format(s.totalLogs)} />
+          <Tile label="Trefferquote 30 T." value={pct(s.acc30.total)} />
+        </div>
       </div>
+
+      {s.mastery.decks.length > 0 && (
+        <Panel>
+          <SectionTitle>Wie gut kannst du's?</SectionTitle>
+          <MasterySummary counts={s.mastery.counts} />
+          <ul className="mt-2 divide-y divide-line">
+            {s.mastery.decks.map((r) => <DeckMastery key={r.deck.id} deck={r.deck} counts={r.counts} />)}
+          </ul>
+        </Panel>
+      )}
+
+      {s.effort.decks.length > 0 && (
+        <Panel>
+          <SectionTitle>Noch zu lernen</SectionTitle>
+          <Effort total={s.effort.total} decks={s.effort.decks} pace={s.effort.pace} daily={s.dailyMinutes} />
+        </Panel>
+      )}
+
+      <Panel>
+        <SectionTitle>Trefferquote der letzten 14 Tage</SectionTitle>
+        <AccuracyTrend data={s.accDays} />
+      </Panel>
 
       <Panel>
         <SectionTitle>Aktivität</SectionTitle>
@@ -94,6 +165,143 @@ export function StatsScreen() {
             {s.perDeck.map((r) => <DeckAccuracy key={r.deck.id} deck={r.deck} acc={r.acc} />)}
           </ul>
         </Panel>
+      )}
+    </div>
+  )
+}
+
+/* ---------- Mastery ---------- */
+
+const sumCounts = (c: Record<Mastery, number>) => c.sitzt + c.lernt + c.wackelt + c.neu
+
+function MasterySummary({ counts }: { counts: Record<Mastery, number> }) {
+  const n = sumCounts(counts)
+  return (
+    <p className="text-sm text-muted">
+      <span className="font-medium text-fg tabular">{fmtNum.format(counts.sitzt)}</span> von {fmtNum.format(n)} {n === 1 ? 'Wort sitzt' : 'Wörtern sitzen'}
+      {counts.wackelt > 0 && <> · {fmtNum.format(counts.wackelt)} wackeln</>}
+    </p>
+  )
+}
+
+function DeckMastery({ deck, counts }: { deck: Deck; counts: Record<Mastery, number> }) {
+  const n = sumCounts(counts)
+  const share = n ? counts.sitzt / n : 0
+  return (
+    <li>
+      <a href={`#/deck/${deck.id}`} className="-mx-2 flex items-center gap-4 rounded-2xl px-2 py-3.5 transition-colors duration-150 hover:bg-surface-2/60 active:bg-surface-2">
+        <Ring value={share} size={52} stroke={6} tone="good" label={`${deck.name}: ${pct(share)} sitzen`}>
+          <span className="text-[13px] font-semibold tabular">{Math.round(share * 100)}%</span>
+        </Ring>
+        <div className="min-w-0 flex-1">
+          <p className="mb-2 flex items-center gap-2 font-medium">
+            <Flag lang={deck.language} />
+            <span className="truncate">{deck.name}</span>
+            <span className="ml-auto shrink-0 text-xs font-normal text-muted tabular">{fmtNum.format(n)} Wörter</span>
+          </p>
+          <MasteryBar counts={counts} />
+        </div>
+      </a>
+    </li>
+  )
+}
+
+/* ---------- Effort ---------- */
+
+function Effort({ total, decks, pace, daily }: { total: { minutes: number; answers: number }; decks: { deck: Deck; minutes: number; answers: number }[]; pace: Pace; daily: number }) {
+  const days = daysToFinish(total.minutes, daily)
+  return (
+    <div>
+      {total.minutes === 0 ? (
+        <p className="text-[22px] font-bold tracking-tight">Alles sitzt</p>
+      ) : (
+        <>
+          <p className="text-[28px] font-bold leading-tight tracking-tight tabular">ca. {fmtDuration(total.minutes)}</p>
+          <p className="mt-0.5 text-[15px] text-muted tabular">
+            bei {daily} Min/Tag ≈ {days} {days === 1 ? 'Tag' : 'Tage'} · rund {fmtNum.format(total.answers)} Antworten
+          </p>
+        </>
+      )}
+
+      {decks.length > 1 && (
+        <ul className="mt-4 divide-y divide-line border-t border-line">
+          {decks.map((d) => {
+            const dd = daysToFinish(d.minutes, daily)
+            return (
+              <li key={d.deck.id} className="flex items-center gap-2.5 py-3 last:pb-0">
+                <Flag lang={d.deck.language} />
+                <a href={`#/deck/${d.deck.id}`} className="min-w-0 flex-1 truncate font-medium">{d.deck.name}</a>
+                <span className="shrink-0 text-sm text-muted tabular">
+                  {d.minutes === 0 ? 'sitzt' : <><span className="font-medium text-fg">{fmtDuration(d.minutes)}</span> · ≈ {dd} {dd === 1 ? 'Tag' : 'Tage'}</>}
+                </span>
+              </li>
+            )
+          })}
+        </ul>
+      )}
+
+      <p className="mt-4 rounded-xl bg-surface-2 px-3.5 py-2.5 text-[13px] text-muted">
+        {pace.samples < 20 ? (
+          'Noch zu wenig Daten – Schätzung mit Standardwerten'
+        ) : (
+          <>Dein Tempo: <span className="font-medium text-fg tabular">{Math.round(pace.secPerAnswer)} s</span> pro Antwort · <span className="font-medium text-fg tabular">{Math.round(pace.accuracy * 100)} %</span> richtig</>
+        )}
+      </p>
+    </div>
+  )
+}
+
+/* ---------- Accuracy trend ---------- */
+
+function AccuracyTrend({ data }: { data: AccDay[] }) {
+  const withData = data.filter((d) => d.value != null)
+  if (withData.length === 0) return <p className="text-[15px] text-muted">In den letzten 14 Tagen hast du nichts abgefragt.</p>
+  const n = withData.reduce((s, d) => s + d.n, 0)
+  const c = withData.reduce((s, d) => s + d.correct, 0)
+  const avg = Math.round((c / n) * 100)
+  return (
+    <div>
+      <p className="mb-4 text-sm text-muted">
+        <span className="font-medium text-fg tabular">{avg} %</span> richtig · {fmtNum.format(n)} Antworten an {withData.length} {withData.length === 1 ? 'Tag' : 'Tagen'}
+      </p>
+      <div className="h-40" role="img" aria-label={`Trefferquote pro Tag, letzte 14 Tage, im Schnitt ${avg} Prozent.`}>
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
+            <CartesianGrid vertical={false} stroke="var(--line)" />
+            <XAxis dataKey="label" tickLine={false} axisLine={{ stroke: 'var(--line)' }} tick={{ fill: 'var(--muted)', fontSize: 11 }} interval={3} tickMargin={6} />
+            <YAxis domain={[0, 100]} ticks={[0, 50, 100]} tickFormatter={(v: number) => `${v}\u00a0%`} tickLine={false} axisLine={false} tick={{ fill: 'var(--muted)', fontSize: 11 }} width={46} />
+            <Tooltip cursor={{ stroke: 'var(--line)', strokeWidth: 1 }} content={<AccTip />} isAnimationActive={false} />
+            <Line
+              type="monotone"
+              dataKey="value"
+              stroke="var(--accent)"
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              connectNulls
+              dot={{ r: 4, fill: 'var(--accent)', stroke: 'var(--surface)', strokeWidth: 2 }}
+              activeDot={{ r: 5, fill: 'var(--accent)', stroke: 'var(--surface)', strokeWidth: 2 }}
+              isAnimationActive={false}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  )
+}
+
+function AccTip({ active, payload }: { active?: boolean; payload?: readonly { payload: AccDay }[] }) {
+  if (!active || !payload?.length) return null
+  const d = payload[0].payload
+  const day = parseDay(d.date)
+  const today = startOfDay(new Date()) === day.getTime()
+  return (
+    <div className="rounded-lg bg-surface px-3 py-2 text-sm shadow-lg shadow-card">
+      <p className="text-xs text-muted">{today ? 'Heute' : fmtLong.format(day)}</p>
+      {d.value == null ? (
+        <p className="font-medium text-muted">keine Antworten</p>
+      ) : (
+        <p className="tabular"><span className="font-semibold">{d.value} % richtig</span><span className="text-muted"> · {d.correct} von {d.n}</span></p>
       )}
     </div>
   )

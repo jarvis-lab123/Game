@@ -4,13 +4,14 @@ import { db } from '../../db/db'
 import { planDay, type DeckPlan } from '../../db/queries'
 import { masteryInfo } from '../../db/mastery'
 import { Button, Ring, pct, readinessTone } from '../components'
-import { Flag, IconCheck, IconChevron, IconFlame, IconPlay } from '../icons'
+import { Flag, IconCheck, IconChevron, IconPlay } from '../icons'
 import { Illustration } from '../illustrations'
 import { go } from '../router'
 import { useSettings } from '../settings'
 import { BackupReminder } from './SettingsScreen'
 import { UpdateBanner } from '../UpdateCheck'
 import { InstallCard } from '../install'
+import { StreakCard } from '../StreakCard'
 
 const dateFmt = new Intl.DateTimeFormat('de-CH', { weekday: 'long', day: 'numeric', month: 'long' })
 
@@ -136,13 +137,7 @@ export function Today() {
         </section>
       )}
 
-      {words > 0 && (
-        <div className="grid grid-cols-3 gap-3">
-          <Stat label="Serie" value={plural(plan.streak, 'Tag', 'Tage')} icon={<IconFlame width={16} height={16} className={plan.streak > 0 ? 'text-warn' : 'text-muted'} />} />
-          <Stat label="Heute geübt" value={String(plan.reviewedToday)} />
-          <Stat label="Wörter" value={String(words)} />
-        </div>
-      )}
+      {words > 0 && <StreakCard />}
 
       <InstallCard />
       <BackupReminder />
@@ -154,14 +149,6 @@ function when(days: number) {
   return days === 0 ? 'heute' : days === 1 ? 'morgen' : `in ${days} Tagen`
 }
 
-function Stat({ label, value, icon }: { label: string; value: string; icon?: React.ReactNode }) {
-  return (
-    <div className="rounded-[18px] bg-surface px-4 py-3 shadow-card">
-      <p className="text-[12px] font-medium text-muted">{label}</p>
-      <p className="mt-0.5 flex items-center gap-1.5 whitespace-nowrap text-[19px] font-bold tabular tracking-tight">{icon}{value}</p>
-    </div>
-  )
-}
 
 function ExamCard({ p }: { p: DeckPlan }) {
   const e = p.exam!
