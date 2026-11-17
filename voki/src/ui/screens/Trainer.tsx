@@ -522,7 +522,7 @@ function TrainButton({ title, sub, to, primary }: { title: string; sub: string; 
   return (
     <button type="button" onClick={() => go(to)} className={cx('flex min-h-14 w-full flex-col items-start justify-center rounded-2xl px-4 py-2.5 text-left transition-[filter,transform] duration-150 active:scale-[0.98]', primary ? 'bg-accent text-on-accent hover:brightness-110' : 'bg-surface-2 hover:brightness-95 dark:hover:brightness-125')}>
       <span className="text-[16px] font-semibold">{title}</span>
-      <span className={cx('text-[13px]', primary ? 'opacity-85' : 'text-muted')}>{sub}</span>
+      <span className={cx('text-[13px]', primary ? '' : 'text-muted')}>{sub}</span>
     </button>
   )
 }
