@@ -14,6 +14,7 @@ import { BackupReminder } from './SettingsScreen'
 import { UpdateBanner } from '../UpdateCheck'
 import { InstallCard } from '../install'
 import { StreakCard } from '../StreakCard'
+import { KnacknussCard } from './Trainer'
 
 const dateFmt = new Intl.DateTimeFormat('de-CH', { weekday: 'long', day: 'numeric', month: 'long' })
 
@@ -109,6 +110,8 @@ export function Today() {
           {plan.backlog && <p className="mt-5 rounded-2xl bg-warn-soft px-4 py-3 text-sm text-warn">Über 150 Wiederholungen fällig: Neue Wörter pausieren, bis der Stau abgebaut ist (ausser bei Decks mit Testdatum).</p>}
         </section>
       )}
+
+      {words > 0 && <KnacknussCard />}
 
       {exams.length > 0 && (
         <section>

@@ -12,6 +12,7 @@ import { Illustration } from '../illustrations'
 import { MnemonicStudio } from '../MnemonicStudio'
 import { go } from '../router'
 import { BlockHome } from './BlockLearn'
+import { KnacknussCard } from './Trainer'
 
 type Tab = 'fehlerheft' | 'bloecke' | 'probetest' | 'werkstatt'
 
@@ -89,12 +90,13 @@ function Fehlerheft() {
 
   return (
     <div className="space-y-5">
+      <KnacknussCard />
       <Panel className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <p className="text-[22px] font-semibold tabular">{entries.length} {entries.length === 1 ? 'Wort' : 'Wörter'}</p>
           <p className="text-sm text-muted">Drill: erst auswählen, dann schreiben. Zählt nicht für den Wiederholungsplan.</p>
         </div>
-        <Button variant="primary" size="lg" onClick={() => go(`/lernen?go=1&drill=1&min=10&mode=type&t=${Date.now()}`)}><IconPlay /> Fehlerheft üben</Button>
+        <Button size="lg" onClick={() => go(`/lernen?go=1&drill=1&min=10&mode=type&t=${Date.now()}`)}><IconPlay /> Fehlerheft üben</Button>
       </Panel>
       {groups.map((g) => (
         <section key={g.key}>

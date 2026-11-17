@@ -176,11 +176,13 @@ export function GradeReveal({ deck, items, decisions, reduce, onAgain, block }: 
             {block ? (
               <>
                 <Button ref={focus} variant="primary" size="lg" onClick={() => go(block.exitTo)}>Block abschliessen</Button>
+                {wrong.length > 0 && <Button size="lg" onClick={() => go(`/knacknuss?deck=${deck.id}&t=${Date.now()}`)}>🌰 Falsche Wörter knacken</Button>}
                 <Button size="lg" onClick={() => go(`${block.againTo}&t=${Date.now()}`)}>Block nochmals lernen</Button>
               </>
             ) : (
               <>
                 <Button ref={focus} variant="primary" size="lg" onClick={() => go('/ueben')}>Zum Fehlerheft</Button>
+                {wrong.length > 0 && <Button size="lg" onClick={() => go(`/knacknuss?deck=${deck.id}&t=${Date.now()}`)}>🌰 Falsche Wörter knacken</Button>}
                 <Button size="lg" onClick={onAgain}>Neuer Probetest</Button>
               </>
             )}
