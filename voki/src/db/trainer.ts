@@ -6,6 +6,8 @@ import { applyReview } from '../lib/srs'
 import type { Card, Deck, Note } from '../lib/types'
 
 export const TRAINER_SIZE = 8
+/** New words per round in the quick mode (≈ 7 minutes). */
+export const NEW_SIZE = 10
 const DAY = 86400000
 
 export interface TrainerPick { note: Note; card: Card; deck: Deck; score: number; reason: string; wrong: number }

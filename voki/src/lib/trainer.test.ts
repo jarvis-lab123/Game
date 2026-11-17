@@ -4,6 +4,10 @@ import { CLOZE_ONLY, TrainerEngine, fadeWord, ladderFor, scrambleTiles, spacePos
 const W = (id: string, hasCloze = true, canListen = true) => ({ id, hasCloze, canListen })
 
 describe('trainer ladder', () => {
+  it('new words: quick ladder with two steps', () => {
+    expect(ladderFor(W('a'), 'quick')).toEqual(['cloze', 'write'])
+    expect(ladderFor(W('a', false), 'quick')).toEqual(['fade', 'write'])
+  })
   it('uses cloze and listening only when possible', () => {
     expect(ladderFor(W('a'))).toEqual(['scramble', 'cloze', 'fade', 'listen', 'write', 'final'])
     expect(ladderFor(W('a', false, false))).toEqual(['scramble', 'fade', 'write', 'final'])

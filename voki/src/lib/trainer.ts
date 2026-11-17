@@ -29,7 +29,18 @@ export const EXERCISE_LABEL: Record<Exercise, string> = {
 /** Only gap sentences: every word must be filled in right twice (with other sentences in between). */
 export const CLOZE_ONLY: Exercise[] = ['cloze', 'cloze']
 
-export function ladderFor(w: TrainerWord, only?: Exercise[]): Exercise[] {
+/**
+ * New words, quick: after the learn card and the pairs, one supported recall (gap sentence, or the
+ * faded word) and one free recall later – about 40 s per word, so 50–60 new words fit in an hour.
+ */
+export function quickLadder(w: TrainerWord): Exercise[] {
+  return [w.hasCloze ? 'cloze' : 'fade', 'write']
+}
+
+export type LadderMode = Exercise[] | 'quick'
+
+export function ladderFor(w: TrainerWord, only?: LadderMode): Exercise[] {
+  if (only === 'quick') return quickLadder(w)
   if (only) return only
   return (['scramble', w.hasCloze && 'cloze', 'fade', w.canListen && 'listen', 'write', 'final'] as const).filter((x): x is Exercise => !!x)
 }
@@ -47,7 +58,7 @@ export class TrainerEngine {
   private turn = 0
   readonly done: string[] = []
 
-  constructor(words: TrainerWord[], only?: Exercise[]) {
+  constructor(words: TrainerWord[], only?: LadderMode) {
     this.words = words.map((w) => ({ id: w.id, ladder: ladderFor(w, only), step: 0, wrong: 0, lastTurn: -99 }))
     this.queue = words.map((w) => w.id)
   }

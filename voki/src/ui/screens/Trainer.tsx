@@ -4,7 +4,7 @@ import { Rating } from 'ts-fsrs'
 import { db } from '../../db/db'
 import { log } from '../../db/queries'
 import { requestSync } from '../../db/autosync'
-import { TRAINER_SIZE, clozeCandidates, crackWord, errorCandidates, newCandidates, trainerCandidates, type TrainerPick } from '../../db/trainer'
+import { NEW_SIZE, TRAINER_SIZE, clozeCandidates, crackWord, errorCandidates, newCandidates, trainerCandidates, type TrainerPick } from '../../db/trainer'
 import { applyBlockTest, introduceBlock } from '../../db/blocks'
 import { loadSettings } from '../../db/queries'
 import { CLOZE_ONLY, EXERCISE_LABEL, TrainerEngine, fadeWord, scrambleTiles, spacePositions, writtenForm, type Exercise, type Tile, type TrainerItem } from '../../lib/trainer'
@@ -48,7 +48,7 @@ export function Trainer({ deckId, cloze = false, source = 'knacknuss' }: { deckI
   useEffect(() => {
     ;(async () => {
       const all = cloze ? await clozeCandidates(db, deckId, (p) => !!toWord(p).cloze) : source === 'fehler' ? await errorCandidates(db, deckId) : source === 'neu' ? await newCandidates(db, deckId) : await trainerCandidates(db, deckId)
-      const size = cloze ? CLOZE_SIZE : source === 'fehler' ? all.length : TRAINER_SIZE
+      const size = cloze ? CLOZE_SIZE : source === 'fehler' ? all.length : source === 'neu' ? NEW_SIZE : TRAINER_SIZE
       // new words count as introduced as soon as you start with them
       if (source === 'neu' && !cloze) await introduceBlock(db, all.slice(0, size).map((p) => p.card.id))
       setLeft(Math.max(0, all.length - size))
@@ -80,7 +80,7 @@ export function Trainer({ deckId, cloze = false, source = 'knacknuss' }: { deckI
 
 function TrainerRun({ words, left, phase, cloze, source, setPhase, onAgain }: { words: TWord[]; left: number; phase: Phase; cloze: boolean; source: TrainerSource; setPhase: (p: Phase) => void; onAgain: () => void }) {
   const reduce = !!useReducedMotion()
-  const engine = useMemo(() => new TrainerEngine(words.map((w) => ({ id: w.pick.card.id, hasCloze: !!w.cloze, canListen: w.canListen })), cloze ? CLOZE_ONLY : undefined), [words, cloze])
+  const engine = useMemo(() => new TrainerEngine(words.map((w) => ({ id: w.pick.card.id, hasCloze: !!w.cloze, canListen: w.canListen })), cloze ? CLOZE_ONLY : source === 'neu' ? 'quick' : undefined), [words, cloze, source])
   const byId = useMemo(() => new Map(words.map((w) => [w.pick.card.id, w])), [words])
   const [learnI, setLearnI] = useState(0)
   const [turn, setTurn] = useState(0)
@@ -461,7 +461,7 @@ function Feedback({ res, w }: { res: Result; w: TWord }) {
 
 /* ---------- Fertig ---------- */
 function Done({ words, cracked, engine, left, cloze, source, onAgain }: { words: TWord[]; cracked: string[]; engine: TrainerEngine; left: number; cloze: boolean; source: TrainerSource; onAgain: () => void }) {
-  const size = cloze ? CLOZE_SIZE : TRAINER_SIZE
+  const size = cloze ? CLOZE_SIZE : source === 'neu' ? NEW_SIZE : TRAINER_SIZE
   const focus = useRef<HTMLButtonElement>(null)
   useEffect(() => focus.current?.focus(), [])
   const clean = words.filter((w) => engine.wrongCount(w.pick.card.id) === 0).length
@@ -511,7 +511,7 @@ export function KnacknussCard() {
       <div className="mt-4 grid gap-2 desk:grid-cols-2">
         {n.hard > 0 && <TrainButton primary title="Knacknüsse" sub={`die ${Math.min(TRAINER_SIZE, n.hard)} schwierigsten von ${n.hard}`} to="/knacknuss" />}
         {n.errors > 0 && <TrainButton primary={n.hard === 0} title="Alle Fehler" sub={`alle ${n.errors} falschen Wörter auf einmal`} to="/knacknuss?src=fehler" />}
-        {n.fresh > 0 && <TrainButton primary={n.hard === 0 && n.errors === 0} title="Neue Wörter" sub={`${Math.min(TRAINER_SIZE, n.fresh)} von ${n.fresh} neuen – gleich mit allen Übungen`} to="/knacknuss?src=neu" />}
+        {n.fresh > 0 && <TrainButton primary={n.hard === 0 && n.errors === 0} title="Neue Wörter" sub={`${Math.min(NEW_SIZE, n.fresh)} von ${n.fresh} neuen · ca. 7 Min pro Runde`} to="/knacknuss?src=neu" />}
         <TrainButton title="Nur Lückentext" sub="das fehlende Wort im Satz – 12 Sätze" to="/knacknuss?cloze=1" />
       </div>
     </section>
