@@ -4,7 +4,9 @@ import { Rating } from 'ts-fsrs'
 import { db } from '../../db/db'
 import { log } from '../../db/queries'
 import { requestSync } from '../../db/autosync'
-import { TRAINER_SIZE, clozeCandidates, crackWord, trainerCandidates, type TrainerPick } from '../../db/trainer'
+import { TRAINER_SIZE, clozeCandidates, crackWord, errorCandidates, newCandidates, trainerCandidates, type TrainerPick } from '../../db/trainer'
+import { applyBlockTest, introduceBlock } from '../../db/blocks'
+import { loadSettings } from '../../db/queries'
 import { CLOZE_ONLY, EXERCISE_LABEL, TrainerEngine, fadeWord, scrambleTiles, spacePositions, writtenForm, type Exercise, type Tile, type TrainerItem } from '../../lib/trainer'
 import { clozeGap, GAP } from '../../lib/cloze'
 import { diffChars, gradeAnswer, normalize, type AnswerLang } from '../../lib/grade'
@@ -34,21 +36,27 @@ type Phase = 'loading' | 'empty' | 'learn' | 'match' | 'drill' | 'done'
 
 export const CLOZE_SIZE = 12
 
-export function Trainer({ deckId, cloze = false }: { deckId?: string; cloze?: boolean }) {
+/** knacknuss: the 8 worst · fehler: every wrong word at once · neu: new words (8 per round) · cloze: gap sentences only */
+export type TrainerSource = 'knacknuss' | 'fehler' | 'neu'
+const TITLE: Record<TrainerSource, string> = { knacknuss: 'Knacknuss-Training', fehler: 'Alle Fehler', neu: 'Neue Wörter' }
+
+export function Trainer({ deckId, cloze = false, source = 'knacknuss' }: { deckId?: string; cloze?: boolean; source?: TrainerSource }) {
   const [words, setWords] = useState<TWord[]>([])
   const [phase, setPhase] = useState<Phase>('loading')
   const [left, setLeft] = useState(0)
   const [round, setRound] = useState(0)
   useEffect(() => {
     ;(async () => {
-      const size = cloze ? CLOZE_SIZE : TRAINER_SIZE
-      const all = cloze ? await clozeCandidates(db, deckId, (p) => !!toWord(p).cloze) : await trainerCandidates(db, deckId)
+      const all = cloze ? await clozeCandidates(db, deckId, (p) => !!toWord(p).cloze) : source === 'fehler' ? await errorCandidates(db, deckId) : source === 'neu' ? await newCandidates(db, deckId) : await trainerCandidates(db, deckId)
+      const size = cloze ? CLOZE_SIZE : source === 'fehler' ? all.length : TRAINER_SIZE
+      // new words count as introduced as soon as you start with them
+      if (source === 'neu' && !cloze) await introduceBlock(db, all.slice(0, size).map((p) => p.card.id))
       setLeft(Math.max(0, all.length - size))
       const w = all.slice(0, size).map(toWord)
       setWords(w)
       setPhase(w.length ? (cloze ? 'drill' : 'learn') : 'empty')
     })()
-  }, [deckId, round, cloze])
+  }, [deckId, round, cloze, source])
 
   if (phase === 'loading') return <div className="h-60" aria-busy="true" />
   if (phase === 'empty')
@@ -56,6 +64,10 @@ export function Trainer({ deckId, cloze = false }: { deckId?: string; cloze?: bo
       <div className="mx-auto max-w-[640px] px-4 pt-10">
         {cloze ? (
           <Empty title="Keine Lückensätze" action={<Button onClick={() => go(EXIT)}>Zurück</Button>}>Zu deinen Wörtern gibt es keine Beispielsätze, in denen das Wort vorkommt.</Empty>
+        ) : source === 'neu' ? (
+          <Empty title="Keine neuen Wörter" action={<Button onClick={() => go(EXIT)}>Zurück</Button>}>Alle Wörter sind schon eingeführt.</Empty>
+        ) : source === 'fehler' ? (
+          <Empty title="Keine Fehler" action={<Button onClick={() => go(EXIT)}>Zurück</Button>}>In den letzten 30 Tagen hattest du kein Wort falsch.</Empty>
         ) : (
           <Empty title="Keine Knacknüsse" action={<Button onClick={() => go(EXIT)}>Zurück</Button>}>
             Du hast keine Wörter, die wackeln oder die du in letzter Zeit falsch hattest. Mach einen Block oder einen Probetest – was dort falsch ist, landet hier.
@@ -63,10 +75,10 @@ export function Trainer({ deckId, cloze = false }: { deckId?: string; cloze?: bo
         )}
       </div>
     )
-  return <TrainerRun key={round} words={words} left={left} phase={phase} cloze={cloze} setPhase={setPhase} onAgain={() => { setPhase('loading'); setRound((r) => r + 1) }} />
+  return <TrainerRun key={round} words={words} left={left} phase={phase} cloze={cloze} source={source} setPhase={setPhase} onAgain={() => { setPhase('loading'); setRound((r) => r + 1) }} />
 }
 
-function TrainerRun({ words, left, phase, cloze, setPhase, onAgain }: { words: TWord[]; left: number; phase: Phase; cloze: boolean; setPhase: (p: Phase) => void; onAgain: () => void }) {
+function TrainerRun({ words, left, phase, cloze, source, setPhase, onAgain }: { words: TWord[]; left: number; phase: Phase; cloze: boolean; source: TrainerSource; setPhase: (p: Phase) => void; onAgain: () => void }) {
   const reduce = !!useReducedMotion()
   const engine = useMemo(() => new TrainerEngine(words.map((w) => ({ id: w.pick.card.id, hasCloze: !!w.cloze, canListen: w.canListen })), cloze ? CLOZE_ONLY : undefined), [words, cloze])
   const byId = useMemo(() => new Map(words.map((w) => [w.pick.card.id, w])), [words])
@@ -80,15 +92,18 @@ function TrainerRun({ words, left, phase, cloze, setPhase, onAgain }: { words: T
   const answer = (ok: boolean, typed = '') => {
     if (!item) return
     const w = byId.get(item.id)!
-    if (item.exercise !== 'scramble' && item.exercise !== 'fade') {
+    // new words: early mistakes are normal while learning, only the free recall is logged
+    const logged = source === 'neu' ? item.exercise === 'write' || item.exercise === 'final' : item.exercise !== 'scramble' && item.exercise !== 'fade'
+    if (logged) {
       void log(db, { cardId: w.pick.card.id, deckId: w.pick.deck.id, timestamp: new Date().toISOString(), mode: 'drill', rating: Rating.Manual, typedAnswer: typed, correct: ok, durationMs: 0 })
     }
     const done = engine.answer(ok)
     if (done) {
       setCracked((c) => [...c, item.id])
       // a gap sentence gives context, so only the full exercise ladder counts as a review
-      if (!cloze) void crackWord(db, item.id, engine.wrongCount(item.id) > 0).then(requestSync)
-      else requestSync()
+      if (cloze) requestSync()
+      else if (source === 'neu') void loadSettings(db).then((st) => applyBlockTest(db, [{ cardId: item.id, correct: true }], st.desiredRetention)).then(requestSync)
+      else void crackWord(db, item.id, engine.wrongCount(item.id) > 0).then(requestSync)
     }
     if (engine.finished) setPhase('done')
     setTurn((x) => x + 1)
@@ -102,7 +117,7 @@ function TrainerRun({ words, left, phase, cloze, setPhase, onAgain }: { words: T
           <div className="min-w-0 flex-1">
             <Progress value={progress} tone="good" label="Fortschritt Training" />
             <p className="mt-1 truncate text-[12px] text-muted">
-              <span className="font-semibold text-fg">{cloze ? 'Lückentext-Training' : 'Knacknuss-Training'}</span> · {phase === 'learn' ? 'Einprägen' : phase === 'match' ? 'Paare finden' : phase === 'drill' && item ? EXERCISE_LABEL[item.exercise] : 'Fertig'}
+              <span className="font-semibold text-fg">{cloze ? 'Lückentext-Training' : TITLE[source]}</span> · {phase === 'learn' ? 'Einprägen' : phase === 'match' ? 'Paare finden' : phase === 'drill' && item ? EXERCISE_LABEL[item.exercise] : 'Fertig'}
             </p>
           </div>
           <span className="shrink-0 text-sm text-muted tabular">{cracked.length}/{words.length} {cloze ? '✓' : '🌰'}</span>
@@ -120,7 +135,7 @@ function TrainerRun({ words, left, phase, cloze, setPhase, onAgain }: { words: T
         )}
         {phase === 'match' && <Match words={words} reduce={reduce} onDone={() => setPhase('drill')} />}
         {phase === 'drill' && item && <ExerciseView key={`${item.id}-${turn}`} item={item} w={byId.get(item.id)!} reduce={reduce} onAnswer={answer} />}
-        {phase === 'done' && <Done words={words} cracked={cracked} engine={engine} left={left} cloze={cloze} onAgain={onAgain} />}
+        {phase === 'done' && <Done words={words} cracked={cracked} engine={engine} left={left} cloze={cloze} source={source} onAgain={onAgain} />}
       </div>
     </div>
   )
@@ -157,7 +172,7 @@ function LearnCard({ w, i, n, reduce, onNext }: { w: TWord; i: number; n: number
       <p className="mb-3 text-center text-sm font-medium text-muted">Einprägen {i + 1} von {n} · Lies es, sprich es laut, stell es dir vor</p>
       <motion.div key={w.pick.card.id} className={card} initial={reduce ? false : { opacity: 0, x: 28 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.18 }}>
         <div className="flex items-center justify-between gap-3">
-          <span className="rounded-full bg-bad-soft px-2.5 py-0.5 text-[13px] font-semibold text-bad">{w.pick.reason}</span>
+          <span className={cx('rounded-full px-2.5 py-0.5 text-[13px] font-semibold', w.pick.wrong > 0 ? 'bg-bad-soft text-bad' : 'bg-accent-soft text-accent')}>{w.pick.reason === 'neu' ? 'neues Wort' : w.pick.reason}</span>
           <span className="truncate text-sm text-muted">{w.pick.deck.name}</span>
         </div>
         <p className="mt-4 hyphens-auto break-words text-[22px] font-medium leading-snug text-muted" lang={qLang(w)}>{question(w)}</p>
@@ -207,7 +222,13 @@ function shuffle<T>(xs: T[]): T[] {
 }
 
 function Match({ words, reduce, onDone }: { words: TWord[]; reduce: boolean; onDone: () => void }) {
-  const set = useMemo(() => words.slice(0, 6), [words])
+  const chunks = useMemo(() => { const a = shuffle(words); const out: TWord[][] = []; for (let i = 0; i < a.length; i += 6) out.push(a.slice(i, i + 6)); return out }, [words])
+  const [ci, setCi] = useState(0)
+  const next = () => (ci + 1 < chunks.length ? setCi(ci + 1) : onDone())
+  return <MatchSet key={ci} set={chunks[ci]} part={chunks.length > 1 ? `${ci + 1}/${chunks.length}` : ''} last={ci + 1 >= chunks.length} reduce={reduce} onDone={next} onSkip={onDone} />
+}
+
+function MatchSet({ set, part, last, reduce, onDone, onSkip }: { set: TWord[]; part: string; last: boolean; reduce: boolean; onDone: () => void; onSkip: () => void }) {
   const [left] = useState(() => shuffle(set))
   const [right] = useState(() => shuffle(set))
   const [sel, setSel] = useState<string | null>(null)
@@ -225,7 +246,7 @@ function Match({ words, reduce, onDone }: { words: TWord[]; reduce: boolean; onD
   return (
     <div>
       <div className={card}>
-        <p className="text-sm font-medium text-muted">Paare finden</p>
+        <p className="text-sm font-medium text-muted">Paare finden{part && ` · ${part}`}</p>
         <p className="mt-1 text-[20px] font-bold tracking-tight">Tipp links ein Wort, dann rechts die Übersetzung</p>
         <div className="mt-5 grid grid-cols-2 gap-2.5">
           <div className="space-y-2.5">
@@ -256,8 +277,8 @@ function Match({ words, reduce, onDone }: { words: TWord[]; reduce: boolean; onD
         </div>
         <p className="mt-4 text-sm text-muted" role="status">{all ? `Alle Paare gefunden – mit ${tries} Versuchen.` : `${matched.length} von ${set.length} Paaren`}</p>
       </div>
-      <Button size="lg" variant="primary" className="mt-4 w-full" disabled={!all} onClick={onDone} kbd={all ? 'Enter' : undefined}>Weiter zu den Übungen</Button>
-      {!all && <button type="button" onClick={onDone} className="mt-2 min-h-11 w-full text-sm font-medium text-muted hover:text-fg">Überspringen</button>}
+      <Button size="lg" variant="primary" className="mt-4 w-full" disabled={!all} onClick={onDone} kbd={all ? 'Enter' : undefined}>{last ? 'Weiter zu den Übungen' : 'Nächste Paare'}</Button>
+      {!all && <button type="button" onClick={onSkip} className="mt-2 min-h-11 w-full text-sm font-medium text-muted hover:text-fg">Überspringen</button>}
     </div>
   )
 }
@@ -439,7 +460,7 @@ function Feedback({ res, w }: { res: Result; w: TWord }) {
 }
 
 /* ---------- Fertig ---------- */
-function Done({ words, cracked, engine, left, cloze, onAgain }: { words: TWord[]; cracked: string[]; engine: TrainerEngine; left: number; cloze: boolean; onAgain: () => void }) {
+function Done({ words, cracked, engine, left, cloze, source, onAgain }: { words: TWord[]; cracked: string[]; engine: TrainerEngine; left: number; cloze: boolean; source: TrainerSource; onAgain: () => void }) {
   const size = cloze ? CLOZE_SIZE : TRAINER_SIZE
   const focus = useRef<HTMLButtonElement>(null)
   useEffect(() => focus.current?.focus(), [])
@@ -448,7 +469,7 @@ function Done({ words, cracked, engine, left, cloze, onAgain }: { words: TWord[]
     <div className="space-y-5">
       <div className={cx(card, 'text-center')}>
         <div className="flex justify-center"><Illustration kind="done" size={110} /></div>
-        <p className="mt-3 text-[26px] font-bold tracking-tight">{cloze ? `${cracked.length} Lückensätze gemeistert!` : `${cracked.length} Knacknüsse geknackt!`}</p>
+        <p className="mt-3 text-[26px] font-bold tracking-tight">{cloze ? `${cracked.length} Lückensätze gemeistert!` : source === 'neu' ? `${cracked.length} neue Wörter gelernt!` : source === 'fehler' ? `${cracked.length} Fehler ausgebügelt!` : `${cracked.length} Knacknüsse geknackt!`}</p>
         <p className="mx-auto mt-1 max-w-[440px] text-[15px] text-muted">{clean} davon ohne einen Fehler. Morgen nochmals kurz abfragen – dann bleiben sie hängen.</p>
       </div>
       <ul className="divide-y divide-line overflow-hidden rounded-[22px] bg-surface shadow-card">
@@ -464,40 +485,44 @@ function Done({ words, cracked, engine, left, cloze, onAgain }: { words: TWord[]
         })}
       </ul>
       <div className="flex flex-col gap-2 desk:flex-row">
-        {left > 0 && <Button ref={focus} variant="primary" size="lg" onClick={onAgain}>Nächste {Math.min(size, left)} {cloze ? 'Lückensätze' : 'Knacknüsse'}</Button>}
+        {left > 0 && <Button ref={focus} variant="primary" size="lg" onClick={onAgain}>Nächste {Math.min(size, left)} {cloze ? 'Lückensätze' : source === 'neu' ? 'neuen Wörter' : 'Knacknüsse'}</Button>}
         <Button ref={left > 0 ? undefined : focus} variant={left > 0 ? undefined : 'primary'} size="lg" onClick={() => go(EXIT)}>Fertig</Button>
       </div>
     </div>
   )
 }
 
-/** Entry card (Heute, Fehlerheft): how many words wait to be cracked. */
-export function KnacknussCard({ compact }: { compact?: boolean }) {
-  const [n, setN] = useState<number | null>(null)
-  useEffect(() => { void trainerCandidates(db).then((c) => setN(c.length)) }, [])
+/** Entry card (Heute, Fehlerheft): the training variants with how many words wait. */
+export function KnacknussCard() {
+  const [n, setN] = useState<{ hard: number; errors: number; fresh: number } | null>(null)
+  useEffect(() => {
+    void Promise.all([trainerCandidates(db), newCandidates(db)]).then(([h, f]) => setN({ hard: h.length, errors: h.filter((p) => p.wrong > 0).length, fresh: f.length }))
+  }, [])
   if (n == null) return null
-  if (n === 0)
-    return (
-      <section className="flex flex-wrap items-center gap-4 rounded-[22px] bg-surface p-5 shadow-card">
-        <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-accent-soft text-[22px]" aria-hidden>✍️</span>
-        <div className="min-w-0 flex-1">
-          <p className="text-[17px] font-semibold">Lückentext-Training</p>
-          <p className="text-sm text-muted">Das fehlende Wort im Beispielsatz einsetzen – jedes Wort zweimal richtig.</p>
-        </div>
-        <Button onClick={() => go('/knacknuss?cloze=1')} className="w-full desk:w-auto">Lückentext starten</Button>
-      </section>
-    )
   return (
-    <section className={cx('flex flex-wrap items-center gap-4 rounded-[22px] bg-surface p-5 shadow-card', compact && 'desk:flex-nowrap')}>
-      <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-warn-soft text-[24px]" aria-hidden>🌰</span>
-      <div className="min-w-0 flex-1">
-        <p className="text-[17px] font-semibold">Knacknüsse knacken <span className="text-muted tabular">· {n} {n === 1 ? 'Wort' : 'Wörter'}</span></p>
-        <p className="text-sm text-muted">Die Wörter, die du nicht kannst – mit Eselsbrücke, Paaren, Buchstabensalat, Lückentext, Hören und Schreiben.</p>
+    <section className="rounded-[22px] bg-surface p-5 shadow-card">
+      <div className="flex items-center gap-4">
+        <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-warn-soft text-[24px]" aria-hidden>🌰</span>
+        <div className="min-w-0 flex-1">
+          <p className="text-[17px] font-semibold">Wörter knacken</p>
+          <p className="text-sm text-muted">Eselsbrücke, Paare, Buchstabensalat, Lückentext, Hören und Schreiben – bis es sitzt.</p>
+        </div>
       </div>
-      <div className="flex w-full flex-col gap-2 desk:w-auto desk:flex-row">
-        <Button variant="primary" onClick={() => go('/knacknuss')}>Training starten</Button>
-        <Button onClick={() => go('/knacknuss?cloze=1')}>Nur Lückentext</Button>
+      <div className="mt-4 grid gap-2 desk:grid-cols-2">
+        {n.hard > 0 && <TrainButton primary title="Knacknüsse" sub={`die ${Math.min(TRAINER_SIZE, n.hard)} schwierigsten von ${n.hard}`} to="/knacknuss" />}
+        {n.errors > 0 && <TrainButton primary={n.hard === 0} title="Alle Fehler" sub={`alle ${n.errors} falschen Wörter auf einmal`} to="/knacknuss?src=fehler" />}
+        {n.fresh > 0 && <TrainButton primary={n.hard === 0 && n.errors === 0} title="Neue Wörter" sub={`${Math.min(TRAINER_SIZE, n.fresh)} von ${n.fresh} neuen – gleich mit allen Übungen`} to="/knacknuss?src=neu" />}
+        <TrainButton title="Nur Lückentext" sub="das fehlende Wort im Satz – 12 Sätze" to="/knacknuss?cloze=1" />
       </div>
     </section>
+  )
+}
+
+function TrainButton({ title, sub, to, primary }: { title: string; sub: string; to: string; primary?: boolean }) {
+  return (
+    <button type="button" onClick={() => go(to)} className={cx('flex min-h-14 w-full flex-col items-start justify-center rounded-2xl px-4 py-2.5 text-left transition-[filter,transform] duration-150 active:scale-[0.98]', primary ? 'bg-accent text-on-accent hover:brightness-110' : 'bg-surface-2 hover:brightness-95 dark:hover:brightness-125')}>
+      <span className="text-[16px] font-semibold">{title}</span>
+      <span className={cx('text-[13px]', primary ? 'opacity-85' : 'text-muted')}>{sub}</span>
+    </button>
   )
 }

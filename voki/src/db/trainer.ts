@@ -8,7 +8,7 @@ import type { Card, Deck, Note } from '../lib/types'
 export const TRAINER_SIZE = 8
 const DAY = 86400000
 
-export interface TrainerPick { note: Note; card: Card; deck: Deck; score: number; reason: string }
+export interface TrainerPick { note: Note; card: Card; deck: Deck; score: number; reason: string; wrong: number }
 
 /**
  * Words you can't yet, worst first: wrong answers in the last 30 days (block tests and normal
@@ -42,7 +42,7 @@ export async function trainerCandidates(db: VokiDB, deckId?: string, now = new D
     const dir = deck.directions.includes('toTarget') ? 'toTarget' : deck.directions[0]
     const card = cards.find((c) => c.noteId === noteId && c.direction === dir) ?? cards.find((c) => c.noteId === noteId)
     if (!card) continue
-    out.push({ note, card, deck, score, reason: w > 0 ? `${w}× falsch` : m })
+    out.push({ note, card, deck, score, wrong: w, reason: w > 0 ? `${w}× falsch` : m })
   }
   return out.sort((a, b) => b.score - a.score || a.card.order - b.card.order)
 }
@@ -68,11 +68,40 @@ export async function clozeCandidates(db: VokiDB, deckId: string | undefined, ha
     const dir = deck.directions.includes('toTarget') ? 'toTarget' : deck.directions[0]
     if (c.direction !== dir) continue
     const m = byNote.get(note.id) ?? 'neu'
-    const p: TrainerPick = { note, card: c, deck, score: 0, reason: m }
+    const p: TrainerPick = { note, card: c, deck, score: 0, wrong: 0, reason: m }
     if (hasCloze(p)) { rest.push(p); taken.add(note.id) }
   }
   rest.sort((a, b) => rank[a.reason as keyof typeof rank] - rank[b.reason as keyof typeof rank])
   return [...hard, ...rest]
+}
+
+/** Every word answered wrong in the last 30 days, most mistakes first. */
+export async function errorCandidates(db: VokiDB, deckId?: string, now = new Date()): Promise<TrainerPick[]> {
+  return (await trainerCandidates(db, deckId, now)).filter((p) => p.wrong > 0)
+}
+
+/** Words never started yet (all cards „new“), in list order; decks with the nearest test first. */
+export async function newCandidates(db: VokiDB, deckId?: string): Promise<TrainerPick[]> {
+  const decks = (await db.decks.toArray())
+    .filter((d) => !d.archived && (!deckId || d.id === deckId))
+    .sort((a, b) => (a.examDate ?? '9999').localeCompare(b.examDate ?? '9999'))
+  const out: TrainerPick[] = []
+  for (const deck of decks) {
+    const cards = (await db.cards.where('deckId').equals(deck.id).toArray()).filter((c) => !c.suspended && deck.directions.includes(c.direction))
+    const notes = new Map((await db.notes.where('deckId').equals(deck.id).toArray()).map((n) => [n.id, n]))
+    const byNote = new Map<string, Card[]>()
+    for (const c of cards) byNote.set(c.noteId, [...(byNote.get(c.noteId) ?? []), c])
+    const dir = deck.directions.includes('toTarget') ? 'toTarget' : deck.directions[0]
+    const fresh: TrainerPick[] = []
+    for (const [noteId, cs] of byNote) {
+      const note = notes.get(noteId)
+      const card = cs.find((c) => c.direction === dir) ?? cs[0]
+      if (!note || !cs.every((c) => c.stage === 'new')) continue
+      fresh.push({ note, card, deck, score: 0, wrong: 0, reason: 'neu' })
+    }
+    out.push(...fresh.sort((a, b) => a.card.order - b.card.order))
+  }
+  return out
 }
 
 /** A word is cracked: the final free recall counts as a review (Hard if it needed several tries). */

@@ -67,7 +67,7 @@ export function App() {
       />
     )
   }
-  if (route.parts[0] === 'knacknuss') return <Trainer key={q.toString()} deckId={q.get('deck') ?? undefined} cloze={q.get('cloze') === '1'} />
+  if (route.parts[0] === 'knacknuss') return <Trainer key={q.toString()} deckId={q.get('deck') ?? undefined} cloze={q.get('cloze') === '1'} source={(q.get('src') as 'fehler' | 'neu' | null) ?? 'knacknuss'} />
   if (route.parts[0] === 'bloecke' && q.get('deck') && q.get('start') != null) return <BlockRun key={q.toString()} deckId={q.get('deck')!} index={Number(q.get('start')) || 0} />
   if (route.parts[0] === 'probetest' && q.get('deck')) return <ProbeTest key={q.toString()} deckId={q.get('deck')!} />
 
