@@ -1,6 +1,7 @@
 import { Rating } from 'ts-fsrs'
 import type { VokiDB } from './db'
-import type { Card } from '../lib/types'
+import type { Card, TestResult } from '../lib/types'
+import { uid } from '../lib/id'
 import { applyReview } from '../lib/srs'
 
 const LADDER = new Set<Card['stage']>(['new', 'intro', 'mc', 'type'])
@@ -61,4 +62,22 @@ export async function applyPendingBlockTests(db: VokiDB, retention: number): Pro
     await db.tests.put({ ...t, applied: true, updatedAt: new Date().toISOString() })
   }
   return pending.length
+}
+
+/**
+ * „Schon gelernt“ (e.g. on another device): the block gets the chosen grade, and all its words
+ * (both directions) count as learned – so they no longer come as new words. As learned words
+ * they only come back much later as normal reviews.
+ */
+export async function markBlockLearned(db: VokiDB, deckId: string, block: number, blocks: number, cardIds: string[], grade: number, retention: number, now = new Date()): Promise<void> {
+  const iso = now.toISOString()
+  await db.transaction('rw', db.cards, db.tests, async () => {
+    const cards = (await db.cards.bulkGet(cardIds)).filter((c): c is Card => !!c)
+    const noteIds = [...new Set(cards.map((c) => c.noteId))]
+    const all = (await db.cards.where('noteId').anyOf(noteIds).toArray()).filter((c) => !c.suspended && c.stage !== 'review')
+    if (all.length) await db.cards.bulkPut(all.map((c) => applyReview(c, Rating.Good, now, retention)))
+    const total = cards.length
+    const test: TestResult = { id: uid(), deckId, date: iso, total, correct: Math.round(((grade - 1) / 5) * total), grade, items: [], block, blocks, applied: true, updatedAt: iso }
+    await db.tests.add(test)
+  })
 }

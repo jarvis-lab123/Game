@@ -5,7 +5,8 @@ import { Rating } from 'ts-fsrs'
 import { db } from '../../db/db'
 import { log } from '../../db/queries'
 import { requestSync } from '../../db/autosync'
-import { introduceBlock } from '../../db/blocks'
+import { introduceBlock, markBlockLearned } from '../../db/blocks'
+import { loadSettings } from '../../db/queries'
 import type { Card, Deck, Note } from '../../lib/types'
 import { READ_ROUNDS, blockStates, drillCurrent, drillFinished, drillMark, overallGrade, pickNextBlock, splitBlocks, startDrill, type BlockState, type DrillState } from '../../lib/blocks'
 import { gradeTone } from '../../lib/papertest'
@@ -128,7 +129,63 @@ function DeckBlockCard({ d }: { d: DeckBlocks }) {
           </li>
         ))}
       </ul>
+      <MarkLearned d={d} />
     </section>
+  )
+}
+
+const GRADES = [4, 4.5, 5, 5.5, 6]
+
+/** Blocks already learned elsewhere (other device, on paper): take them over with a grade. */
+function MarkLearned({ d }: { d: DeckBlocks }) {
+  const [open, setOpen] = useState(false)
+  const [pick, setPick] = useState<number[]>([])
+  const [grade, setGrade] = useState(4)
+  const [busy, setBusy] = useState(false)
+  const [msg, setMsg] = useState('')
+  const save = async () => {
+    setBusy(true)
+    const retention = (await loadSettings(db)).desiredRetention
+    for (const i of pick.sort((a, b) => a - b)) await markBlockLearned(db, d.deck.id, i, d.blocks.length, d.blocks[i].map((w) => w.card.id), grade, retention)
+    requestSync()
+    setMsg(`${pick.length === 1 ? `Block ${pick[0] + 1}` : `${pick.length} Blöcke`} übernommen – Note ${grade.toFixed(1)}. Diese Wörter kommen nicht mehr als neue Wörter.`)
+    setPick([])
+    setOpen(false)
+    setBusy(false)
+  }
+  return (
+    <div className="border-t border-line px-5 py-3">
+      {msg && <p role="status" className="mb-2 rounded-xl bg-good-soft px-3 py-2 text-sm text-good">{msg}</p>}
+      {!open ? (
+        <button type="button" onClick={() => { setOpen(true); setMsg('') }} className="min-h-11 text-[15px] font-medium text-accent">Blöcke schon gelernt? Als gelernt übernehmen</button>
+      ) : (
+        <div className="space-y-3 py-1">
+          <p className="text-sm text-muted">Zum Beispiel am PC oder auf Papier gelernt. Die Wörter gelten dann als gelernt und kommen nicht mehr als neue Wörter – erst viel später wieder zur Wiederholung.</p>
+          <div className="flex flex-wrap gap-2" role="group" aria-label="Blöcke wählen">
+            {d.states.map((s) => {
+              const on = pick.includes(s.index)
+              return (
+                <button key={s.index} type="button" aria-pressed={on} onClick={() => setPick((p) => (on ? p.filter((x) => x !== s.index) : [...p, s.index]))}
+                  className={cx('min-h-11 rounded-full px-4 text-[15px] font-semibold transition-colors', on ? 'bg-accent text-on-accent' : 'bg-surface-2')}>
+                  {on && '✓ '}Block {s.index + 1}
+                </button>
+              )
+            })}
+          </div>
+          <div className="flex flex-wrap items-center gap-2" role="radiogroup" aria-label="Note">
+            <span className="mr-1 text-sm font-medium text-muted">Note</span>
+            {GRADES.map((g) => (
+              <button key={g} type="button" role="radio" aria-checked={grade === g} onClick={() => setGrade(g)}
+                className={cx('min-h-11 min-w-11 rounded-xl px-2 text-[15px] font-bold tabular', grade === g ? 'bg-fg text-bg' : 'bg-surface-2')}>{g.toFixed(1)}</button>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <Button variant="primary" disabled={!pick.length || busy} onClick={save}>Übernehmen</Button>
+            <Button variant="ghost" onClick={() => setOpen(false)}>Abbrechen</Button>
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
 

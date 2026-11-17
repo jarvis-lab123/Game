@@ -2,7 +2,7 @@ import 'fake-indexeddb/auto'
 import { describe, it, expect } from 'vitest'
 import { VokiDB } from './db'
 import { createDeck, importNotes } from './repo'
-import { applyBlockTest, applyPendingBlockTests, introduceBlock } from './blocks'
+import { applyBlockTest, applyPendingBlockTests, introduceBlock, markBlockLearned } from './blocks'
 
 async function setup() {
   const db = new VokiDB('b-' + Math.random())
@@ -51,5 +51,18 @@ describe('old block tests are caught up once', () => {
     expect((await db.tests.get('t1'))!.applied).toBe(true)
     expect(await applyPendingBlockTests(db, 0.9)).toBe(0)
     expect((await db.cards.get(target[0].id))!.fsrs.reps).toBe(1)
+  })
+})
+
+describe('mark a block as learned (from another device)', () => {
+  it('gives the grade and makes every word of the block learned, both directions', async () => {
+    const { db, target } = await setup()
+    await markBlockLearned(db, target[0].deckId, 0, 2, [target[0].id], 4, 0.9)
+    const cards = await db.cards.where('noteId').equals(target[0].noteId).toArray()
+    expect(cards.every((c) => c.stage === 'review')).toBe(true)
+    const other = await db.cards.where('noteId').equals(target[1].noteId).toArray()
+    expect(other.every((c) => c.stage === 'new')).toBe(true)
+    const t = (await db.tests.toArray())[0]
+    expect(t).toMatchObject({ block: 0, blocks: 2, grade: 4, applied: true })
   })
 })
