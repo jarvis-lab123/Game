@@ -5,6 +5,14 @@ describe('clozeFor (Lückentext)', () => {
   it('replaces the word in the example with a gap', () => {
     expect(clozeFor('unprecedented', 'The fires were on an unprecedented scale.')).toBe('The fires were on an ____ scale.')
   })
+  it('finds one form of a masculine/feminine pair', () => {
+    expect(clozeGap('un agriculteur, une agricultrice', 'Mon oncle est agriculteur en Suisse.')).toEqual({ sentence: 'Mon oncle est ____ en Suisse.', gap: 'agriculteur' })
+    expect(clozeGap('un, une garagiste', 'Le garagiste répare ma voiture.')?.gap).toBe('garagiste')
+    expect(clozeGap('un acteur, une actrice', 'Cette actrice joue très bien.')?.gap).toBe('actrice')
+  })
+  it('phrases: gaps the verb when the sentence fills in the rest', () => {
+    expect(clozeGap('apprendre (qc) à (qn)', 'La prof va apprendre le français aux élèves.')?.gap).toBe('apprendre')
+  })
   it('is case-insensitive', () => {
     expect(clozeFor('non-native', 'Non-native plants can take over.')).toBe('____ plants can take over.')
   })

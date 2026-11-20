@@ -34,6 +34,8 @@ export interface BlockState {
   grade: number | null
   best: number | null
   date: string | null
+  /** date of the first test of this block */
+  first: string | null
   attempts: number
 }
 
@@ -49,6 +51,7 @@ export function blockStates(sizes: number[], tests: BlockTest[]): BlockState[] {
       grade: last ? last.grade : null,
       best: mine.length ? Math.max(...mine.map((t) => t.grade)) : null,
       date: last ? last.date : null,
+      first: mine.length ? mine[0].date : null,
       attempts: mine.length,
     }
   })
@@ -115,4 +118,44 @@ function shuffle<T>(xs: T[], rng: () => number): T[] {
     ;[a[i], a[j]] = [a[j], a[i]]
   }
   return a
+}
+
+/* ---------- Tagesplan bis zum Test ---------- */
+
+export interface PlanDay { date: string; learn: number[]; done: number[]; finalReview: boolean; today: boolean }
+
+const dayKeyOf = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+
+/**
+ * Spreads the blocks without a grade over the days until the test: the last day before the test
+ * is kept for repeating everything. Blocks first tested today count for today. Returns null when
+ * the test is today or over.
+ */
+export function blockDayPlan(states: BlockState[], now: Date, examDate: string): PlanDay[] | null {
+  const [y, m, d] = examDate.split('-').map(Number)
+  const days: string[] = []
+  for (let i = 0; ; i++) {
+    const day = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i)
+    if (day.getTime() >= new Date(y, m - 1, d).getTime()) break
+    days.push(dayKeyOf(day))
+    if (i > 60) break
+  }
+  if (!days.length) return null
+  const today = days[0]
+  const learnDays = days.length >= 2 ? days.length - 1 : 1
+  const doneToday = states.filter((s) => s.first && dayKeyOf(new Date(s.first)) === today).map((s) => s.index)
+  const pending = states.filter((s) => s.grade == null).map((s) => s.index)
+  const perDay = Math.ceil((pending.length + doneToday.length) / learnDays)
+  const out: PlanDay[] = []
+  const todayLearn = pending.slice(0, Math.max(0, perDay - doneToday.length))
+  let rest = pending.slice(todayLearn.length)
+  out.push({ date: today, learn: todayLearn, done: doneToday, finalReview: learnDays === 1 && days.length === 1, today: true })
+  for (let i = 1; i < days.length; i++) {
+    const isLast = i === days.length - 1 && days.length >= 2
+    const left = learnDays - i
+    const take = isLast ? rest.length : left > 0 ? Math.ceil(rest.length / left) : rest.length
+    out.push({ date: days[i], learn: rest.slice(0, take), done: [], finalReview: isLast, today: false })
+    rest = rest.slice(take)
+  }
+  return out
 }

@@ -26,8 +26,8 @@ function forControl(e: KeyboardEvent) {
 
 export interface PaperBlock { index: number; count: number; exitTo: string; againTo: string; title: string }
 
-export function PaperTest({ deck, items, n, block }: { deck: Deck; items: PaperItem[]; n: string | null; block?: PaperBlock }) {
-  const exitTo = block?.exitTo ?? '/ueben'
+export function PaperTest({ deck, items, n, block, exitTo: exitOverride, title, againTo }: { deck: Deck; items: PaperItem[]; n: string | null; block?: PaperBlock; exitTo?: string; title?: string; againTo?: string }) {
+  const exitTo = block?.exitTo ?? exitOverride ?? '/ueben'
   const reduce = !!useReducedMotion()
   const N = items.length
   const [phase, setPhase] = useState<Phase>('intro')
@@ -133,12 +133,12 @@ export function PaperTest({ deck, items, n, block }: { deck: Deck; items: PaperI
       </header>
       <p className="sr-only" aria-live="polite">{said}</p>
       <div className="mx-auto w-full max-w-[680px] flex-1 px-4 pb-10 pt-6 desk:pt-10">
-        {phase === 'intro' && <Intro n={N} reduce={reduce} onStart={start} title={block?.title} />}
+        {phase === 'intro' && <Intro n={N} reduce={reduce} onStart={start} title={block?.title ?? title} />}
         {phase === 'write' && <Write item={items[i]} i={i} N={N} dir={dir} reduce={reduce} onNext={forward} onBack={backward} />}
         {phase === 'correct' && (
           <Correct deck={deck} items={items} decisions={decisions} cur={cur} reduce={reduce} canUndo={history.length > 0} onDecide={decide} onUndo={undo} onGrade={toGrade} points={score.points} />
         )}
-        {phase === 'grade' && <GradeReveal deck={deck} items={items} decisions={decisions} reduce={reduce} block={block} onAgain={() => go(`/probetest?deck=${deck.id}${n ? `&n=${n}` : ''}&paper=1&t=${Date.now()}`)} />}
+        {phase === 'grade' && <GradeReveal deck={deck} items={items} decisions={decisions} reduce={reduce} block={block} onAgain={() => go(againTo ? `${againTo}&t=${Date.now()}` : `/probetest?deck=${deck.id}${n ? `&n=${n}` : ''}&paper=1&t=${Date.now()}`)} />}
       </div>
     </div>
   )

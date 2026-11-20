@@ -8,7 +8,7 @@ import { requestSync } from '../../db/autosync'
 import { introduceBlock, markBlockLearned } from '../../db/blocks'
 import { loadSettings } from '../../db/queries'
 import type { Card, Deck, Note } from '../../lib/types'
-import { READ_ROUNDS, blockStates, drillCurrent, drillFinished, drillMark, overallGrade, pickNextBlock, splitBlocks, startDrill, type BlockState, type DrillState } from '../../lib/blocks'
+import { READ_ROUNDS, blockDayPlan, blockStates, drillCurrent, drillFinished, drillMark, overallGrade, pickNextBlock, splitBlocks, startDrill, type BlockState, type DrillState } from '../../lib/blocks'
 import { gradeTone } from '../../lib/papertest'
 import { Badge, Button, Empty, Kbd, Progress, cx } from '../components'
 import { Flag, IconBack, IconCheck, IconChevron, IconPlay, IconX } from '../icons'
@@ -106,6 +106,7 @@ function DeckBlockCard({ d }: { d: DeckBlocks }) {
           </div>
         )}
       </div>
+      {d.deck.examDate && <DayPlan d={d} />}
       {next && (
         <div className="px-5 pb-4">
           <Button variant="primary" size="lg" className="w-full" onClick={() => go(`/bloecke?deck=${d.deck.id}&start=${next.index}`)}>
@@ -131,6 +132,46 @@ function DeckBlockCard({ d }: { d: DeckBlocks }) {
       </ul>
       <MarkLearned d={d} />
     </section>
+  )
+}
+
+const fmtDay = new Intl.DateTimeFormat('de-CH', { weekday: 'short', day: 'numeric', month: 'numeric' })
+const parseKey = (k: string) => { const [y, m, d] = k.split('-').map(Number); return new Date(y, m - 1, d) }
+
+/** Blocks spread over the days until the test; every day starts with a short test of the earlier blocks. */
+function DayPlan({ d }: { d: DeckBlocks }) {
+  const plan = blockDayPlan(d.states, new Date(), d.deck.examDate!)
+  if (!plan) return null
+  const earlier = d.states.filter((s) => s.grade != null).length
+  const today = plan[0]
+  // blocks learned before today (a block finished today is not „earlier“ yet)
+  const before = d.states.filter((s) => s.grade != null && !today.done.includes(s.index)).length
+  const b = (xs: number[]) => xs.map((i) => `Block ${i + 1}`).join(' + ')
+  return (
+    <div className="mx-5 mb-4 rounded-2xl bg-surface-2 p-4">
+      <p className="text-[15px] font-semibold">Tagesplan bis zum Test · {fmtDay.format(parseKey(d.deck.examDate!))}</p>
+      <p className="mt-0.5 text-[13px] text-muted">Jeden Tag ein neuer Block – und alle bisherigen Blöcke musst du weiter können.</p>
+      <ol className="mt-3 space-y-1.5 text-[14px]">
+        {plan.map((day) => (
+          <li key={day.date} className={cx('flex gap-3 rounded-xl px-2.5 py-1.5', day.today && 'bg-surface shadow-card')}>
+            <span className={cx('w-[72px] shrink-0 tabular', day.today ? 'font-semibold' : 'text-muted')}>{day.today ? 'Heute' : fmtDay.format(parseKey(day.date))}</span>
+            <span className="min-w-0">
+              {day.done.length > 0 && <span className="font-medium text-good">✓ {b(day.done)} </span>}
+              {day.learn.length > 0 && <span className="font-medium">{b(day.learn)} lernen</span>}
+              {day.finalReview ? <span className="font-medium">Alles wiederholen: schlechtesten Block + Alle Fehler</span> : !day.learn.length && !day.done.length && <span className="text-muted">wiederholen</span>}
+              {!day.finalReview && (!day.today || before > 0) && <span className="text-muted">{day.learn.length || day.done.length ? ' · ' : ''}Kurztest der früheren Blöcke</span>}
+            </span>
+          </li>
+        ))}
+      </ol>
+      {earlier > 0 && (
+        <div className="mt-3 flex flex-col gap-2 desk:flex-row">
+          <Button onClick={() => go(`/bloecke?deck=${d.deck.id}&start=0&review=${Math.max(...d.states.filter((s) => s.grade != null).map((s) => s.index)) + 1}`)}>Kurztest: 20 Wörter aus Block 1–{Math.max(...d.states.filter((s) => s.grade != null).map((s) => s.index)) + 1}</Button>
+          <Button onClick={() => go(`/knacknuss?src=fehler&deck=${d.deck.id}`)}>Alle Fehler trainieren</Button>
+        </div>
+      )}
+      {today.learn.length === 0 && today.done.length > 0 && <p className="mt-3 text-[13px] font-medium text-good">Für heute ist dein Block geschafft. Morgen geht’s weiter.</p>}
+    </div>
   )
 }
 
@@ -201,7 +242,10 @@ function shuffled<T>(xs: T[]): T[] {
   return a
 }
 
-export function BlockRun({ deckId, index }: { deckId: string; index: number }) {
+export const REVIEW_SIZE = 20
+
+/** `review` = number of earlier blocks: a short paper test (20 words) mixed from blocks 1..review. */
+export function BlockRun({ deckId, index, review }: { deckId: string; index: number; review?: number }) {
   const [data, setData] = useState<DeckBlocks | null | undefined>(undefined)
   useEffect(() => {
     ;(async () => {
@@ -210,9 +254,19 @@ export function BlockRun({ deckId, index }: { deckId: string; index: number }) {
     })()
   }, [deckId])
   if (data === undefined) return <div className="h-60" aria-busy="true" />
+  if (data && review) {
+    const pool = data.blocks.slice(0, review).flat()
+    if (!pool.length) return null
+    return <ReviewTest deck={data.deck} pool={pool} review={review} />
+  }
   const words = data?.blocks[index]
   if (!data || !words) return <div className="mx-auto max-w-[640px] px-4 pt-10"><Empty title="Diesen Block gibt es nicht" action={<Button onClick={() => go(HOME)}>Zurück</Button>} /></div>
   return <BlockFlow deck={data.deck} words={words} index={index} count={data.blocks.length} label={range(data.blocks, index)} />
+}
+
+function ReviewTest({ deck, pool, review }: { deck: Deck; pool: Word[]; review: number }) {
+  const [items] = useState(() => shuffled(pool).slice(0, REVIEW_SIZE).map((w) => w.item))
+  return <PaperTest deck={deck} items={items} n={null} exitTo={HOME} title={review === 1 ? 'Kurztest Block 1' : `Kurztest Block 1–${review}`} againTo={`/bloecke?deck=${deck.id}&start=0&review=${review}`} />
 }
 
 function BlockFlow({ deck, words, index, count, label }: { deck: Deck; words: Word[]; index: number; count: number; label: string }) {

@@ -3,8 +3,22 @@
     "key": "englisch-voki-2",
     "name": "Englisch Voki 2",
     "language": "en",
-    "directions": ["toTarget", "toNative"],
+    "directions": [
+      "toTarget",
+      "toNative"
+    ],
     "examDate": "2026-11-18",
     "file": "englisch-voki-2.tsv"
+  },
+  {
+    "key": "franz-berufe-schule",
+    "name": "Französisch: Berufe & Schule",
+    "language": "fr",
+    "directions": [
+      "toTarget",
+      "toNative"
+    ],
+    "examDate": "2026-11-26",
+    "file": "franz-berufe-schule.tsv"
   }
 ]

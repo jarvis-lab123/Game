@@ -82,11 +82,17 @@ export async function errorCandidates(db: VokiDB, deckId?: string, now = new Dat
   return (await trainerCandidates(db, deckId, now)).filter((p) => p.wrong > 0)
 }
 
+const upcoming = (d?: string) => {
+  const t = new Date()
+  const today = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`
+  return d && d >= today ? d : '9999'
+}
+
 /** Words never started yet (all cards „new“), in list order; decks with the nearest test first. */
 export async function newCandidates(db: VokiDB, deckId?: string): Promise<TrainerPick[]> {
   const decks = (await db.decks.toArray())
     .filter((d) => !d.archived && (!deckId || d.id === deckId))
-    .sort((a, b) => (a.examDate ?? '9999').localeCompare(b.examDate ?? '9999'))
+    .sort((a, b) => upcoming(a.examDate).localeCompare(upcoming(b.examDate)))
   const out: TrainerPick[] = []
   for (const deck of decks) {
     const cards = (await db.cards.where('deckId').equals(deck.id).toArray()).filter((c) => !c.suspended && deck.directions.includes(c.direction))
