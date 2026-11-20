@@ -19,7 +19,7 @@ import { IconCheck, IconPause, IconX } from '../icons'
 import { Illustration } from '../illustrations'
 import { MemoryAids } from '../MnemonicStudio'
 import { go } from '../router'
-import { AnswerInput, CardShell, FeedbackView, FlipRatings, FlipView, IntroView, McView, StepLabel, faceOf, type Face } from './cards'
+import { AnswerInput, CardShell, FeedbackView, FlipRatings, FlipView, IntroView, McView, SentenceWithTranslation, StepLabel, faceOf, type Face } from './cards'
 import { GroupBreak, HandView, HintBar, LeechPause, ListenPrompt, SelfGradeButtons, type SelfGrade } from './session-views'
 import type { StudyMode } from './SessionSetup'
 
@@ -547,9 +547,7 @@ export function Session({ deckId, minutes, mode, drill, crunch = false }: { deck
                         </>
                       )
                     )}
-                    {item.step === 'cloze' && phase !== 'ask' && note.example && (
-                      <p className="mt-4 border-l-2 border-accent/50 pl-3 text-[15px] italic text-muted" lang={deck.language}>{note.example}</p>
-                    )}
+                    {item.step === 'cloze' && phase !== 'ask' && <SentenceWithTranslation note={note} lang={deck.language} gap={cloze} className="mt-4" />}
                     {phase !== 'ask' && result && !isRight(result.verdict) && <div className="mt-4"><MemoryAids note={note} /></div>}
                     {phase === 'retype' && result && (
                       <div className="mt-5">

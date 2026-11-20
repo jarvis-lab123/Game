@@ -23,6 +23,8 @@ export interface Note {
   term: string
   translation: string
   example?: string
+  /** German translation of the example sentence */
+  exampleTranslation?: string
   gender?: Gender
   plural?: string
   notes?: string

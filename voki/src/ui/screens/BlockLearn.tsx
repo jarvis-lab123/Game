@@ -13,7 +13,7 @@ import { gradeTone } from '../../lib/papertest'
 import { Badge, Button, Empty, Kbd, Progress, cx } from '../components'
 import { Flag, IconBack, IconCheck, IconChevron, IconPlay, IconX } from '../icons'
 import { go } from '../router'
-import { AudioButton, faceOf } from './cards'
+import { AudioButton, SentenceWithTranslation, faceOf } from './cards'
 import { BlockTrainer } from './Trainer'
 import { PaperTest, type PaperItem } from '../probe/PaperTest'
 import { PaperHint, useCalmFocus } from '../probe/paper'
@@ -437,7 +437,7 @@ function ReadCard({ deck, w, i, N, round, reduce, onNext, onBack, onSkip }: { de
           </div>
           {(n.example || n.mnemonic || n.emoji) && (
             <div className="mt-5 space-y-1.5 border-t border-line pt-4 text-[15px]">
-              {n.example && <p className="italic text-muted" lang={deck.language === 'other' ? undefined : deck.language}>{n.example}</p>}
+              {n.example && <SentenceWithTranslation note={n} lang={deck.language === 'other' ? undefined : deck.language} />}
               {(n.mnemonic || n.emoji) && <p>{n.emoji && <span className="mr-1.5" aria-hidden>{n.emoji}</span>}{n.mnemonic}</p>}
             </div>
           )}

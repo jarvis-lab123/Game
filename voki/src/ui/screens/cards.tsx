@@ -97,7 +97,7 @@ export function IntroView({ note, deck, onSaved }: { note: Note; deck: Deck; onS
         {note.plural && <Badge>Pl. {note.plural}</Badge>}
       </div>
       <p className="mt-4 text-[22px] text-fg/90">{note.translation}</p>
-      {note.example && <p className="mt-4 border-l-2 border-accent/50 pl-3 text-[16px] italic text-muted" lang={deck.language}>{note.example}</p>}
+      <SentenceWithTranslation note={note} lang={deck.language} className="mt-4" />
       {note.notes && <p className="mt-3 text-sm text-muted">{note.notes}</p>}
       {note.sketch && <img src={note.sketch} alt="Deine Skizze" className="mt-4 h-24 rounded-xl bg-surface-2 object-contain shadow-card" />}
       <div className="mt-6 border-t border-line pt-5">
@@ -304,6 +304,20 @@ export function FlipRatings({ onRate }: { onRate: (r: 1 | 2 | 3 | 4) => void }) 
           <Kbd className="mt-0.5 hidden desk:inline-flex">{x.r}</Kbd>
         </Button>
       ))}
+    </div>
+  )
+}
+
+/** The example sentence (the gap word in bold, if given) with its German translation below. */
+export function SentenceWithTranslation({ note, lang, gap, className }: { note: Note; lang?: string; gap?: { sentence: string; gap: string } | null; className?: string }) {
+  if (!note.example) return null
+  const parts = gap ? gap.sentence.split('____') : null
+  return (
+    <div className={cx('border-l-2 border-accent/50 pl-3', className)}>
+      <p className="text-[16px] italic text-muted" lang={lang}>
+        {parts && parts.length === 2 ? <>{parts[0]}<span className="font-semibold not-italic text-fg">{gap!.gap}</span>{parts[1]}</> : note.example}
+      </p>
+      {note.exampleTranslation && <p className="mt-1 text-[15px] text-fg/80" lang="de">{note.exampleTranslation}</p>}
     </div>
   )
 }

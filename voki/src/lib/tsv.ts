@@ -1,13 +1,14 @@
 import type { Gender } from './types'
 import { normalize } from './grade'
 
-export type Column = 'term' | 'translation' | 'example' | 'gender' | 'notes' | 'ignore'
+export type Column = 'term' | 'translation' | 'example' | 'gender' | 'notes' | 'exampleTranslation' | 'ignore'
 export const COLUMN_LABELS: Record<Column, string> = {
   term: 'Fremdwort',
   translation: 'Deutsch',
   example: 'Beispielsatz',
   gender: 'Genus',
   notes: 'Notiz',
+  exampleTranslation: 'Satz auf Deutsch',
   ignore: 'Ignorieren',
 }
 
@@ -17,15 +18,17 @@ export interface NoteDraft {
   example?: string
   gender?: Gender
   notes?: string
+  exampleTranslation?: string
   valid: boolean
   duplicate: boolean
 }
 
 export const CLAUDE_PROMPT = `Wandle die Vokabelliste auf dem Foto in TSV um (Tab-getrennt), ohne Kopfzeile, eine Vokabel pro Zeile.
-Spalten: Fremdwort<TAB>Deutsch<TAB>Beispielsatz<TAB>Genus(m/f/n/pl oder leer)<TAB>Notiz
+Spalten: Fremdwort<TAB>Deutsch<TAB>Beispielsatz<TAB>Genus(m/f/n/pl oder leer)<TAB>Notiz<TAB>Beispielsatz auf Deutsch
 - Französische Nomen IMMER mit Artikel (le/la/l'/les), bei l' das Genus in Spalte 4.
 - Mehrere deutsche Bedeutungen mit ";" trennen.
-- Fehlt ein Beispielsatz, schreib einen kurzen, einfachen (max. 8 Wörter).
+- Fehlt ein Beispielsatz, schreib einen kurzen, einfachen (max. 8 Wörter), in dem das Wort genau so vorkommt.
+- In der letzten Spalte die deutsche Übersetzung des Beispielsatzes.
 - Gib NUR die TSV-Zeilen aus, keinen Kommentar.`
 
 function splitLine(line: string, delim: string): string[] {
@@ -61,7 +64,7 @@ export function parseDelimited(text: string): { delimiter: string; rows: string[
   return { delimiter, rows: lines.map((l) => splitLine(l, delimiter)) }
 }
 
-const ORDER: Column[] = ['term', 'translation', 'example', 'gender', 'notes']
+const ORDER: Column[] = ['term', 'translation', 'example', 'gender', 'notes', 'exampleTranslation']
 export function guessMapping(columns: number): Column[] {
   return Array.from({ length: columns }, (_, i) => ORDER[i] ?? 'ignore')
 }
@@ -95,6 +98,7 @@ export function mapRows(rows: string[][], mapping: Column[], existingTerms: Set<
       example: get('example'),
       gender: g ? toGender(g) : undefined,
       notes: get('notes'),
+      exampleTranslation: get('exampleTranslation'),
       valid: !!term && !!translation,
       duplicate,
     }

@@ -16,7 +16,7 @@ import { IconCheck, IconSound, IconX } from '../icons'
 import { Illustration } from '../illustrations'
 import { MnemonicStudio } from '../MnemonicStudio'
 import { go } from '../router'
-import { AnswerInput, AudioButton } from './cards'
+import { AnswerInput, AudioButton, SentenceWithTranslation } from './cards'
 
 const EXIT = '/ueben'
 
@@ -209,7 +209,7 @@ function LearnCard({ w, i, n, reduce, onNext }: { w: TWord; i: number; n: number
           {w.canListen && <AudioButton text={w.target} lang={w.pick.deck.language} />}
         </div>
         <Syllables word={w.target} />
-        {note.example && <p className="mt-4 border-t border-line pt-4 text-[16px] italic text-muted" lang={w.answerLang}>{note.example}</p>}
+        {note.example && <div className="mt-4 border-t border-line pt-4"><SentenceWithTranslation note={note} lang={w.answerLang} /></div>}
         <div className="mt-4 rounded-2xl bg-surface-2 px-4 py-3">
           {note.mnemonic || note.emoji ? (
             <p className="text-[15px]">{note.emoji && <span className="mr-1.5" aria-hidden>{note.emoji}</span>}<span className="font-medium">Eselsbrücke:</span> {note.mnemonic}</p>
@@ -321,13 +321,14 @@ function ExerciseView({ item, w, reduce, onAnswer, clozeOnly }: { item: TrainerI
     setRes(r)
     if (!r.ok && !reduce) void shake.start({ x: [0, -8, 8, -5, 5, 0], transition: { duration: 0.35 } })
   }
-  // right: move on by itself; wrong: read the solution, then Enter
+  // right: move on by itself (a gap sentence stays longer, to read its translation); wrong: read the solution, then Enter
+  const readSentence = item.exercise === 'cloze' && !!w.pick.note.exampleTranslation
   useEffect(() => {
     if (!res?.ok) return
-    const t = setTimeout(() => onAnswer(true, res.typed), 750)
+    const t = setTimeout(() => onAnswer(true, res.typed), readSentence ? 4000 : 750)
     return () => clearTimeout(t)
   }, [res])
-  useKeys((k, e) => { if (res && !res.ok && k === 'enter') { e.preventDefault(); onAnswer(false, res.typed) } })
+  useKeys((k, e) => { if (res && k === 'enter' && (!res.ok || readSentence)) { e.preventDefault(); onAnswer(res.ok, res.typed) } })
 
   const check = (typed: string) => {
     const r = gradeAnswer(typed, w.full, { strictAccents: true, answerLang: w.answerLang })
@@ -348,11 +349,12 @@ function ExerciseView({ item, w, reduce, onAnswer, clozeOnly }: { item: TrainerI
           item.exercise === 'scramble' ? <Scramble target={w.target} lang={w.answerLang} onDone={(typed) => finish({ ok: normalize(typed) === normalize(w.target), typed })} />
             : <TypeIn w={w} ex={item.exercise} onSubmit={check} />
         ) : (
-          <Feedback res={res} w={w} />
+          <Feedback res={res} w={w} ex={item.exercise} />
         )}
       </motion.div>
       </motion.div>
       {res && !res.ok && <Button size="lg" variant="primary" className="mt-4 w-full" onClick={() => onAnswer(false, res.typed)} kbd="Enter">Weiter – kommt gleich nochmal</Button>}
+      {res?.ok && readSentence && <Button size="lg" variant="primary" className="mt-4 w-full" onClick={() => onAnswer(true, res.typed)} kbd="Enter">Weiter</Button>}
     </div>
   )
 }
@@ -466,7 +468,7 @@ function Scramble({ target, lang, onDone }: { target: string; lang: AnswerLang; 
   )
 }
 
-function Feedback({ res, w }: { res: Result; w: TWord }) {
+function Feedback({ res, w, ex }: { res: Result; w: TWord; ex: Exercise }) {
   return (
     <div className="mt-5" role="status" aria-live="polite">
       <div className={cx('flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-[15px] font-semibold', res.ok ? 'bg-good-soft text-good' : 'bg-bad-soft text-bad')}>
@@ -480,9 +482,10 @@ function Feedback({ res, w }: { res: Result; w: TWord }) {
           </p>
           {res.typed && <p className="mt-1 text-sm text-muted">Du: <span className="line-through">{res.typed}</span></p>}
           {w.pick.note.mnemonic && <p className="mt-3 text-[15px]"><span className="font-medium">Eselsbrücke:</span> {w.pick.note.mnemonic}</p>}
-          {w.pick.note.example && <p className="mt-3 text-[15px] italic text-muted" lang={w.answerLang}>{w.pick.note.example}</p>}
+          {ex !== 'cloze' && w.pick.note.example && <SentenceWithTranslation note={w.pick.note} lang={w.answerLang} className="mt-3" />}
         </div>
       )}
+      {ex === 'cloze' && <SentenceWithTranslation note={w.pick.note} lang={w.answerLang} gap={w.cloze} className="mt-4" />}
     </div>
   )
 }
