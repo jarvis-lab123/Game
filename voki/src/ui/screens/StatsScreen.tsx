@@ -98,7 +98,7 @@ async function loadStats() {
     blocks,
     modes: modeBreakdown(recent),
     dayparts: byDaypart(recent),
-    hard: hardestWords(recent, (id) => noteOfCard.get(id)).map((w) => ({ ...w, note: noteById.get(w.noteId) })).filter((w): w is HardWord & { note: Note } => !!w.note).map((w) => ({ ...w, deck: deckById.get(w.note.deckId) })),
+    hard: hardestWords(recent, (id) => noteOfCard.get(id), 15).map((w) => ({ ...w, note: noteById.get(w.noteId) })).filter((w): w is HardWord & { note: Note } => !!w.note).map((w) => ({ ...w, deck: deckById.get(w.note.deckId) })),
     now,
     totalLogs: logs.length,
     learned: learnedWords(cards.filter((c) => !c.suspended)),
@@ -203,8 +203,12 @@ export function StatsScreen() {
       {s.hard.length > 0 && (
         <Panel>
           <SectionTitle>Schwierigste Wörter</SectionTitle>
-          <p className="-mt-1.5 mb-3 text-sm text-muted">Am häufigsten falsch · letzte 30 Tage</p>
+          <p className="-mt-1.5 mb-3 text-sm text-muted">Am häufigsten falsch · letzte 30 Tage · zählt jeden Fehler beim Lernen, im Satz und im Test</p>
           <HardList rows={s.hard} />
+          <div className="mt-4 flex flex-col gap-2 desk:flex-row">
+            <Button variant="primary" onClick={() => go('/knacknuss?src=fehler')}>Alle Fehler-Wörter nochmals machen</Button>
+            <Button onClick={() => go('/knacknuss')}>Nur die schwierigsten 8</Button>
+          </div>
         </Panel>
       )}
 

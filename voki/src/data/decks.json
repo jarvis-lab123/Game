@@ -19,6 +19,7 @@
       "toNative"
     ],
     "examDate": "2026-11-26",
-    "file": "franz-berufe-schule.tsv"
+    "file": "franz-berufe-schule.tsv",
+    "version": 2
   }
 ]

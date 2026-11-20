@@ -25,6 +25,8 @@ export interface Note {
   example?: string
   /** German translation of the example sentence */
   exampleTranslation?: string
+  /** the word exactly as it stands in the example sentence (conjugated / agreed) – the gap */
+  gap?: string
   gender?: Gender
   plural?: string
   notes?: string

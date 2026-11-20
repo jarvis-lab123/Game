@@ -8,7 +8,7 @@ import { requestSync } from '../../db/autosync'
 import { SessionEngine, type Item } from '../../lib/session'
 import { planGroups, type Group } from '../../lib/groups'
 import { advanceLadder, applyReview } from '../../lib/srs'
-import { gradeAnswer, normalize, solutions, type GradeResult } from '../../lib/grade'
+import { gradeAnswer, normalize, type GradeResult } from '../../lib/grade'
 import { applyHints, hintSteps } from '../../lib/hints'
 import { clozeGap, GAP } from '../../lib/cloze'
 import type { Card, Deck, Note, ReviewMode, Settings } from '../../lib/types'
@@ -119,7 +119,7 @@ export function Session({ deckId, minutes, mode, drill, crunch = false }: { deck
       clozeOk.current = (c) => {
         const n = notes.get(c.noteId)
         const d = decks.get(c.deckId)
-        return !!n && !!clozeGap(n.term, n.example) && (c.direction === 'toTarget' || !d?.directions.includes('toTarget'))
+        return !!n && !!clozeGap(n.term, n.example, n.gap) && (c.direction === 'toTarget' || !d?.directions.includes('toTarget'))
       }
       const total = groups.reduce((s, g) => s + g.reviews.length + g.fresh.length * (crunch ? 4 : 2) + g.cram.length * (drill ? 2 : 1), 0)
       setCtx({ groups, notes, decks, settings, total, drill })
@@ -190,7 +190,7 @@ export function Session({ deckId, minutes, mode, drill, crunch = false }: { deck
 
   const note = item && ctx ? ctx.notes.get(item.card.noteId) : undefined
   const deck = item && ctx ? ctx.decks.get(item.card.deckId) : undefined
-  const cloze = item?.step === 'cloze' && note ? clozeGap(note.term, note.example) : null
+  const cloze = item?.step === 'cloze' && note ? clozeGap(note.term, note.example, note.gap) : null
   const baseFace = item && note && deck ? faceOf(item.card, note, deck) : null
   // Lückentext: the foreign word is the answer; the exact words cut out of the sentence also count
   const face: Face | null =
@@ -198,7 +198,8 @@ export function Session({ deckId, minutes, mode, drill, crunch = false }: { deck
       ? {
           ...baseFace,
           question: cloze.sentence,
-          answer: solutions(note.term).some((x) => normalize(x) === normalize(cloze.gap)) ? note.term : `${note.term}; ${cloze.gap}`,
+          // in the sentence the word has to be written as it stands there (conjugated, agreed)
+          answer: cloze.gap,
           answerLang: deck.language === 'other' ? 'other' : deck.language,
           promptLabel: 'Lückentext – welches Wort fehlt?',
         }

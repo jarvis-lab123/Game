@@ -1,7 +1,7 @@
 import 'fake-indexeddb/auto'
 import { describe, it, expect } from 'vitest'
 import { VokiDB } from './db'
-import { addSentenceTranslations, seedDeck, type BuiltinDeck } from './seed'
+import { refreshSentences, seedDeck, type BuiltinDeck } from './seed'
 import { deleteDeck } from './repo'
 
 const demo: BuiltinDeck = { key: 'demo', name: 'Demo', language: 'en', directions: ['toTarget', 'toNative'], examDate: '2026-11-18', tsv: 'house\tHaus\nto cite (sth)\t(etw.) anführen\tThey cite it.\t\thier' }
@@ -46,21 +46,19 @@ describe('Wörtli-Set catalog (src/data/decks.json)', () => {
   })
 })
 
-describe('sentence translations for sets added earlier', () => {
-  it('fills in the German sentence once, without touching edited sentences', async () => {
+describe('new sentences for sets added earlier', () => {
+  it('replaces sentence, translation and gap – progress stays', async () => {
     const db = new VokiDB('s-' + Math.random())
-    const old: BuiltinDeck = { key: 'fr', name: 'F', language: 'fr', directions: ['toTarget'], tsv: 'le chat\tdie Katze\tLe chat dort.\nle chien\tder Hund\tLe chien joue.' }
-    await seedDeck(db, old)
-    await db.notes.update('builtin-fr-n1', { example: 'Mon chien est grand.' })
-    const tsv = 'le chat\tdie Katze\tLe chat dort.\t\t\tDie Katze schläft.\nle chien\tder Hund\tLe chien joue.\t\t\tDer Hund spielt.'
-    expect(await addSentenceTranslations(db, 'fr', tsv)).toBe(1)
-    expect((await db.notes.get('builtin-fr-n0'))!.exampleTranslation).toBe('Die Katze schläft.')
-    expect((await db.notes.get('builtin-fr-n1'))!.exampleTranslation).toBeUndefined()
-    expect(await db.meta.get('seed-tr:fr')).toBeTruthy()
+    await seedDeck(db, { key: 'fr', name: 'F', language: 'fr', directions: ['toTarget'], tsv: 'se concentrer\tsich konzentrieren\tIl faut se concentrer.\nle chien\tder Hund\tLe chien joue.' })
+    await db.notes.update('builtin-fr-n0', { mnemonic: 'meine Brücke' })
+    const tsv = 'se concentrer\tsich konzentrieren\tJe me concentre bien.\t\t\tIch konzentriere mich gut.\tme concentre\nle chien\tder Hund\tLe chien joue.'
+    expect(await refreshSentences(db, 'fr', tsv)).toBe(1)
+    expect(await db.notes.get('builtin-fr-n0')).toMatchObject({ example: 'Je me concentre bien.', exampleTranslation: 'Ich konzentriere mich gut.', gap: 'me concentre', mnemonic: 'meine Brücke' })
+    expect(await refreshSentences(db, 'fr', tsv)).toBe(0)
   })
-  it('a new set gets the translations right away (6th column)', async () => {
+  it('a new set gets translation and gap right away', async () => {
     const db = new VokiDB('s-' + Math.random())
-    await seedDeck(db, { key: 'fr2', name: 'F', language: 'fr', directions: ['toTarget'], tsv: 'le chat\tdie Katze\tLe chat dort.\t\t\tDie Katze schläft.' })
-    expect((await db.notes.get('builtin-fr2-n0'))!.exampleTranslation).toBe('Die Katze schläft.')
+    await seedDeck(db, { key: 'fr2', name: 'F', language: 'fr', directions: ['toTarget'], tsv: 'le chat\tdie Katze\tLes chats dorment.\t\t\tDie Katzen schlafen.\tchats' })
+    expect(await db.notes.get('builtin-fr2-n0')).toMatchObject({ exampleTranslation: 'Die Katzen schlafen.', gap: 'chats' })
   })
 })

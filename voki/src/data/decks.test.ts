@@ -13,7 +13,7 @@ describe('built-in Wörtli-Sets', () => {
     })
     if (d.key === 'franz-berufe-schule')
       it(`${d.name}: the example sentence contains the word (Lückentext)`, () => {
-        const missing = rows.filter((r) => r[0] !== 'être (+ Beruf)' && !clozeGap(r[0], r[2])).map((r) => r[0])
+        const missing = rows.filter((r) => r[0] !== 'être (+ Beruf)' && !clozeGap(r[0], r[2], r[6])).map((r) => r[0])
         expect(missing).toEqual([])
       })
   }

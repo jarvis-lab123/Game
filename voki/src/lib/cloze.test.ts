@@ -13,6 +13,10 @@ describe('clozeFor (Lückentext)', () => {
   it('phrases: gaps the verb when the sentence fills in the rest', () => {
     expect(clozeGap('apprendre (qc) à (qn)', 'La prof va apprendre le français aux élèves.')?.gap).toBe('apprendre')
   })
+  it('uses the given form in the sentence (conjugated)', () => {
+    expect(clozeGap('se concentrer', 'Pendant le test, je me concentre bien.', 'me concentre')).toEqual({ sentence: 'Pendant le test, je ____ bien.', gap: 'me concentre' })
+    expect(clozeGap('un, une libraire', 'Les libraires conseillent.', 'libraires')?.gap).toBe('libraires')
+  })
   it('is case-insensitive', () => {
     expect(clozeFor('non-native', 'Non-native plants can take over.')).toBe('____ plants can take over.')
   })

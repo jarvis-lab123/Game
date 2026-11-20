@@ -28,7 +28,7 @@ describe('guessMapping', () => {
   it('uses the Claude prompt column order', () => {
     expect(guessMapping(5)).toEqual(['term', 'translation', 'example', 'gender', 'notes'])
     expect(guessMapping(2)).toEqual(['term', 'translation'])
-    expect(guessMapping(7)).toEqual(['term', 'translation', 'example', 'gender', 'notes', 'exampleTranslation', 'ignore'])
+    expect(guessMapping(7)).toEqual(['term', 'translation', 'example', 'gender', 'notes', 'exampleTranslation', 'gap'])
   })
 })
 

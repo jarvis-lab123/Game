@@ -30,11 +30,12 @@ export const EXERCISE_LABEL: Record<Exercise, string> = {
 export const CLOZE_ONLY: Exercise[] = ['cloze', 'cloze']
 
 /**
- * New words, quick: after the learn card and the pairs, one supported recall (gap sentence, or the
- * faded word) and one free recall later – about 40 s per word, so 50–60 new words fit in an hour.
+ * New words, quick: after the learn card and the pairs, translate the word once (normal form),
+ * then write it in its sentence the way it stands there (conjugated, agreed) – then it is done.
+ * About 40 s per word, so 50–60 new words fit in an hour. Without a sentence: faded word, then free.
  */
 export function quickLadder(w: TrainerWord): Exercise[] {
-  return [w.hasCloze ? 'cloze' : 'fade', 'write']
+  return w.hasCloze ? ['write', 'cloze'] : ['fade', 'write']
 }
 
 export type LadderMode = Exercise[] | 'quick'

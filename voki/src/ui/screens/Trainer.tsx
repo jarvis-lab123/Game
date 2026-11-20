@@ -27,7 +27,7 @@ function toWord(p: TrainerPick): TWord {
   const toTarget = p.card.direction === 'toTarget'
   const full = toTarget ? p.note.term : p.note.translation
   const canListen = toTarget && (lang === 'en' || lang === 'fr') && typeof window !== 'undefined' && 'speechSynthesis' in window
-  return { pick: p, full, target: writtenForm(full), answerLang: toTarget ? lang : 'de', cloze: toTarget ? clozeGap(p.note.term, p.note.example) : null, canListen }
+  return { pick: p, full, target: writtenForm(full), answerLang: toTarget ? lang : 'de', cloze: toTarget ? clozeGap(p.note.term, p.note.example, p.note.gap) : null, canListen }
 }
 const question = (w: TWord) => (w.pick.card.direction === 'toTarget' ? w.pick.note.translation : w.pick.note.term)
 const qLang = (w: TWord) => (w.pick.card.direction === 'toTarget' ? 'de' : w.pick.deck.language === 'other' ? undefined : w.pick.deck.language)
@@ -96,7 +96,8 @@ function TrainerRun({ words, left, phase, cloze, source, setPhase, onAgain, embe
     if (!item) return
     const w = byId.get(item.id)!
     // new words: early mistakes are normal while learning, only the free recall is logged
-    const logged = source === 'neu' ? item.exercise === 'write' || item.exercise === 'final' : item.exercise !== 'scramble' && item.exercise !== 'fade'
+    // in a block every translation and every sentence counts – mistakes show up in the statistics
+    const logged = embed ? item.exercise === 'write' || item.exercise === 'cloze' : source === 'neu' ? item.exercise === 'write' || item.exercise === 'final' : item.exercise !== 'scramble' && item.exercise !== 'fade'
     if (logged) {
       void log(db, { cardId: w.pick.card.id, deckId: w.pick.deck.id, timestamp: new Date().toISOString(), mode: 'drill', rating: Rating.Manual, typedAnswer: typed, correct: ok, durationMs: 0 })
     }
@@ -331,9 +332,10 @@ function ExerciseView({ item, w, reduce, onAnswer, clozeOnly }: { item: TrainerI
   useKeys((k, e) => { if (res && k === 'enter' && (!res.ok || readSentence)) { e.preventDefault(); onAnswer(res.ok, res.typed) } })
 
   const check = (typed: string) => {
-    const r = gradeAnswer(typed, w.full, { strictAccents: true, answerLang: w.answerLang })
-    const gapOk = item.exercise === 'cloze' && w.cloze && normalize(typed) === normalize(w.cloze.gap)
-    finish({ ok: r.verdict === 'correct' || !!gapOk, typed })
+    // in the sentence only the form that stands there counts (conjugated, agreed)
+    const expected = item.exercise === 'cloze' && w.cloze ? w.cloze.gap : w.full
+    const r = gradeAnswer(typed, expected, { strictAccents: true, answerLang: w.answerLang })
+    finish({ ok: r.verdict === 'correct', typed })
   }
 
   return (
@@ -377,6 +379,7 @@ function Prompt({ ex, w }: { ex: Exercise; w: TWord }) {
           {a}<span className="mx-1 inline-block min-w-[4ch] border-b-[3px] border-accent align-baseline" aria-label="Lücke">&nbsp;</span>{b}
         </p>
         <p className="mt-2 text-[15px] text-muted">Deutsch: <span className="font-semibold text-fg">{q}</span></p>
+        {w.pick.note.gap && normalize(w.cloze.gap) !== normalize(w.target) && <p className="mt-1 text-[13px] font-medium text-accent">So einsetzen, wie es im Satz stehen muss – konjugiert bzw. angepasst</p>}
       </div>
     )
   }
@@ -469,6 +472,7 @@ function Scramble({ target, lang, onDone }: { target: string; lang: AnswerLang; 
 }
 
 function Feedback({ res, w, ex }: { res: Result; w: TWord; ex: Exercise }) {
+  const expected = ex === 'cloze' && w.cloze ? w.cloze.gap : w.target
   return (
     <div className="mt-5" role="status" aria-live="polite">
       <div className={cx('flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-[15px] font-semibold', res.ok ? 'bg-good-soft text-good' : 'bg-bad-soft text-bad')}>
@@ -477,8 +481,8 @@ function Feedback({ res, w, ex }: { res: Result; w: TWord; ex: Exercise }) {
       {!res.ok && (
         <div className="mt-4">
           <p className="text-sm text-muted">Richtig ist</p>
-          <p className="mt-1 break-words text-[30px] font-semibold leading-tight tracking-tight" lang={w.answerLang} aria-label={w.target}>
-            {diffChars(normalize(res.typed), w.target).map((d, i) => <span key={i} className={d.ok ? '' : 'rounded bg-bad-soft text-bad'}>{d.ch}</span>)}
+          <p className="mt-1 break-words text-[30px] font-semibold leading-tight tracking-tight" lang={w.answerLang} aria-label={expected}>
+            {diffChars(normalize(res.typed), expected).map((d, i) => <span key={i} className={d.ok ? '' : 'rounded bg-bad-soft text-bad'}>{d.ch}</span>)}
           </p>
           {res.typed && <p className="mt-1 text-sm text-muted">Du: <span className="line-through">{res.typed}</span></p>}
           {w.pick.note.mnemonic && <p className="mt-3 text-[15px]"><span className="font-medium">Eselsbrücke:</span> {w.pick.note.mnemonic}</p>}

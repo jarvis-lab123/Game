@@ -6,8 +6,13 @@ const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 const wholeWord = (s: string) => new RegExp(`(?<![\\p{L}\\p{N}])${esc(s).replace(/ /g, '\\s+').replace(/'/g, "['’‘]")}(?![\\p{L}\\p{N}])`, 'iu')
 
 /** Gap sentence plus the exact words cut out of the example (whole words, case-insensitive). */
-export function clozeGap(answer: string, example?: string): { sentence: string; gap: string } | null {
+export function clozeGap(answer: string, example?: string, gap?: string): { sentence: string; gap: string } | null {
   if (!example?.trim()) return null
+  // the exact form given for the sentence (conjugated, agreed: „je me concentre“) comes first
+  if (gap?.trim()) {
+    const m = wholeWord(normalize(gap)).exec(example)
+    if (m) return { sentence: example.slice(0, m.index) + GAP + example.slice(m.index + m[0].length), gap: m[0] }
+  }
   // longest candidates first: "la boulangerie" before "boulangerie"
   const cands = new Set<string>()
   const add = (x: string) => {

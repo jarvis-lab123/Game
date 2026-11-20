@@ -5,7 +5,7 @@ const W = (id: string, hasCloze = true, canListen = true) => ({ id, hasCloze, ca
 
 describe('trainer ladder', () => {
   it('new words: quick ladder with two steps', () => {
-    expect(ladderFor(W('a'), 'quick')).toEqual(['cloze', 'write'])
+    expect(ladderFor(W('a'), 'quick')).toEqual(['write', 'cloze'])
     expect(ladderFor(W('a', false), 'quick')).toEqual(['fade', 'write'])
   })
   it('uses cloze and listening only when possible', () => {

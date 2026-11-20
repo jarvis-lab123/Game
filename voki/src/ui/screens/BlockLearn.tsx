@@ -71,7 +71,7 @@ export function BlockHome() {
         <p className="text-[17px] font-semibold">Blocklernen: am Computer lernen, auf Papier testen</p>
         <ol className="mt-3 grid gap-2.5 text-sm desk:grid-cols-3">
           {[
-            ['Am Computer lernen', 'In kleinen Portionen: einprägen, Paare, Lückentext, aus dem Kopf.'],
+            ['Am Computer lernen', 'In kleinen Portionen: einprägen, Paare, übersetzen, im Satz einsetzen.'],
             ['Test auf Papier', 'Alle Wörter des Blocks auf ein Blatt, dann selbst korrigieren.'],
             ['Note ab 4', 'Dann ist der Block geschafft. Unter 4 kommt er nochmals.'],
           ].map(([t, d], k) => (
@@ -374,7 +374,7 @@ function ChooseWay({ deck, n, title, label, reduce, onPick }: { deck: Deck; n: n
         <h1 className="mt-1 text-[28px] font-bold leading-tight tracking-[-0.02em] desk:text-[32px]">{title} · {n} Wörter</h1>
         <ol className="mt-6 space-y-4">
           {[
-            ['Am Computer lernen', `In Portionen von etwa 8 Wörtern: einprägen (mit Eselsbrücke), Paare finden, dann jedes Wort im Lückentext und einmal aus dem Kopf. Ca. ${minutes} Min.`],
+            ['Am Computer lernen', `In Portionen von etwa 8 Wörtern: einprägen (mit Eselsbrücke), Paare zuordnen, jedes Wort einmal übersetzen und dann im Satz in der richtigen Form einsetzen. Ca. ${minutes} Min.`],
             ['Test auf Papier', `Alle ${n} Wörter auf ein Blatt, dann selbst korrigieren – mit Note.`],
             ['Note ab 4 = Block geschafft', 'Unter 4 machst du den Block nochmals. Ab 4 geht’s zum nächsten Block.'],
           ].map(([t, d], k) => (
