@@ -139,7 +139,7 @@ function TrainerRun({ words, left, phase, cloze, source, setPhase, onAgain, embe
           />
         )}
         {phase === 'match' && <Match words={words} reduce={reduce} onDone={() => setPhase('drill')} />}
-        {phase === 'drill' && item && <ExerciseView key={`${item.id}-${turn}`} item={item} w={byId.get(item.id)!} reduce={reduce} onAnswer={answer} clozeOnly={cloze} />}
+        {phase === 'drill' && item && <ExerciseView key={`${item.id}-${turn}`} item={item} w={byId.get(item.id)!} reduce={reduce} onAnswer={answer} clozeOnly={cloze} baseForm={!!embed} />}
         {phase === 'done' && <Done words={words} cracked={cracked} engine={engine} left={left} cloze={cloze} source={source} onAgain={onAgain} />}
       </div>
     </div>
@@ -315,7 +315,7 @@ function MatchSet({ set, part, last, reduce, onDone, onSkip }: { set: TWord[]; p
 /* ---------- 3. Übungen ---------- */
 interface Result { ok: boolean; typed: string }
 
-function ExerciseView({ item, w, reduce, onAnswer, clozeOnly }: { item: TrainerItem; w: TWord; reduce: boolean; onAnswer: (ok: boolean, typed?: string) => void; clozeOnly?: boolean }) {
+function ExerciseView({ item, w, reduce, onAnswer, clozeOnly, baseForm }: { item: TrainerItem; w: TWord; reduce: boolean; onAnswer: (ok: boolean, typed?: string) => void; clozeOnly?: boolean; baseForm?: boolean }) {
   const [res, setRes] = useState<Result | null>(null)
   const shake = useAnimationControls()
   const finish = (r: Result) => {
@@ -332,10 +332,12 @@ function ExerciseView({ item, w, reduce, onAnswer, clozeOnly }: { item: TrainerI
   useKeys((k, e) => { if (res && k === 'enter' && (!res.ok || readSentence)) { e.preventDefault(); onAnswer(res.ok, res.typed) } })
 
   const check = (typed: string) => {
-    // in the sentence only the form that stands there counts (conjugated, agreed)
+    // block learning: the normal form is enough in the sentence (the form in the sentence also counts);
+    // elsewhere only the form that stands there counts (conjugated, agreed)
+    const opts = { strictAccents: true, answerLang: w.answerLang }
+    if (item.exercise === 'cloze' && w.cloze && baseForm) return finish({ ok: gradeAnswer(typed, w.full, opts).verdict === 'correct' || gradeAnswer(typed, w.cloze.gap, opts).verdict === 'correct', typed })
     const expected = item.exercise === 'cloze' && w.cloze ? w.cloze.gap : w.full
-    const r = gradeAnswer(typed, expected, { strictAccents: true, answerLang: w.answerLang })
-    finish({ ok: r.verdict === 'correct', typed })
+    finish({ ok: gradeAnswer(typed, expected, opts).verdict === 'correct', typed })
   }
 
   return (
@@ -346,12 +348,12 @@ function ExerciseView({ item, w, reduce, onAnswer, clozeOnly }: { item: TrainerI
           <p className="text-sm font-medium text-accent">{EXERCISE_LABEL[item.exercise]}{clozeOnly ? (item.step === 0 ? ' · 1. Runde' : ' · 2. Runde') : ''}</p>
           <Steps step={item.step} steps={item.steps} />
         </div>
-        <Prompt ex={item.exercise} w={w} />
+        <Prompt ex={item.exercise} w={w} baseForm={baseForm} />
         {!res ? (
           item.exercise === 'scramble' ? <Scramble target={w.target} lang={w.answerLang} onDone={(typed) => finish({ ok: normalize(typed) === normalize(w.target), typed })} />
             : <TypeIn w={w} ex={item.exercise} onSubmit={check} />
         ) : (
-          <Feedback res={res} w={w} ex={item.exercise} />
+          <Feedback res={res} w={w} ex={item.exercise} baseForm={baseForm} />
         )}
       </motion.div>
       </motion.div>
@@ -369,7 +371,7 @@ function Steps({ step, steps }: { step: number; steps: number }) {
   )
 }
 
-function Prompt({ ex, w }: { ex: Exercise; w: TWord }) {
+function Prompt({ ex, w, baseForm }: { ex: Exercise; w: TWord; baseForm?: boolean }) {
   const q = question(w)
   if (ex === 'cloze' && w.cloze) {
     const [a, b] = w.cloze.sentence.split(GAP)
@@ -379,7 +381,9 @@ function Prompt({ ex, w }: { ex: Exercise; w: TWord }) {
           {a}<span className="mx-1 inline-block min-w-[4ch] border-b-[3px] border-accent align-baseline" aria-label="Lücke">&nbsp;</span>{b}
         </p>
         <p className="mt-2 text-[15px] text-muted">Deutsch: <span className="font-semibold text-fg">{q}</span></p>
-        {w.pick.note.gap && normalize(w.cloze.gap) !== normalize(w.target) && <p className="mt-1 text-[13px] font-medium text-accent">So einsetzen, wie es im Satz stehen muss – konjugiert bzw. angepasst</p>}
+        {w.pick.note.gap && normalize(w.cloze.gap) !== normalize(w.target) && (
+          <p className="mt-1 text-[13px] font-medium text-accent">{baseForm ? 'Die Grundform genügt (z. B. Infinitiv)' : 'So einsetzen, wie es im Satz stehen muss – konjugiert bzw. angepasst'}</p>
+        )}
       </div>
     )
   }
@@ -471,8 +475,8 @@ function Scramble({ target, lang, onDone }: { target: string; lang: AnswerLang; 
   )
 }
 
-function Feedback({ res, w, ex }: { res: Result; w: TWord; ex: Exercise }) {
-  const expected = ex === 'cloze' && w.cloze ? w.cloze.gap : w.target
+function Feedback({ res, w, ex, baseForm }: { res: Result; w: TWord; ex: Exercise; baseForm?: boolean }) {
+  const expected = ex === 'cloze' && w.cloze && !baseForm ? w.cloze.gap : w.target
   return (
     <div className="mt-5" role="status" aria-live="polite">
       <div className={cx('flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-[15px] font-semibold', res.ok ? 'bg-good-soft text-good' : 'bg-bad-soft text-bad')}>

@@ -26,7 +26,7 @@ function forControl(e: KeyboardEvent) {
 
 export interface PaperBlock { index: number; count: number; exitTo: string; againTo: string; title: string }
 
-export function PaperTest({ deck, items, n, block, exitTo: exitOverride, title, againTo }: { deck: Deck; items: PaperItem[]; n: string | null; block?: PaperBlock; exitTo?: string; title?: string; againTo?: string }) {
+export function PaperTest({ deck, items, n, block, exitTo: exitOverride, title, againTo, onPractice }: { deck: Deck; items: PaperItem[]; n: string | null; block?: PaperBlock; exitTo?: string; title?: string; againTo?: string; onPractice?: () => void }) {
   const exitTo = block?.exitTo ?? exitOverride ?? '/ueben'
   const reduce = !!useReducedMotion()
   const N = items.length
@@ -133,7 +133,7 @@ export function PaperTest({ deck, items, n, block, exitTo: exitOverride, title, 
       </header>
       <p className="sr-only" aria-live="polite">{said}</p>
       <div className="mx-auto w-full max-w-[680px] flex-1 px-4 pb-10 pt-6 desk:pt-10">
-        {phase === 'intro' && <Intro n={N} reduce={reduce} onStart={start} title={block?.title ?? title} />}
+        {phase === 'intro' && <Intro n={N} reduce={reduce} onStart={start} title={block?.title ?? title} onPractice={onPractice} />}
         {phase === 'write' && <Write item={items[i]} i={i} N={N} dir={dir} reduce={reduce} onNext={forward} onBack={backward} />}
         {phase === 'correct' && (
           <Correct deck={deck} items={items} decisions={decisions} cur={cur} reduce={reduce} canUndo={history.length > 0} onDecide={decide} onUndo={undo} onGrade={toGrade} points={score.points} />
@@ -145,7 +145,7 @@ export function PaperTest({ deck, items, n, block, exitTo: exitOverride, title, 
 }
 
 /* ---------------- Intro ---------------- */
-function Intro({ n, reduce, onStart, title }: { n: number; reduce: boolean; onStart: () => void; title?: string }) {
+function Intro({ n, reduce, onStart, title, onPractice }: { n: number; reduce: boolean; onStart: () => void; title?: string; onPractice?: () => void }) {
   const focus = useCalmFocus<HTMLButtonElement>()
   const steps = [
     ['Wort ansehen', 'Du siehst immer nur das Wort. Schreib die Übersetzung auf dein Blatt.'],
@@ -168,7 +168,10 @@ function Intro({ n, reduce, onStart, title }: { n: number; reduce: boolean; onSt
           </li>
         ))}
       </ol>
-      <Button variant="primary" size="lg" className="mt-7 w-full desk:w-auto" onClick={onStart} kbd="Enter" ref={focus}>Los geht’s</Button>
+      <div className="mt-7 flex flex-col gap-2 desk:flex-row">
+        <Button variant="primary" size="lg" className="w-full desk:w-auto" onClick={onStart} kbd="Enter" ref={focus}>Los geht’s</Button>
+        {onPractice && <Button size="lg" onClick={onPractice}>Nochmal mit den Wörtern üben</Button>}
+      </div>
     </motion.div>
   )
 }
