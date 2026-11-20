@@ -61,6 +61,9 @@ describe('exercise helpers', () => {
   it('written form drops bracket explanations', () => {
     expect(writtenForm('to target (sth)')).toBe('to target')
     expect(writtenForm('consumer')).toBe('consumer')
+    expect(writtenForm('répondre à (qn/qc)')).toBe('répondre à')
+    expect(writtenForm('un curriculum vitæ; un CV')).toBe('un curriculum vitæ')
+    expect(writtenForm('un agriculteur, une agricultrice')).toBe('un agriculteur, une agricultrice')
   })
   it('scramble keeps all letters, never in order', () => {
     const t = scrambleTiles('critically endangered', () => 0.3)

@@ -113,7 +113,8 @@ export class TrainerEngine {
 
 /** The form you write: first solution, without explanations in brackets („to target (sth)“ → „to target“). */
 export function writtenForm(answer: string): string {
-  const plain = answer.split(/[;/]/)[0].replace(/\s*\([^)]*\)\s*/g, ' ').replace(/\s+/g, ' ').trim()
+  // brackets first (they may contain „/“ like „(qn/qc)“), then the first of several solutions
+  const plain = answer.replace(/\s*\([^)]*\)\s*/g, ' ').split(/;|\s\/\s/)[0].replace(/\s+/g, ' ').trim()
   return plain || (solutions(answer)[0] ?? answer).trim()
 }
 

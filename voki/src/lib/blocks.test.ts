@@ -34,6 +34,12 @@ describe('blockStates / pickNextBlock', () => {
     expect(s[0]).toMatchObject({ grade: 5.5, best: 5.5, attempts: 2 })
     expect(pickNextBlock(s)).toEqual({ index: 2, reason: 'schlechteste' })
   })
+  it('below 4 the block is not passed and comes again', () => {
+    const s = blockStates([50, 50], [{ block: 0, blocks: 2, grade: 3.5, date: '2026-11-01' }])
+    expect(pickNextBlock(s)).toEqual({ index: 0, reason: 'nochmal' })
+    const ok = blockStates([50, 50], [{ block: 0, blocks: 2, grade: 4, date: '2026-11-01' }])
+    expect(pickNextBlock(ok)).toEqual({ index: 1, reason: 'neu' })
+  })
   it('ignores tests from another split and normal probetests', () => {
     const s = blockStates([50, 50], [{ block: 0, blocks: 3, grade: 6, date: '2026-11-01' }, { grade: 6, date: '2026-11-01' }])
     expect(s.map((x) => x.grade)).toEqual([null, null])
@@ -90,5 +96,10 @@ describe('blockDayPlan', () => {
     const p = blockDayPlan(blockStates([46, 46, 46, 45, 45], []), now, '2026-11-23')!
     expect(p.map((d) => d.learn)).toEqual([[0, 1, 2], [3, 4], []])
     expect(blockDayPlan(blockStates([46], []), now, '2026-11-20')).toBeNull()
+  })
+  it('a failed block stays in the plan', () => {
+    const st = blockStates([46, 46, 46, 45, 45], [{ block: 0, blocks: 5, grade: 3, date: new Date(2026, 10, 20, 14).toISOString() }])
+    const p = blockDayPlan(st, now, '2026-11-26')!
+    expect(p[0]).toMatchObject({ learn: [0], done: [] })
   })
 })

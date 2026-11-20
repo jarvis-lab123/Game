@@ -8,12 +8,13 @@ import { requestSync } from '../../db/autosync'
 import { introduceBlock, markBlockLearned } from '../../db/blocks'
 import { loadSettings } from '../../db/queries'
 import type { Card, Deck, Note } from '../../lib/types'
-import { READ_ROUNDS, blockDayPlan, blockStates, drillCurrent, drillFinished, drillMark, overallGrade, pickNextBlock, splitBlocks, startDrill, type BlockState, type DrillState } from '../../lib/blocks'
+import { READ_ROUNDS, blockDayPlan, passed, blockStates, drillCurrent, drillFinished, drillMark, overallGrade, pickNextBlock, splitBlocks, startDrill, type BlockState, type DrillState } from '../../lib/blocks'
 import { gradeTone } from '../../lib/papertest'
 import { Badge, Button, Empty, Kbd, Progress, cx } from '../components'
 import { Flag, IconBack, IconCheck, IconChevron, IconPlay, IconX } from '../icons'
 import { go } from '../router'
 import { AudioButton, faceOf } from './cards'
+import { BlockTrainer } from './Trainer'
 import { PaperTest, type PaperItem } from '../probe/PaperTest'
 import { PaperHint, useCalmFocus } from '../probe/paper'
 
@@ -67,12 +68,12 @@ export function BlockHome() {
   return (
     <div className="space-y-5">
       <div className="rounded-[22px] bg-surface p-5 shadow-card desk:p-6">
-        <p className="text-[17px] font-semibold">Blocklernen mit Blatt und Stift</p>
+        <p className="text-[17px] font-semibold">Blocklernen: am Computer lernen, auf Papier testen</p>
         <ol className="mt-3 grid gap-2.5 text-sm desk:grid-cols-3">
           {[
-            ['Zweimal durchgehen', 'Alle Wörter des Blocks mit Lösung anschauen – zwei Runden.'],
-            ['Von Hand schreiben', 'Wort auf ein Blatt schreiben, Lösung aufdecken, selbst abhaken. Falsche kommen wieder, bis alle sitzen.'],
-            ['Probetest mit Note', 'Alle Wörter des Blocks auf Papier. Die Note (Schweizer Skala) schliesst den Block ab.'],
+            ['Am Computer lernen', 'In kleinen Portionen: einprägen, Paare, Lückentext, aus dem Kopf.'],
+            ['Test auf Papier', 'Alle Wörter des Blocks auf ein Blatt, dann selbst korrigieren.'],
+            ['Note ab 4', 'Dann ist der Block geschafft. Unter 4 kommt er nochmals.'],
           ].map(([t, d], k) => (
             <li key={t} className="flex gap-3">
               <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-accent-soft text-sm font-bold text-accent tabular">{k + 1}</span>
@@ -110,7 +111,7 @@ function DeckBlockCard({ d }: { d: DeckBlocks }) {
       {next && (
         <div className="px-5 pb-4">
           <Button variant="primary" size="lg" className="w-full" onClick={() => go(`/bloecke?deck=${d.deck.id}&start=${next.index}`)}>
-            <IconPlay /> {next.reason === 'neu' ? `Block ${next.index + 1} lernen` : `Block ${next.index + 1} wiederholen (schlechteste Note)`}
+            <IconPlay /> {next.reason === 'neu' ? `Block ${next.index + 1} lernen` : next.reason === 'nochmal' ? `Block ${next.index + 1} nochmals (unter 4)` : `Block ${next.index + 1} wiederholen (schlechteste Note)`}
           </Button>
         </div>
       )}
@@ -120,7 +121,7 @@ function DeckBlockCard({ d }: { d: DeckBlocks }) {
             <a href={`#/bloecke?deck=${d.deck.id}&start=${s.index}`} className="flex min-h-14 items-center gap-3 px-5 py-2.5 transition-colors duration-150 hover:bg-surface-2/60">
               <GradeChip grade={s.grade} size="sm" />
               <span className="min-w-0 flex-1">
-                <span className="block font-medium">Block {s.index + 1} {next?.index === s.index && <Badge tone="accent">als Nächstes</Badge>}</span>
+                <span className="block font-medium">Block {s.index + 1} {s.grade != null && s.grade < 4 ? <Badge tone="bad">nochmals</Badge> : next?.index === s.index && <Badge tone="accent">als Nächstes</Badge>}</span>
                 <span className="block truncate text-[13px] text-muted tabular">
                   {range(d.blocks, s.index)} · „{d.blocks[s.index][0].note.term}“ …{s.attempts > 1 ? ` · ${s.attempts} Tests, beste ${s.best!.toFixed(1)}` : ''}
                 </span>
@@ -142,10 +143,10 @@ const parseKey = (k: string) => { const [y, m, d] = k.split('-').map(Number); re
 function DayPlan({ d }: { d: DeckBlocks }) {
   const plan = blockDayPlan(d.states, new Date(), d.deck.examDate!)
   if (!plan) return null
-  const earlier = d.states.filter((s) => s.grade != null).length
+  const earlier = d.states.filter((s) => passed(s)).length
   const today = plan[0]
   // blocks learned before today (a block finished today is not „earlier“ yet)
-  const before = d.states.filter((s) => s.grade != null && !today.done.includes(s.index)).length
+  const before = d.states.filter((s) => passed(s) && !today.done.includes(s.index)).length
   const b = (xs: number[]) => xs.map((i) => `Block ${i + 1}`).join(' + ')
   return (
     <div className="mx-5 mb-4 rounded-2xl bg-surface-2 p-4">
@@ -166,7 +167,7 @@ function DayPlan({ d }: { d: DeckBlocks }) {
       </ol>
       {earlier > 0 && (
         <div className="mt-3 flex flex-col gap-2 desk:flex-row">
-          <Button onClick={() => go(`/bloecke?deck=${d.deck.id}&start=0&review=${Math.max(...d.states.filter((s) => s.grade != null).map((s) => s.index)) + 1}`)}>Kurztest: 20 Wörter aus Block 1–{Math.max(...d.states.filter((s) => s.grade != null).map((s) => s.index)) + 1}</Button>
+          <Button onClick={() => go(`/bloecke?deck=${d.deck.id}&start=0&review=${Math.max(...d.states.filter((s) => passed(s)).map((s) => s.index)) + 1}`)}>Kurztest: 20 Wörter aus Block 1–{Math.max(...d.states.filter((s) => passed(s)).map((s) => s.index)) + 1}</Button>
           <Button onClick={() => go(`/knacknuss?src=fehler&deck=${d.deck.id}`)}>Alle Fehler trainieren</Button>
         </div>
       )}
@@ -231,7 +232,7 @@ function MarkLearned({ d }: { d: DeckBlocks }) {
 }
 
 /* ---------------- Ablauf eines Blocks ---------------- */
-type Phase = { k: 'read'; round: number; i: number } | { k: 'readDone' } | { k: 'drill' } | { k: 'test' }
+type Phase = { k: 'choose' } | { k: 'train' } | { k: 'read'; round: number; i: number } | { k: 'readDone' } | { k: 'drill' } | { k: 'test' }
 
 function shuffled<T>(xs: T[]): T[] {
   const a = xs.slice()
@@ -271,7 +272,7 @@ function ReviewTest({ deck, pool, review }: { deck: Deck; pool: Word[]; review: 
 
 function BlockFlow({ deck, words, index, count, label }: { deck: Deck; words: Word[]; index: number; count: number; label: string }) {
   const reduce = !!useReducedMotion()
-  const [phase, setPhase] = useState<Phase>({ k: 'read', round: 1, i: 0 })
+  const [phase, setPhase] = useState<Phase>({ k: 'choose' })
   const [order, setOrder] = useState(() => words)
   const [drill, setDrill] = useState<DrillState>(() => startDrill(words.map((w) => w.card.id)))
   const byId = useMemo(() => new Map(words.map((w) => [w.card.id, w])), [words])
@@ -287,6 +288,21 @@ function BlockFlow({ deck, words, index, count, label }: { deck: Deck; words: Wo
       />
     )
   }
+
+  if (phase.k === 'choose') return <ChooseWay deck={deck} n={words.length} title={title} label={label} reduce={reduce} onPick={(k) => {
+    if (k !== 'test') void introduceBlock(db, words.map((w) => w.card.id)).then(requestSync)
+    setPhase(k === 'train' ? { k: 'train' } : k === 'classic' ? { k: 'read', round: 1, i: 0 } : { k: 'test' })
+    window.scrollTo({ top: 0 })
+  }} />
+  if (phase.k === 'train')
+    return (
+      <BlockTrainer
+        picks={words.map((w) => ({ note: w.note, card: w.card, deck, score: 0, wrong: 0, reason: title }))}
+        title={title}
+        exitTo={HOME}
+        onFinished={() => { setPhase({ k: 'test' }); window.scrollTo({ top: 0 }) }}
+      />
+    )
 
   const N = words.length
   const progress = phase.k === 'read' ? ((phase.round - 1) * N + phase.i + 1) / (READ_ROUNDS * N) : phase.k === 'readDone' ? 1 : drill.done.length / N
@@ -338,6 +354,42 @@ function BlockFlow({ deck, words, index, count, label }: { deck: Deck; words: Wo
           />
         )}
       </div>
+    </div>
+  )
+}
+
+function ChooseWay({ deck, n, title, label, reduce, onPick }: { deck: Deck; n: number; title: string; label: string; reduce: boolean; onPick: (k: 'train' | 'classic' | 'test') => void }) {
+  const focus = useCalmFocus<HTMLButtonElement>()
+  useEffect(() => {
+    const on = (e: KeyboardEvent) => { if (e.key === 'Escape') go(HOME) }
+    window.addEventListener('keydown', on)
+    return () => window.removeEventListener('keydown', on)
+  }, [])
+  const minutes = Math.round((n * 40) / 60 / 5) * 5
+  return (
+    <div className="mx-auto w-full max-w-[680px] px-4 pb-10 pt-6 desk:pt-10">
+      <button onClick={() => go(HOME)} className="mb-3 flex min-h-11 items-center gap-1 text-[15px] text-muted hover:text-fg"><IconBack /> Blöcke</button>
+      <motion.div className="rounded-[26px] bg-surface p-6 shadow-card desk:p-10" initial={reduce ? false : { opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+        <p className="text-sm font-medium text-muted">{deck.name} · {label}</p>
+        <h1 className="mt-1 text-[28px] font-bold leading-tight tracking-[-0.02em] desk:text-[32px]">{title} · {n} Wörter</h1>
+        <ol className="mt-6 space-y-4">
+          {[
+            ['Am Computer lernen', `In Portionen von etwa 8 Wörtern: einprägen (mit Eselsbrücke), Paare finden, dann jedes Wort im Lückentext und einmal aus dem Kopf. Ca. ${minutes} Min.`],
+            ['Test auf Papier', `Alle ${n} Wörter auf ein Blatt, dann selbst korrigieren – mit Note.`],
+            ['Note ab 4 = Block geschafft', 'Unter 4 machst du den Block nochmals. Ab 4 geht’s zum nächsten Block.'],
+          ].map(([t, d], k) => (
+            <li key={t} className="flex gap-3">
+              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-accent-soft text-sm font-bold text-accent tabular">{k + 1}</span>
+              <span><span className="block text-[15px] font-semibold">{t}</span><span className="block text-sm text-muted">{d}</span></span>
+            </li>
+          ))}
+        </ol>
+        <Button ref={focus} variant="primary" size="lg" className="mt-7 w-full" onClick={() => onPick('train')}><IconPlay /> Block lernen</Button>
+        <div className="mt-3 grid gap-2 desk:grid-cols-2">
+          <Button onClick={() => onPick('classic')}>Klassisch: lesen + von Hand</Button>
+          <Button onClick={() => onPick('test')}>Kann ich schon – direkt zum Test</Button>
+        </div>
+      </motion.div>
     </div>
   )
 }

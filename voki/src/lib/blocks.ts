@@ -7,6 +7,9 @@
 
 export const BLOCK_TARGET = 50
 export const READ_ROUNDS = 2
+/** A block is passed with a 4 or better; below, it has to be done again. */
+export const PASS_GRADE = 4
+export const passed = (s: { grade: number | null }) => s.grade != null && s.grade >= PASS_GRADE
 
 /** Split into ≈`target`-sized blocks of balanced size, keeping the order. */
 export function splitBlocks<T>(items: T[], target = BLOCK_TARGET): T[][] {
@@ -57,13 +60,13 @@ export function blockStates(sizes: number[], tests: BlockTest[]): BlockState[] {
   })
 }
 
-export type NextReason = 'neu' | 'schlechteste'
+export type NextReason = 'neu' | 'nochmal' | 'schlechteste'
 
 /** First block without a grade; when all have one, the worst latest grade (tie: longest ago). */
 export function pickNextBlock(states: BlockState[]): { index: number; reason: NextReason } | null {
   if (states.length === 0) return null
-  const fresh = states.find((s) => s.grade == null)
-  if (fresh) return { index: fresh.index, reason: 'neu' }
+  const open = states.find((s) => !passed(s))
+  if (open) return { index: open.index, reason: open.grade == null ? 'neu' : 'nochmal' }
   const worst = states.slice().sort((a, b) => a.grade! - b.grade! || a.date!.localeCompare(b.date!))[0]
   return { index: worst.index, reason: 'schlechteste' }
 }
@@ -143,8 +146,8 @@ export function blockDayPlan(states: BlockState[], now: Date, examDate: string):
   if (!days.length) return null
   const today = days[0]
   const learnDays = days.length >= 2 ? days.length - 1 : 1
-  const doneToday = states.filter((s) => s.first && dayKeyOf(new Date(s.first)) === today).map((s) => s.index)
-  const pending = states.filter((s) => s.grade == null).map((s) => s.index)
+  const doneToday = states.filter((s) => passed(s) && s.date && dayKeyOf(new Date(s.date)) === today && (!s.first || dayKeyOf(new Date(s.first)) === today)).map((s) => s.index)
+  const pending = states.filter((s) => !passed(s)).map((s) => s.index)
   const perDay = Math.ceil((pending.length + doneToday.length) / learnDays)
   const out: PlanDay[] = []
   const todayLearn = pending.slice(0, Math.max(0, perDay - doneToday.length))

@@ -24,6 +24,7 @@ function message(grade: number) {
  */
 export function GradeReveal({ deck, items, decisions, reduce, onAgain, block }: { deck: Deck; items: PaperItem[]; decisions: Decision[]; reduce: boolean; onAgain: () => void; block?: PaperBlock }) {
   const { points, total, grade } = paperScore(decisions)
+  const failed = !!block && grade < 4
   const tone = gradeTone(grade)
   const [stage, setStage] = useState<Stage>(reduce ? 'stamp' : 'count')
   const [shownPoints, setShownPoints] = useState(reduce ? points : 0)
@@ -145,8 +146,8 @@ export function GradeReveal({ deck, items, decisions, reduce, onAgain, block }: 
         <div className="mt-6 min-h-[72px]">
           {stamped ? (
             <motion.div initial={reduce ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: reduce ? 0 : 0.35, duration: 0.3 }}>
-              <p className="text-[19px] font-semibold">{msg.t}</p>
-              <p className="mx-auto mt-1 max-w-[420px] text-[15px] text-muted">{block ? (wrong.length > 0 ? 'Die Note ist gespeichert. Sind alle Blöcke durch, kommt der mit der schlechtesten Note nochmals dran.' : 'Alles richtig – Block mit Bestnote abgeschlossen!') : wrong.length > 0 ? msg.d : 'Alles richtig – nichts für das Fehlerheft.'}</p>
+              <p className="text-[19px] font-semibold">{failed ? "Noch nicht geschafft – nochmals!" : msg.t}</p>
+              <p className="mx-auto mt-1 max-w-[420px] text-[15px] text-muted">{failed ? 'Unter 4 – dieser Block ist noch nicht geschafft. Lern ihn nochmals, dann wieder der Test auf Papier.' : block ? (wrong.length > 0 ? 'Block geschafft! Sind alle Blöcke durch, kommt der mit der schlechtesten Note nochmals dran.' : 'Alles richtig – Block mit Bestnote abgeschlossen!') : wrong.length > 0 ? msg.d : 'Alles richtig – nichts für das Fehlerheft.'}</p>
               <p className="mt-3 text-[13px] text-muted">Schweizer Skala: 6 = alles richtig, 4 = 60 %</p>
             </motion.div>
           ) : (
@@ -173,7 +174,12 @@ export function GradeReveal({ deck, items, decisions, reduce, onAgain, block }: 
             </div>
           )}
           <div className="flex flex-col gap-2 desk:flex-row">
-            {block ? (
+            {failed ? (
+              <>
+                <Button ref={focus} variant="primary" size="lg" onClick={() => go(`${block!.againTo}&t=${Date.now()}`)}>Block nochmals lernen</Button>
+                <Button size="lg" onClick={() => go(block!.exitTo)}>Später</Button>
+              </>
+            ) : block ? (
               <>
                 <Button ref={focus} variant="primary" size="lg" onClick={() => go(block.exitTo)}>Block abschliessen</Button>
                 {wrong.length > 0 && <Button size="lg" onClick={() => go(`/knacknuss?deck=${deck.id}&t=${Date.now()}`)}>🌰 Falsche Wörter knacken</Button>}

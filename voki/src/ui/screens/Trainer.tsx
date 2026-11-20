@@ -78,7 +78,9 @@ export function Trainer({ deckId, cloze = false, source = 'knacknuss' }: { deckI
   return <TrainerRun key={round} words={words} left={left} phase={phase} cloze={cloze} source={source} setPhase={setPhase} onAgain={() => { setPhase('loading'); setRound((r) => r + 1) }} />
 }
 
-function TrainerRun({ words, left, phase, cloze, source, setPhase, onAgain }: { words: TWord[]; left: number; phase: Phase; cloze: boolean; source: TrainerSource; setPhase: (p: Phase) => void; onAgain: () => void }) {
+interface Embed { title: string; sub: string; exitTo: string; base: number; span: number }
+
+function TrainerRun({ words, left, phase, cloze, source, setPhase, onAgain, embed }: { words: TWord[]; left: number; phase: Phase; cloze: boolean; source: TrainerSource; setPhase: (p: Phase) => void; onAgain: () => void; embed?: Embed }) {
   const reduce = !!useReducedMotion()
   const engine = useMemo(() => new TrainerEngine(words.map((w) => ({ id: w.pick.card.id, hasCloze: !!w.cloze, canListen: w.canListen })), cloze ? CLOZE_ONLY : source === 'neu' ? 'quick' : undefined), [words, cloze, source])
   const byId = useMemo(() => new Map(words.map((w) => [w.pick.card.id, w])), [words])
@@ -86,7 +88,8 @@ function TrainerRun({ words, left, phase, cloze, source, setPhase, onAgain }: { 
   const [turn, setTurn] = useState(0)
   const [cracked, setCracked] = useState<string[]>([])
 
-  const progress = cloze ? (phase === 'done' ? 1 : engine.progress) : phase === 'learn' ? (learnI / words.length) * 0.15 : phase === 'match' ? 0.15 : phase === 'drill' ? 0.2 + engine.progress * 0.8 : 1
+  const local = phase === 'learn' ? (learnI / words.length) * 0.25 : phase === 'match' ? 0.3 : phase === 'drill' ? 0.3 + engine.progress * 0.7 : 1
+  const progress = embed ? embed.base + embed.span * local : cloze ? (phase === 'done' ? 1 : engine.progress) : phase === 'learn' ? (learnI / words.length) * 0.15 : phase === 'match' ? 0.15 : phase === 'drill' ? 0.2 + engine.progress * 0.8 : 1
   const item = phase === 'drill' ? engine.current() : null
 
   const answer = (ok: boolean, typed = '') => {
@@ -101,7 +104,8 @@ function TrainerRun({ words, left, phase, cloze, source, setPhase, onAgain }: { 
     if (done) {
       setCracked((c) => [...c, item.id])
       // a gap sentence gives context, so only the full exercise ladder counts as a review
-      if (cloze) requestSync()
+      // in a block the paper test at the end decides (it moves the words forward)
+      if (cloze || embed) requestSync()
       else if (source === 'neu') void loadSettings(db).then((st) => applyBlockTest(db, [{ cardId: item.id, correct: true }], st.desiredRetention)).then(requestSync)
       else void crackWord(db, item.id, engine.wrongCount(item.id) > 0).then(requestSync)
     }
@@ -113,14 +117,14 @@ function TrainerRun({ words, left, phase, cloze, source, setPhase, onAgain }: { 
     <div className="flex min-h-full flex-col">
       <header className="safe-top sticky top-0 z-30 border-b border-line bg-bg/90 backdrop-blur">
         <div className="mx-auto flex max-w-[680px] items-center gap-3 px-4 py-3">
-          <button onClick={() => go(EXIT)} className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-muted hover:bg-surface-2 hover:text-fg" aria-label="Training beenden (Esc)"><IconX /></button>
+          <button onClick={() => go(embed?.exitTo ?? EXIT)} className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-muted hover:bg-surface-2 hover:text-fg" aria-label="Training beenden (Esc)"><IconX /></button>
           <div className="min-w-0 flex-1">
             <Progress value={progress} tone="good" label="Fortschritt Training" />
             <p className="mt-1 truncate text-[12px] text-muted">
-              <span className="font-semibold text-fg">{cloze ? 'Lückentext-Training' : TITLE[source]}</span> · {phase === 'learn' ? 'Einprägen' : phase === 'match' ? 'Paare finden' : phase === 'drill' && item ? EXERCISE_LABEL[item.exercise] : 'Fertig'}
+              <span className="font-semibold text-fg">{embed ? embed.title : cloze ? 'Lückentext-Training' : TITLE[source]}</span>{embed && ` · ${embed.sub}`} · {phase === 'learn' ? 'Einprägen' : phase === 'match' ? 'Paare finden' : phase === 'drill' && item ? EXERCISE_LABEL[item.exercise] : 'Fertig'}
             </p>
           </div>
-          <span className="shrink-0 text-sm text-muted tabular">{cracked.length}/{words.length} {cloze ? '✓' : '🌰'}</span>
+          <span className="shrink-0 text-sm text-muted tabular">{cracked.length}/{words.length} {cloze || embed ? '✓' : '🌰'}</span>
         </div>
       </header>
       <div className="mx-auto w-full max-w-[680px] flex-1 px-4 pb-10 pt-6 desk:pt-10">
@@ -134,10 +138,34 @@ function TrainerRun({ words, left, phase, cloze, source, setPhase, onAgain }: { 
           />
         )}
         {phase === 'match' && <Match words={words} reduce={reduce} onDone={() => setPhase('drill')} />}
-        {phase === 'drill' && item && <ExerciseView key={`${item.id}-${turn}`} item={item} w={byId.get(item.id)!} reduce={reduce} onAnswer={answer} />}
+        {phase === 'drill' && item && <ExerciseView key={`${item.id}-${turn}`} item={item} w={byId.get(item.id)!} reduce={reduce} onAnswer={answer} clozeOnly={cloze} />}
         {phase === 'done' && <Done words={words} cracked={cracked} engine={engine} left={left} cloze={cloze} source={source} onAgain={onAgain} />}
       </div>
     </div>
+  )
+}
+
+/**
+ * Block learning on the computer: the block in portions of about 8 words – learn cards, pairs,
+ * then per word a gap sentence (or the faded word) and one free recall. Calls onFinished at the end.
+ */
+export function BlockTrainer({ picks, title, exitTo, onFinished }: { picks: TrainerPick[]; title: string; exitTo: string; onFinished: () => void }) {
+  const chunks = useMemo(() => {
+    const k = Math.max(1, Math.round(picks.length / 8))
+    const out: TrainerPick[][] = []
+    for (let i = 0; i < k; i++) out.push(picks.slice(Math.round((i * picks.length) / k), Math.round(((i + 1) * picks.length) / k)))
+    return out
+  }, [picks])
+  const [ci, setCi] = useState(0)
+  const [phase, setPhase] = useState<Phase>('learn')
+  const words = useMemo(() => chunks[ci].map(toWord), [chunks, ci])
+  const next = (p: Phase) => {
+    if (p !== 'done') return setPhase(p)
+    if (ci + 1 < chunks.length) { setCi(ci + 1); setPhase('learn'); window.scrollTo({ top: 0 }) } else onFinished()
+  }
+  return (
+    <TrainerRun key={ci} words={words} left={0} phase={phase} cloze={false} source="neu" setPhase={next} onAgain={() => {}}
+      embed={{ title, sub: `Teil ${ci + 1}/${chunks.length}`, exitTo, base: ci / chunks.length, span: 1 / chunks.length }} />
   )
 }
 
@@ -286,7 +314,7 @@ function MatchSet({ set, part, last, reduce, onDone, onSkip }: { set: TWord[]; p
 /* ---------- 3. Übungen ---------- */
 interface Result { ok: boolean; typed: string }
 
-function ExerciseView({ item, w, reduce, onAnswer }: { item: TrainerItem; w: TWord; reduce: boolean; onAnswer: (ok: boolean, typed?: string) => void }) {
+function ExerciseView({ item, w, reduce, onAnswer, clozeOnly }: { item: TrainerItem; w: TWord; reduce: boolean; onAnswer: (ok: boolean, typed?: string) => void; clozeOnly?: boolean }) {
   const [res, setRes] = useState<Result | null>(null)
   const shake = useAnimationControls()
   const finish = (r: Result) => {
@@ -312,7 +340,7 @@ function ExerciseView({ item, w, reduce, onAnswer }: { item: TrainerItem; w: TWo
       <motion.div initial={reduce ? false : { opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18 }}>
       <motion.div className={card} animate={shake}>
         <div className="flex items-baseline justify-between gap-3">
-          <p className="text-sm font-medium text-accent">{EXERCISE_LABEL[item.exercise]}{item.steps === 2 && item.exercise === 'cloze' ? (item.step === 0 ? ' · 1. Runde' : ' · 2. Runde') : ''}</p>
+          <p className="text-sm font-medium text-accent">{EXERCISE_LABEL[item.exercise]}{clozeOnly ? (item.step === 0 ? ' · 1. Runde' : ' · 2. Runde') : ''}</p>
           <Steps step={item.step} steps={item.steps} />
         </div>
         <Prompt ex={item.exercise} w={w} />
