@@ -27,6 +27,9 @@ export interface Note {
   exampleTranslation?: string
   /** the word exactly as it stands in the example sentence (conjugated / agreed) – the gap */
   gap?: string
+  /** a short, easy sentence with the word (for beginners) and its German translation */
+  shortExample?: string
+  shortTranslation?: string
   gender?: Gender
   plural?: string
   notes?: string

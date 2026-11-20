@@ -1,7 +1,7 @@
 import type { Gender } from './types'
 import { normalize } from './grade'
 
-export type Column = 'term' | 'translation' | 'example' | 'gender' | 'notes' | 'exampleTranslation' | 'gap' | 'ignore'
+export type Column = 'term' | 'translation' | 'example' | 'gender' | 'notes' | 'exampleTranslation' | 'gap' | 'shortExample' | 'shortTranslation' | 'ignore'
 export const COLUMN_LABELS: Record<Column, string> = {
   term: 'Fremdwort',
   translation: 'Deutsch',
@@ -10,6 +10,8 @@ export const COLUMN_LABELS: Record<Column, string> = {
   notes: 'Notiz',
   exampleTranslation: 'Satz auf Deutsch',
   gap: 'Lücke (Form im Satz)',
+  shortExample: 'Kurzer Satz',
+  shortTranslation: 'Kurzer Satz auf Deutsch',
   ignore: 'Ignorieren',
 }
 
@@ -21,6 +23,8 @@ export interface NoteDraft {
   notes?: string
   exampleTranslation?: string
   gap?: string
+  shortExample?: string
+  shortTranslation?: string
   valid: boolean
   duplicate: boolean
 }
@@ -66,7 +70,7 @@ export function parseDelimited(text: string): { delimiter: string; rows: string[
   return { delimiter, rows: lines.map((l) => splitLine(l, delimiter)) }
 }
 
-const ORDER: Column[] = ['term', 'translation', 'example', 'gender', 'notes', 'exampleTranslation', 'gap']
+const ORDER: Column[] = ['term', 'translation', 'example', 'gender', 'notes', 'exampleTranslation', 'gap', 'shortExample', 'shortTranslation']
 export function guessMapping(columns: number): Column[] {
   return Array.from({ length: columns }, (_, i) => ORDER[i] ?? 'ignore')
 }
@@ -102,6 +106,8 @@ export function mapRows(rows: string[][], mapping: Column[], existingTerms: Set<
       notes: get('notes'),
       exampleTranslation: get('exampleTranslation'),
       gap: get('gap'),
+      shortExample: get('shortExample'),
+      shortTranslation: get('shortTranslation'),
       valid: !!term && !!translation,
       duplicate,
     }

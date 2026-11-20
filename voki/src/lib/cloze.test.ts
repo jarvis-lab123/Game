@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { clozeFor, clozeGap } from './cloze'
+import { clozeFor, clozeGap, needsOtherForm } from './cloze'
 
 describe('clozeFor (Lückentext)', () => {
   it('replaces the word in the example with a gap', () => {
@@ -55,5 +55,15 @@ describe('clozeFor (Lückentext)', () => {
   it('clozeGap also reports the exact words that were cut out', () => {
     expect(clozeGap('to face extinction', 'Many frogs face extinction.')).toEqual({ sentence: 'Many frogs ____.', gap: 'face extinction' })
     expect(clozeGap('x', 'nothing')).toBeNull()
+  })
+})
+
+describe('needsOtherForm (Sätze 2.0)', () => {
+  it('only words that change in the sentence', () => {
+    expect(needsOtherForm('se concentrer', 'me concentre')).toBe(true)
+    expect(needsOtherForm('un, une libraire', 'libraires')).toBe(true)
+    expect(needsOtherForm('un chantier', 'chantier')).toBe(false)
+    expect(needsOtherForm('autoritaire', 'autoritaire')).toBe(false)
+    expect(needsOtherForm('un agriculteur, une agricultrice', 'agricultrice')).toBe(false)
   })
 })

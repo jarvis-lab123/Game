@@ -29,6 +29,7 @@ describe('guessMapping', () => {
     expect(guessMapping(5)).toEqual(['term', 'translation', 'example', 'gender', 'notes'])
     expect(guessMapping(2)).toEqual(['term', 'translation'])
     expect(guessMapping(7)).toEqual(['term', 'translation', 'example', 'gender', 'notes', 'exampleTranslation', 'gap'])
+    expect(guessMapping(9).slice(7)).toEqual(['shortExample', 'shortTranslation'])
   })
 })
 

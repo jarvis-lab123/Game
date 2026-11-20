@@ -10,11 +10,13 @@ import { loadSettings } from '../../db/queries'
 import type { Card, Deck, Note } from '../../lib/types'
 import { READ_ROUNDS, blockDayPlan, passed, blockStates, drillCurrent, drillFinished, drillMark, overallGrade, pickNextBlock, splitBlocks, startDrill, type BlockState, type DrillState } from '../../lib/blocks'
 import { gradeTone } from '../../lib/papertest'
+import { clozeGap, needsOtherForm } from '../../lib/cloze'
+import { diffChars, gradeAnswer, normalize, type AnswerLang } from '../../lib/grade'
 import { markModel, markSentence, onlyAccents, sameSentence, startSentences, type SentenceQueue } from '../../lib/sentence'
 import { Badge, Button, Empty, Kbd, Progress, cx } from '../components'
 import { Flag, IconBack, IconCheck, IconChevron, IconPlay, IconX } from '../icons'
 import { go } from '../router'
-import { AudioButton, SentenceWithTranslation, faceOf } from './cards'
+import { AnswerInput, AudioButton, SentenceWithTranslation, faceOf } from './cards'
 import { BlockTrainer } from './Trainer'
 import { PaperTest, type PaperItem } from '../probe/PaperTest'
 import { PaperHint, useCalmFocus } from '../probe/paper'
@@ -233,7 +235,7 @@ function MarkLearned({ d }: { d: DeckBlocks }) {
 }
 
 /* ---------------- Ablauf eines Blocks ---------------- */
-type Phase = { k: 'choose' } | { k: 'train' } | { k: 'sentences' } | { k: 'read'; round: number; i: number } | { k: 'readDone' } | { k: 'drill' } | { k: 'test' }
+type Phase = { k: 'choose' } | { k: 'train' } | { k: 'sentences'; short: boolean } | { k: 'cards'; v: DrillVariant } | { k: 'read'; round: number; i: number } | { k: 'readDone' } | { k: 'drill' } | { k: 'test' }
 
 function shuffled<T>(xs: T[]): T[] {
   const a = xs.slice()
@@ -291,28 +293,38 @@ function BlockFlow({ deck, words, index, count, label }: { deck: Deck; words: Wo
     )
   }
 
-  if (phase.k === 'choose') return <ChooseWay deck={deck} n={words.length} title={title} label={label} reduce={reduce} hasSentences={words.some((w) => w.note.exampleTranslation)} onPick={(k) => {
-    if (k !== 'test') void introduceBlock(db, words.map((w) => w.card.id)).then(requestSync)
-    setPhase(k === 'train' ? { k: 'train' } : k === 'classic' ? { k: 'read', round: 1, i: 0 } : k === 'sentences' ? { k: 'sentences' } : { k: 'test' })
+  const hasShort = words.some((w) => w.note.shortExample && w.note.shortTranslation)
+  const hasLong = words.some((w) => w.note.example && w.note.exampleTranslation)
+  const conjWords = words.filter((w) => w.note.example && needsOtherForm(w.note.term, w.note.gap))
+  const hasConj = conjWords.length > 0
+  const toPhase = (k: Pick): Phase =>
+    k === 'train' ? { k: 'train' } : k === 'classic' ? { k: 'read', round: 1, i: 0 } : k === 'short' ? { k: 'sentences', short: true } : k === 'long' ? { k: 'sentences', short: false } : k === 'flash' || k === 'write' || k === 'conj' ? { k: 'cards', v: k } : k === 'menu' ? { k: 'choose' } : { k: 'test' }
+  const pick = (k: Pick) => {
+    if (k !== 'test' && k !== 'menu') void introduceBlock(db, words.map((w) => w.card.id)).then(requestSync)
+    setPhase(toPhase(k))
     window.scrollTo({ top: 0 })
-  }} />
+  }
+  if (phase.k === 'choose') return <ChooseWay deck={deck} n={words.length} title={title} label={label} reduce={reduce} has={{ short: hasShort, long: hasLong, conj: hasConj }} onPick={pick} />
+  if (phase.k === 'cards') return <WordDrill key={phase.v} deck={deck} words={phase.v === 'conj' ? conjWords : words} variant={phase.v} title={title} onPick={pick} />
   if (phase.k === 'train')
     return (
       <BlockTrainer
         picks={words.map((w) => ({ note: w.note, card: w.card, deck, score: 0, wrong: 0, reason: title }))}
         title={title}
         exitTo={HOME}
-        onFinished={() => { setPhase(words.some((w) => w.note.exampleTranslation) ? { k: 'sentences' } : { k: 'test' }); window.scrollTo({ top: 0 }) }}
+        onFinished={() => { setPhase(hasShort ? { k: 'sentences', short: true } : hasLong ? { k: 'sentences', short: false } : { k: 'test' }); window.scrollTo({ top: 0 }) }}
       />
     )
   if (phase.k === 'sentences')
     return (
       <SentencePractice
+        key={String(phase.short)}
         deck={deck}
-        words={words.filter((w) => w.note.example && w.note.exampleTranslation)}
+        short={phase.short}
+        words={words.filter((w) => (phase.short ? w.note.shortExample && w.note.shortTranslation : w.note.example && w.note.exampleTranslation))}
         title={title}
-        onTest={() => { setPhase({ k: 'test' }); window.scrollTo({ top: 0 }) }}
-        onWords={() => { setPhase({ k: 'train' }); window.scrollTo({ top: 0 }) }}
+        onPick={pick}
+        hasLong={hasLong}
       />
     )
 
@@ -371,7 +383,11 @@ function BlockFlow({ deck, words, index, count, label }: { deck: Deck; words: Wo
 }
 
 /* ---------------- Übungsmodus: deutsche Sätze ins Französische ---------------- */
-function SentencePractice({ deck, words, title, onTest, onWords }: { deck: Deck; words: Word[]; title: string; onTest: () => void; onWords: () => void }) {
+function SentencePractice({ deck, words, title, short, onPick, hasLong }: { deck: Deck; words: Word[]; title: string; short: boolean; onPick: (k: Pick) => void; hasLong: boolean }) {
+  const onTest = () => onPick('test')
+  const onWords = () => onPick('train')
+  const model = (w: Word) => (short ? w.note.shortExample : w.note.example) ?? ''
+  const german = (w: Word) => (short ? w.note.shortTranslation : w.note.exampleTranslation) ?? ''
   const reduce = !!useReducedMotion()
   const byId = useMemo(() => new Map(words.map((w) => [w.card.id, w])), [words])
   const [q, setQ] = useState<SentenceQueue>(() => startSentences(words.map((w) => w.card.id)))
@@ -391,7 +407,7 @@ function SentencePractice({ deck, words, title, onTest, onWords }: { deck: Deck;
   }
   const check = () => {
     if (!w || shown) return
-    setShown({ auto: sameSentence(typed, w.note.example!), accents: onlyAccents(typed, w.note.example!) })
+    setShown({ auto: sameSentence(typed, model(w)), accents: onlyAccents(typed, model(w)) })
   }
   useEffect(() => {
     const on = (e: KeyboardEvent) => {
@@ -412,7 +428,7 @@ function SentencePractice({ deck, words, title, onTest, onWords }: { deck: Deck;
           <button onClick={() => go(HOME)} className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-muted hover:bg-surface-2 hover:text-fg" aria-label="Block verlassen (Esc)"><IconX /></button>
           <div className="min-w-0 flex-1">
             <Progress value={q.done.length / Math.max(1, N)} tone="good" label="Fortschritt Sätze" />
-            <p className="mt-1 truncate text-[12px] text-muted"><span className="font-semibold text-fg">{title}</span> · Sätze üben · {q.done.length}/{N}</p>
+            <p className="mt-1 truncate text-[12px] text-muted"><span className="font-semibold text-fg">{title}</span> · {short ? 'Kurze Sätze' : 'Lange Sätze'} · {q.done.length}/{N}</p>
           </div>
           <Button size="sm" variant="primary" onClick={onTest}>Jetzt zum Test</Button>
         </div>
@@ -425,6 +441,7 @@ function SentencePractice({ deck, words, title, onTest, onWords }: { deck: Deck;
             <p className="mx-auto mt-1 max-w-[440px] text-[15px] text-muted">{Object.keys(q.wrong).length ? `${Object.keys(q.wrong).length} Sätze brauchten mehr als einen Versuch.` : 'Alles beim ersten Versuch.'} Jetzt der Test auf Papier.</p>
             <div className="mt-6 flex flex-col gap-2 desk:flex-row desk:justify-center">
               <Button variant="primary" size="lg" onClick={onTest}>Zum Test auf Papier</Button>
+              {short && hasLong && <Button size="lg" onClick={() => onPick('long')}>Jetzt lange Sätze</Button>}
               <Button size="lg" onClick={onWords}>Nochmal mit den Wörtern üben</Button>
             </div>
           </div>
@@ -435,7 +452,7 @@ function SentencePractice({ deck, words, title, onTest, onWords }: { deck: Deck;
                 <p className="text-sm font-medium text-accent">Übersetze ins Französische</p>
                 {q.wrong[id] ? <span className="text-sm font-medium text-warn">nochmals</span> : null}
               </div>
-              <p className="mt-3 hyphens-auto break-words text-[26px] font-semibold leading-snug tracking-tight desk:text-[30px]" lang="de">{w.note.exampleTranslation}</p>
+              <p className="mt-3 hyphens-auto break-words text-[26px] font-semibold leading-snug tracking-tight desk:text-[30px]" lang="de">{german(w)}</p>
               {hint || shown ? (
                 <p className="mt-2 text-[15px] text-muted">Wort: <span className="font-semibold text-fg" lang={lang}>{w.note.term}</span> = {w.note.translation}</p>
               ) : (
@@ -468,7 +485,7 @@ function SentencePractice({ deck, words, title, onTest, onWords }: { deck: Deck;
                     <p className="text-sm font-medium text-muted">{shown.accents ? 'Fast – schau die Akzente an:' : typed.trim() ? 'Vergleiche mit der Lösung (fehlende Wörter sind markiert):' : 'Lösung:'}</p>
                   )}
                   <p className="mt-2 text-[22px] font-semibold leading-snug" lang={lang}>
-                    {markModel(typed, w.note.example!).map((t, i) => <span key={i} className={t.ok || !typed.trim() ? '' : 'rounded bg-bad-soft text-bad'}>{t.text}</span>)}
+                    {markModel(typed, model(w)).map((t, i) => <span key={i} className={t.ok || !typed.trim() ? '' : 'rounded bg-bad-soft text-bad'}>{t.text}</span>)}
                   </p>
                   {typed.trim() && !shown.auto && <p className="mt-1 text-sm text-muted">Du: {typed}</p>}
                 </div>
@@ -483,7 +500,10 @@ function SentencePractice({ deck, words, title, onTest, onWords }: { deck: Deck;
               </div>
             ))}
             <div className="mt-4 flex flex-col items-center gap-1 text-center">
-              <button type="button" onClick={onWords} className="min-h-11 text-[15px] font-medium text-accent">Nochmal mit den Wörtern üben</button>
+              <div className="flex flex-wrap justify-center gap-x-5">
+                <button type="button" onClick={onWords} className="min-h-11 text-[15px] font-medium text-accent">Nochmal mit den Wörtern üben</button>
+                <button type="button" onClick={() => onPick('menu')} className="min-h-11 text-[15px] font-medium text-accent">Andere Übung</button>
+              </div>
               <p className="hidden text-xs text-muted desk:block"><Kbd>Enter</Kbd> prüfen · <Kbd>R</Kbd> richtig · <Kbd>F</Kbd> falsch · <Kbd>Esc</Kbd> verlassen</p>
             </div>
           </div>
@@ -502,7 +522,10 @@ function AccentRow({ onInsert }: { onInsert: (c: string) => void }) {
   )
 }
 
-function ChooseWay({ deck, n, title, label, reduce, onPick, hasSentences }: { deck: Deck; n: number; title: string; label: string; reduce: boolean; onPick: (k: 'train' | 'classic' | 'sentences' | 'test') => void; hasSentences: boolean }) {
+type DrillVariant = 'flash' | 'write' | 'conj'
+type Pick = 'train' | 'flash' | 'write' | 'conj' | 'short' | 'long' | 'test' | 'classic' | 'menu'
+
+function ChooseWay({ deck, n, title, label, reduce, onPick, has }: { deck: Deck; n: number; title: string; label: string; reduce: boolean; onPick: (k: Pick) => void; has: { short: boolean; long: boolean; conj: boolean } }) {
   const focus = useCalmFocus<HTMLButtonElement>()
   useEffect(() => {
     const on = (e: KeyboardEvent) => { if (e.key === 'Escape') go(HOME) }
@@ -510,32 +533,180 @@ function ChooseWay({ deck, n, title, label, reduce, onPick, hasSentences }: { de
     return () => window.removeEventListener('keydown', on)
   }, [])
   const minutes = Math.round((n * 40) / 60 / 5) * 5
+  const modes: { k: Pick; t: string; d: string; show: boolean }[] = [
+    { k: 'flash', t: 'Karteikarten', d: 'Deutsch sehen, im Kopf sagen, umdrehen: gewusst oder nicht.', show: true },
+    { k: 'write', t: 'Schreiben', d: 'Deutsch → Französisch tippen. Falsche kommen wieder.', show: true },
+    { k: 'conj', t: 'Sätze 2.0', d: 'Der Satz ist schon da – nur das Wort in der richtigen Form einsetzen.', show: has.conj },
+    { k: 'short', t: 'Kurze Sätze', d: 'Einfache Sätze mit 2–5 Wörtern ins Französische übersetzen.', show: has.short },
+    { k: 'long', t: 'Lange Sätze', d: 'Längere Sätze übersetzen – für danach.', show: has.long },
+  ]
   return (
     <div className="mx-auto w-full max-w-[680px] px-4 pb-10 pt-6 desk:pt-10">
       <button onClick={() => go(HOME)} className="mb-3 flex min-h-11 items-center gap-1 text-[15px] text-muted hover:text-fg"><IconBack /> Blöcke</button>
       <motion.div className="rounded-[26px] bg-surface p-6 shadow-card desk:p-10" initial={reduce ? false : { opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
         <p className="text-sm font-medium text-muted">{deck.name} · {label}</p>
         <h1 className="mt-1 text-[28px] font-bold leading-tight tracking-[-0.02em] desk:text-[32px]">{title} · {n} Wörter</h1>
-        <ol className="mt-6 space-y-4">
-          {[
-            ['Wörter lernen', `In Portionen von etwa 8 Wörtern: einprägen (mit Eselsbrücke), Paare zuordnen, jedes Wort einmal übersetzen und einmal im Satz einsetzen (Grundform genügt). Ca. ${minutes} Min.`],
-            ...(hasSentences ? [['Sätze üben', 'Deutsche Sätze ins Französische übersetzen – mit den Wörtern des Blocks. Jederzeit überspringbar: „Jetzt zum Test“.']] : []),
-            ['Test auf Papier', `Alle ${n} Wörter auf ein Blatt, dann selbst korrigieren – mit Note.`],
-            ['Note ab 4 = Block geschafft', 'Unter 4 machst du den Block nochmals. Ab 4 geht’s zum nächsten Block.'],
-          ].map(([t, d], k) => (
-            <li key={t} className="flex gap-3">
-              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-accent-soft text-sm font-bold text-accent tabular">{k + 1}</span>
-              <span><span className="block text-[15px] font-semibold">{t}</span><span className="block text-sm text-muted">{d}</span></span>
-            </li>
+        <p className="mt-2 text-[15px] text-muted">
+          Empfohlen: <span className="font-medium text-fg">Block lernen</span> (ca. {minutes} Min) → {has.short ? 'kurze Sätze → ' : ''}Test auf Papier. Ab Note 4 ist der Block geschafft, darunter nochmals.
+        </p>
+        <Button ref={focus} variant="primary" size="lg" className="mt-6 w-full" onClick={() => onPick('train')}><IconPlay /> Block lernen</Button>
+        <p className="mt-1.5 text-center text-[13px] text-muted">Einprägen, Paare, übersetzen, im Satz einsetzen – in Portionen</p>
+        <h2 className="mt-7 text-[13px] font-semibold uppercase tracking-[0.04em] text-muted">Üben, wie du willst</h2>
+        <div className="mt-2.5 grid gap-2 desk:grid-cols-2">
+          {modes.filter((m) => m.show).map((m) => (
+            <button key={m.k} type="button" onClick={() => onPick(m.k)} className="flex min-h-[64px] flex-col items-start justify-center rounded-2xl bg-surface-2 px-4 py-2.5 text-left transition-[filter,transform] duration-150 hover:brightness-95 active:scale-[0.98] dark:hover:brightness-125">
+              <span className="text-[16px] font-semibold">{m.t}</span>
+              <span className="text-[13px] text-muted">{m.d}</span>
+            </button>
           ))}
-        </ol>
-        <Button ref={focus} variant="primary" size="lg" className="mt-7 w-full" onClick={() => onPick('train')}><IconPlay /> Block lernen</Button>
-        <div className="mt-3 grid gap-2 desk:grid-cols-2">
-          {hasSentences && <Button onClick={() => onPick('sentences')}>Gleich Sätze üben</Button>}
-          <Button onClick={() => onPick('test')}>Kann ich schon – direkt zum Test</Button>
+        </div>
+        <div className="mt-5 grid gap-2 desk:grid-cols-2">
+          <Button onClick={() => onPick('test')}>Direkt zum Test auf Papier</Button>
           <Button variant="ghost" onClick={() => onPick('classic')}>Klassisch: lesen + von Hand</Button>
         </div>
       </motion.div>
+    </div>
+  )
+}
+
+/* ---------------- Karteikarten · Schreiben · Sätze 2.0 ---------------- */
+const DRILL_TITLE: Record<DrillVariant, string> = { flash: 'Karteikarten', write: 'Schreiben', conj: 'Sätze 2.0' }
+
+function WordDrill({ deck, words, variant, title, onPick }: { deck: Deck; words: Word[]; variant: DrillVariant; title: string; onPick: (k: Pick) => void }) {
+  const reduce = !!useReducedMotion()
+  const byId = useMemo(() => new Map(words.map((w) => [w.card.id, w])), [words])
+  const [q, setQ] = useState<SentenceQueue>(() => startSentences(words.map((w) => w.card.id)))
+  const [res, setRes] = useState<null | { ok: boolean; typed: string }>(null)
+  const [flipped, setFlipped] = useState(false)
+  const [typed, setTyped] = useState('')
+  const id = q.order[0]
+  const w = id ? byId.get(id) : undefined
+  const N = words.length
+  const lang = deck.language === 'other' ? undefined : deck.language
+  const cz = w && variant === 'conj' ? clozeGap(w.note.term, w.note.example, w.note.gap) : null
+  const expected = w ? (variant === 'conj' && cz ? cz.gap : w.item.answer) : ''
+  const next = (ok: boolean) => {
+    if (!w) return
+    void log(db, { cardId: w.card.id, deckId: deck.id, timestamp: new Date().toISOString(), mode: variant === 'flash' ? 'flip' : 'drill', rating: Rating.Manual, typedAnswer: res?.typed ?? '', correct: ok, durationMs: 0 }).then(requestSync)
+    setQ((x) => markSentence(x, ok))
+    setRes(null)
+    setFlipped(false)
+    setTyped('')
+  }
+  const submit = () => {
+    if (!w || res || !typed.trim()) return
+    const r = gradeAnswer(typed, expected, { strictAccents: true, answerLang: w.item.answerLang as AnswerLang })
+    setRes({ ok: r.verdict === 'correct', typed })
+  }
+  useEffect(() => {
+    const on = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') return go(HOME)
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
+      const k = e.key.toLowerCase()
+      if (variant === 'flash') {
+        if (!flipped && (k === ' ' || k === 'enter')) { e.preventDefault(); setFlipped(true) }
+        else if (flipped && (k === 'r' || k === 'arrowright')) { e.preventDefault(); next(true) }
+        else if (flipped && (k === 'f' || k === 'arrowleft')) { e.preventDefault(); next(false) }
+      } else if (res && k === 'enter') { e.preventDefault(); next(res.ok) }
+    }
+    window.addEventListener('keydown', on)
+    return () => window.removeEventListener('keydown', on)
+  })
+  return (
+    <div className="flex min-h-full flex-col">
+      <header className="safe-top sticky top-0 z-30 border-b border-line bg-bg/90 backdrop-blur">
+        <div className="mx-auto flex max-w-[680px] items-center gap-3 px-4 py-3">
+          <button onClick={() => go(HOME)} className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-muted hover:bg-surface-2 hover:text-fg" aria-label="Block verlassen (Esc)"><IconX /></button>
+          <div className="min-w-0 flex-1">
+            <Progress value={q.done.length / Math.max(1, N)} tone="good" label={`Fortschritt ${DRILL_TITLE[variant]}`} />
+            <p className="mt-1 truncate text-[12px] text-muted"><span className="font-semibold text-fg">{title}</span> · {DRILL_TITLE[variant]} · {q.done.length}/{N}</p>
+          </div>
+          <Button size="sm" variant="primary" onClick={() => onPick('test')}>Jetzt zum Test</Button>
+        </div>
+      </header>
+      <div className="mx-auto w-full max-w-[680px] flex-1 px-4 pb-10 pt-6 desk:pt-10">
+        {!w ? (
+          <div className="rounded-[26px] bg-surface p-6 text-center shadow-card desk:p-10">
+            <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-good-soft text-good"><IconCheck width={32} height={32} strokeWidth={2.6} /></span>
+            <p className="mt-4 text-[26px] font-bold tracking-tight">Alle {N} geschafft!</p>
+            <p className="mx-auto mt-1 max-w-[440px] text-[15px] text-muted">{Object.keys(q.wrong).length ? `${Object.keys(q.wrong).length} Wörter brauchten mehr als einen Versuch – sie stehen jetzt in der Statistik.` : 'Alles beim ersten Versuch.'}</p>
+            <div className="mt-6 flex flex-col gap-2 desk:flex-row desk:justify-center">
+              <Button variant="primary" size="lg" onClick={() => onPick('test')}>Zum Test auf Papier</Button>
+              <Button size="lg" onClick={() => onPick('menu')}>Andere Übung</Button>
+            </div>
+          </div>
+        ) : (
+          <div>
+            <motion.div key={`${id}-${q.done.length}-${Object.values(q.wrong).reduce((a, b) => a + b, 0)}`} className="rounded-[26px] bg-surface p-6 shadow-card desk:p-10" initial={reduce ? false : { opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.16 }}>
+              <div className="flex items-baseline justify-between gap-3">
+                <p className="text-sm font-medium text-accent">{variant === 'conj' ? 'Setz das Wort in der richtigen Form ein' : w.item.promptLabel}</p>
+                {q.wrong[id] ? <span className="text-sm font-medium text-warn">nochmals</span> : null}
+              </div>
+              {variant === 'conj' && cz ? (
+                <div className="mt-3">
+                  <p className="text-[24px] font-semibold leading-snug tracking-tight desk:text-[28px]" lang={lang}>
+                    {cz.sentence.split('____')[0]}<span className="mx-1 inline-block min-w-[4ch] border-b-[3px] border-accent" aria-label="Lücke">&nbsp;</span>{cz.sentence.split('____')[1]}
+                  </p>
+                  <p className="mt-2 text-[15px] text-muted">Grundform: <span className="font-semibold text-fg" lang={lang}>{w.item.answer}</span> · {w.note.translation}</p>
+                  {w.note.exampleTranslation && <p className="mt-1 text-[15px] text-muted" lang="de">„{w.note.exampleTranslation}“</p>}
+                </div>
+              ) : (
+                <p className="mt-3 hyphens-auto break-words text-[32px] font-semibold leading-[1.15] tracking-tight desk:text-[40px]" lang="de">{w.item.question}</p>
+              )}
+              {variant === 'flash' ? (
+                flipped ? (
+                  <motion.div className="mt-5 border-t border-line pt-4" initial={reduce ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+                    <div className="flex items-center gap-2">
+                      <p className="min-w-0 break-words text-[30px] font-semibold leading-tight tracking-tight text-accent" lang={lang}>{w.item.answer}</p>
+                      <AudioButton text={w.item.answer} lang={deck.language} />
+                    </div>
+                    {w.note.shortExample && <p className="mt-2 text-[15px] italic text-muted" lang={lang}>{w.note.shortExample} <span className="not-italic">– {w.note.shortTranslation}</span></p>}
+                  </motion.div>
+                ) : (
+                  <p className="mt-5 text-[15px] text-muted">Sag es im Kopf (oder laut) – dann umdrehen.</p>
+                )
+              ) : !res ? (
+                <div className="mt-5">
+                  <AnswerInput value={typed} onChange={setTyped} onSubmit={submit} lang={w.item.answerLang as AnswerLang} showAccents={deck.language === 'fr'} placeholder={variant === 'conj' ? 'Wort in der richtigen Form …' : 'Auf Französisch …'} ariaLabel="Deine Antwort" />
+                  <Button size="lg" variant="primary" className="mt-3 w-full" disabled={!typed.trim()} onClick={submit} kbd="Enter">Prüfen</Button>
+                </div>
+              ) : (
+                <div className="mt-5" role="status" aria-live="polite">
+                  <div className={cx('flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-[15px] font-semibold', res.ok ? 'bg-good-soft text-good' : 'bg-bad-soft text-bad')}>
+                    {res.ok ? <IconCheck /> : <IconX />} {res.ok ? 'Richtig!' : 'Noch nicht – kommt gleich nochmals'}
+                  </div>
+                  {!res.ok && (
+                    <div className="mt-4">
+                      <p className="text-sm text-muted">Richtig ist</p>
+                      <p className="mt-1 break-words text-[28px] font-semibold leading-tight tracking-tight" lang={lang}>
+                        {diffChars(normalize(res.typed), expected).map((d, i) => <span key={i} className={d.ok ? '' : 'rounded bg-bad-soft text-bad'}>{d.ch}</span>)}
+                      </p>
+                      <p className="mt-1 text-sm text-muted">Du: <span className="line-through">{res.typed}</span></p>
+                    </div>
+                  )}
+                  {variant === 'conj' && w.note.example && <p className="mt-3 text-[15px] italic text-muted" lang={lang}>{w.note.example}</p>}
+                </div>
+              )}
+            </motion.div>
+            {variant === 'flash' ? (
+              flipped ? (
+                <div className="mt-4 grid grid-cols-2 gap-3">
+                  <Button size="lg" onClick={() => next(false)} kbd="F">Nicht gewusst</Button>
+                  <Button size="lg" variant="primary" onClick={() => next(true)} kbd="R">Gewusst</Button>
+                </div>
+              ) : (
+                <Button size="lg" variant="primary" className="mt-4 w-full" onClick={() => setFlipped(true)} kbd="Leertaste">Umdrehen</Button>
+              )
+            ) : res ? (
+              <Button size="lg" variant="primary" className="mt-4 w-full" onClick={() => next(res.ok)} kbd="Enter">Weiter</Button>
+            ) : null}
+            <div className="mt-4 flex flex-wrap justify-center gap-x-5">
+              <button type="button" onClick={() => onPick('train')} className="min-h-11 text-[15px] font-medium text-accent">Nochmal mit den Wörtern üben</button>
+              <button type="button" onClick={() => onPick('menu')} className="min-h-11 text-[15px] font-medium text-accent">Andere Übung</button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

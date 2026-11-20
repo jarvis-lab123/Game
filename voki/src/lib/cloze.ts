@@ -46,3 +46,17 @@ export function clozeGap(answer: string, example?: string, gap?: string): { sent
 export function clozeFor(answer: string, example?: string): string | null {
   return clozeGap(answer, example)?.sentence ?? null
 }
+
+/** Does the sentence need another form than the word in the list (conjugated, plural, feminine …)? */
+export function needsOtherForm(answer: string, gap?: string): boolean {
+  if (!gap?.trim()) return false
+  const g = normalize(gap)
+  const forms = new Set<string>()
+  for (const s of solutions(answer))
+    for (const part of [s, ...s.split(',')]) {
+      const n = normalize(part)
+      forms.add(n)
+      forms.add(splitArticle(n).rest)
+    }
+  return !forms.has(g)
+}

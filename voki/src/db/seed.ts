@@ -30,9 +30,9 @@ export async function seedDeck(db: VokiDB, b: BuiltinDeck): Promise<boolean> {
     const now = new Date()
     const iso = now.toISOString()
     const rows = parseDelimited(b.tsv).rows
-    const drafts = mapRows(rows, guessMapping(7), new Set()).filter((d) => d.valid && !d.duplicate)
+    const drafts = mapRows(rows, guessMapping(9), new Set()).filter((d) => d.valid && !d.duplicate)
     const deck: Deck = { id: deckId, name: b.name, language: b.language, directions: b.directions, examDate: b.examDate, strictAccents: false, createdAt: iso, archived: false, updatedAt: iso }
-    const notes: Note[] = drafts.map((d, i) => ({ id: `${deckId}-n${i}`, deckId, term: d.term, translation: d.translation, example: d.example, exampleTranslation: d.exampleTranslation, gap: d.gap, gender: d.gender, notes: d.notes, tags: [], updatedAt: iso }))
+    const notes: Note[] = drafts.map((d, i) => ({ id: `${deckId}-n${i}`, deckId, term: d.term, translation: d.translation, example: d.example, exampleTranslation: d.exampleTranslation, gap: d.gap, shortExample: d.shortExample, shortTranslation: d.shortTranslation, gender: d.gender, notes: d.notes, tags: [], updatedAt: iso }))
     const cards: Card[] = notes.flatMap((n, i) => b.directions.map((dir) => ({ ...newCard(n, dir, i, now), id: `${n.id}-${dir}` })))
     await db.decks.add(deck)
     await db.notes.bulkAdd(notes)
@@ -77,7 +77,7 @@ export async function seedBuiltinDecks(db: VokiDB): Promise<void> {
  */
 export async function refreshSentences(db: VokiDB, key: string, tsv: string): Promise<number> {
   const deckId = `builtin-${key}`
-  const drafts = mapRows(parseDelimited(tsv).rows, guessMapping(7), new Set()).filter((d) => d.valid && !d.duplicate)
+  const drafts = mapRows(parseDelimited(tsv).rows, guessMapping(9), new Set()).filter((d) => d.valid && !d.duplicate)
   let n = 0
   await db.transaction('rw', db.notes, async () => {
     const iso = new Date().toISOString()
@@ -86,8 +86,8 @@ export async function refreshSentences(db: VokiDB, key: string, tsv: string): Pr
     notes.forEach((note, i) => {
       const d = drafts[i]
       if (!note || normalizeTerm(note.term) !== normalizeTerm(d.term)) return
-      if (note.example === d.example && note.exampleTranslation === d.exampleTranslation && note.gap === d.gap) return
-      out.push({ ...note, example: d.example, exampleTranslation: d.exampleTranslation, gap: d.gap, updatedAt: iso })
+      if (note.example === d.example && note.exampleTranslation === d.exampleTranslation && note.gap === d.gap && note.shortExample === d.shortExample && note.shortTranslation === d.shortTranslation) return
+      out.push({ ...note, example: d.example, exampleTranslation: d.exampleTranslation, gap: d.gap, shortExample: d.shortExample, shortTranslation: d.shortTranslation, updatedAt: iso })
     })
     if (out.length) await db.notes.bulkPut(out)
     n = out.length
