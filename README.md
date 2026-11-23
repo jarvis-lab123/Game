@@ -100,7 +100,8 @@ Die Datei `android/grandslam.keystore` signiert alle Versionen gleich, damit Upd
 
 Hoftiere verteidigen Omas Kekse gegen die Waschbär-Bande. Eine einzige Datei im Ordner `gack-attack/`, läuft offline per Doppelklick auf `index.html`.
 
-- **Kampagne „Omas Feldzug“:** 12 Missionen in 4 Kapiteln mit Story-Dialogen und Sternen
+- **Kampagne „Omas Feldzug“:** 18 Missionen in 6 Kapiteln mit Story-Dialogen und Sternen
+- **6 Maps**, **Talentbäume** nach jeder Evolution, **Hof-Rang** mit Belohnungen, **Elite-Gegner**, Schwierigkeit **Albtraum**
 - **Bosse mit drei Phasen** und Intro-Szene, Endboss **Don Kralle**
 - **Endlosmodus** mit Mutatoren alle 5 Runden
 - Trailer: `gack-attack/trailer/gack-attack-trailer.mp4`

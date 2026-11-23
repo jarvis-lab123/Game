@@ -9,7 +9,7 @@ Alles steckt in **einer Datei: `index.html`** (HTML + CSS + JS, Schriften als Ba
 
 ## Aufbau von index.html
 Der JS-Code ist in Abschnitte mit Kommentar-Bannern `/* ============ NAME ============ */` gegliedert. Viele Funktionen stehen sehr kompakt auf einer Zeile.
-- **Daten:** `MAPS` (4 Maps: hof, sumpf, alm, vulkan; Wegpunkte `pts`, Theme `th`), `TD` (Tiere: `lv` = 3 Stufen, `evo` = 2 Evolutionen a/b), `ED` (Gegner), `PERKS` (Rezeptbuch-Karten), `META_UP` (Speisekammer), `ACH` (23 Erfolge), `DIFFS`.
+- **Daten:** `MAPS` (6 Maps: hof, sumpf, alm, vulkan, mais, see; Wegpunkte `pts`, Theme `th`), `TD` (Tiere: `lv` = 3 Stufen, `evo` = 2 Evolutionen a/b), `ED` (Gegner), `PERKS` (Rezeptbuch-Karten), `META_UP` (Speisekammer), `ACH` (32 Erfolge), `DIFFS`.
 - **Zustand:** `S` (aktuelles Spiel, `fresh()` baut es neu), `PK` (Effekte der gewählten Rezepte, `freshPK()`), `META` (dauerhaft, localStorage).
 - **Zeichnen:** `DRAWT` (Tier-Sprites, von oben, Blick nach +x), `DRAWE` (Gegner-Sprites), `renderBG()` (Map-Hintergrund, einmal pro Map), `render()` (jeder Frame). Sprites werden in `sprite()` gecacht.
 - **Logik:** `update(dt)`, `updateTower`, `FIRE` (Schuss pro Tier), `hurt()`, `kill()`, `buildWave(n)`, `startWave()`, `waveCleared()`.
@@ -24,6 +24,15 @@ Der JS-Code ist in Abschnitte mit Kommentar-Bannern `/* ============ NAME ======
 - **Kampagne:** `CAMP` (4 Kapitel × 3 Missionen mit `waves`, `allow`, `noEvo`, `muts`, `corn`, `lives`, `boss`, `pre`/`post`-Dialogen), Sprecher in `SPK`, Fortschritt `gack7-camp`. Regeln laufen über `S.rule`, `S.maxW` ersetzt `MAXW` im Spiel.
 - **Juice:** `S.hitstop`, `camPunch`/`updCam`/`applyCam`, `drawOverlay` (Combo-Glühen, Herzschlag bei wenig Keksen, Boss-Namenskarte), `pop`/`ripple`-FX, `confetti`.
 - Bestehende Funktionen werden am Ende des v7-Abschnitts umhüllt (`startMap`, `endScreen`, `win`, `show`, `showUp`, `selectShop`, `buildWave`, `spawnEnemy`, `titleScreen`, `mapScreen`).
+
+## Neu in v8 (Abschnitt `v8: ...` nach v7)
+- **Schwieriger:** `DIFFS` angehoben, neue Stufe Albtraum (ab Hof-Rang 5), größeres Wellenbudget, zusätzliche Gegner ab Runde 8 (außer Kampagne), Elite-Gegner (`makeElite`, `ELITE`) ab Runde 6.
+- **Talente:** nach der Evolution 3 Stufen mit je 2 Ästen (`TAL`, `TALC`, `buyTal`, `talHTML`, Effekte in `stats`/`dmgMul`/`kill`-Hüllen).
+- **Maps:** `mais` (Maisfeld bei Nacht, Boss Kasimir) und `see` (Badesee, Boss Balduin), freigeschaltet über Hof-Rang 3/6 oder die Kampagne (`MAPLV`, `mapOpen`). Kampagne hat jetzt 6 Kapitel und 18 Missionen.
+- **Hof-Rang:** `META.xp`, `plv()`, `xpNeed`, Belohnungen pro Rang in `REWARDS`, EP und Rangaufstieg im Endscreen.
+- **Speisekammer:** neu Omas Wutanfall, Opas Werkstatt, Talentschule, Kopfjäger.
+- **Comic-FX:** Mündungsfeuer (`shotFx`, `muzzle`), Rückstoß in `drawTower`-Hülle, Treffer-Bursts (`hitFx`, `burst`), Geschoss-Spuren (`trails`), Raster am Bildrand (`halftone`).
+- Test: `python tests/v8_test.py`.
 
 ## Steuerung
 1–0 Tiere wählen, H Oma, Leertaste Welle/Tempo, U Upgrade, Q/E Oma-Fähigkeiten, R Omas Zorn, T Mähdrescher, Esc Pause/Abbrechen, Shift-Klick mehrere setzen.
