@@ -317,10 +317,23 @@ body{font-family:"Fredoka","Trebuchet MS",system-ui,sans-serif;color:#fff;-webki
 .dtxt{flex:1;min-width:0}.dtxt b{font-family:"Lilita One";font-weight:400;font-size:26px;color:var(--gold)}#dlg.bad .dtxt b{color:#FF8A6A}
 .dtxt p{margin:6px 0 8px;font-size:22px;line-height:1.35;font-weight:600;min-height:60px}.dtxt small{font-size:13px;color:var(--muted)}
 #dskip{position:absolute;right:18px;top:-38px;appearance:none;border:0;border-radius:12px;padding:6px 12px;background:rgba(0,0,0,.45);color:var(--soft);font:inherit;font-size:14px;font-weight:700;cursor:pointer}
+#ach{left:auto;right:18px;transform:none}#ach.show{top:176px}
+.newtag{font-size:19px;padding:10px 18px}
+.clv.locked em{font-size:20px}.clv.locked span{opacity:.75}
+#cdiffw{display:flex;flex-direction:column;align-items:center;gap:10px}
+#dnext{position:absolute;right:26px;bottom:16px;font-size:26px;color:var(--gold);opacity:0;transition:opacity .2s}#dlg.ready #dnext{opacity:1;animation:dpulse .8s ease-in-out infinite}
+@keyframes dpulse{50%{transform:translateX(5px)}}
+.dtxt small{color:#C9D8EC}
+#muts span{cursor:pointer}
+#pconly{position:fixed;inset:0;z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:30px;text-align:center;background:radial-gradient(ellipse at 50% 30%,#1B3556 0,#0A1424 70%);color:#fff;font-family:"Fredoka",sans-serif}
+#pconly h1{margin:0;font-family:"Lilita One";font-weight:400;font-size:48px;line-height:1;color:var(--gold);text-shadow:0 4px 0 #B84A10}
+#pconly p{margin:0;font-size:20px;font-weight:600;color:var(--soft);max-width:420px;line-height:1.4}
+#pconly svg{width:120px}
 </style>
 </head>
 <body>
 
+<div id="pconly" hidden><svg viewBox="0 0 100 120"><path d="M50 6 C78 6 94 50 94 74 C94 100 74 116 50 116 C26 116 6 100 6 74 C6 50 22 6 50 6Z" fill="#F6EFE0" stroke="#10233A" stroke-width="6"/><path d="M18 64 L32 56 L42 68 L54 54 L66 66 L80 56" fill="none" stroke="#10233A" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/></svg><h1>Nur am PC.</h1><p>Gack Attack braucht Maus, Tastatur und einen großen Bildschirm. Oma spielt nicht auf dem Handy. Du auch nicht.</p></div>
 <div id="wrap"><div id="frame">
  <canvas id="cv"></canvas>
  <div id="hud">
@@ -372,7 +385,7 @@ body{font-family:"Fredoka","Trebuchet MS",system-ui,sans-serif;color:#fff;-webki
     <div class="mrow"><button class="mbtn dark" id="t-snd" type="button">Ton: an</button><button class="mbtn dark" id="t-mus" type="button">Musik: an</button></div>
    </div>
   </div>
-  <div class="newtag">NEU: Kampagne mit Story · Boss-Phasen · Don Kralle · Endlos mit Mutatoren</div>
+  <div class="newtag">NEU: Kampagne · Don Kralle · Endlosmodus</div>
   <div class="parade" id="parade"></div>
   <div class="tfoot" id="tfoot"></div>
  </div>
@@ -404,8 +417,8 @@ body{font-family:"Fredoka","Trebuchet MS",system-ui,sans-serif;color:#fff;-webki
  <div class="screen" id="end" hidden><div class="ecard" id="ecard"></div></div>
  <div class="screen" id="cards" hidden><div class="ch"><small id="c-round">Runde 3 geschafft</small><h2 class="sh">Omas Rezeptbuch</h2><p class="msub">Wähle ein Rezept. Es gilt bis zum Ende des Spiels. Tasten 1 bis 3.</p></div><div class="crow" id="crow"></div><button class="mbtn dark" id="c-reroll" type="button">Neu mischen</button></div>
  <div class="screen" id="meta" hidden><button class="mbtn dark back" id="me-back" type="button">← Zurück</button><h2 class="sh">Omas Speisekammer</h2><p class="msub" id="me-sub" style="text-align:center"></p><div class="mgrid" id="mgrid"></div></div>
- <div class="screen" id="camp" hidden><button class="mbtn dark back" id="cb-back" type="button">← Zurück</button><h2 class="sh">Omas Feldzug</h2><p class="msub" id="c-sub"></p><div class="cgrid" id="cgrid"></div></div>
-  <div id="dlg" hidden><div class="dbox" id="dbox"><canvas id="dport"></canvas><div class="dtxt"><b id="dname"></b><p id="dline"></p><small>Klick oder Leertaste: weiter</small></div><button type="button" id="dskip">Überspringen ›</button></div></div>
+ <div class="screen" id="camp" hidden><button class="mbtn dark back" id="cb-back" type="button">← Zurück</button><h2 class="sh">Omas Feldzug</h2><p class="msub" id="c-sub"></p><div class="cgrid" id="cgrid"></div><div id="cdiffw"><div class="seg" id="cdiff"><button data-d="0" type="button">Leicht</button><button data-d="1" type="button">Normal</button><button data-d="2" type="button">Hart</button></div><div class="dnote" id="cdnote"></div></div></div>
+  <div id="dlg" hidden><div class="dbox" id="dbox"><canvas id="dport"></canvas><div class="dtxt"><b id="dname"></b><p id="dline"></p><small>Klick oder Leertaste: weiter · Esc: alles überspringen</small><span id="dnext">▸</span></div><button type="button" id="dskip">Überspringen ›</button></div></div>
   <div id="loading">Lädt…</div>
 </div></div>
 
@@ -1530,7 +1543,7 @@ DRAWE.boss_pate=(c,f)=>{c.save();c.scale(2.2,2.2);DRAWE.waschbaer(c,f,['#6A6A76'
 function bossInit(e,type){e.bossId=type==='pate'?'pate':MAPS[S.map].id;e.name=BOSSES[e.bossId].name;e.phase=0;e.abT=4;e.shield=0;e.dash=0;e.digB=0;
  if(S.state==='play'){e.introPending=true;e.grow=1;e.dist=Math.max(e.dist,140);const p=pathPos(e.dist);e.x=p.x;e.y=p.y;}}
 function bossIntro(e){const B=BOSSES[e.bossId];S.seenB=S.seenB||{};const first=!S.seenB[e.bossId];S.seenB[e.bossId]=1;Sfx.play('boss');S.shake=Math.max(S.shake,10);
- if(first){S.cine={t:0,dur:2.9,e,name:B.name,quote:B.quote};selectShop(null);}else screenText(B.name.toUpperCase()+'!','#FF7A5A',54,2.2);}
+ if(first){for(const t of S.texts)if(t.screen)t.life=Math.min(t.life,.12);S.cine={t:0,dur:2.9,e,name:B.name,quote:B.quote};selectShop(null);}else screenText(B.name.toUpperCase()+'!','#FF7A5A',54,2.2);}
 function spawnNear(type,e,i,rw=1){const r=spawnEnemy(type,Math.max(0,e.dist-24-i*18));r.reward=rw;r.grow=.3;return r;}
 function bossSay(e,t,col='#FFFFFF'){text(clamp(e.x,150,MW-150),clamp(e.y-82,40,MH-40),t,col,26,1.4);}
 function dirt(x,y,n){for(let i=0;i<n;i++){const a=rand(0,TAU),v=rand(60,200);part({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,drag:4,life:rand(.4,.8),size:rand(4,8),color:pick(['#8B5E3C','#6A4424','#FFFFFF']),kind:'chunk',rot:rand(0,6),vr:8});}}
@@ -1605,7 +1618,7 @@ function applyMuts(e){if(!S.muts||!S.muts.length||S.state!=='play')return;for(co
 function addMut(){const pool=Object.keys(MUTS).filter(m=>m==='zaeh'||m==='flink'||!S.muts.includes(m));const m=pick(pool);S.muts.push(m);const M=MUTS[m];
  screenText('MUTATOR: '+M.n.toUpperCase(),'#D08AFF',46,2.2,-110);toast(`<b>Mutator: ${M.n}.</b> ${M.d}`,4500);Sfx.play('siren');renderMuts();}
 function renderMuts(){const el=$('muts');if(!S.muts||!S.muts.length){el.hidden=true;el.innerHTML='';return;}el.hidden=false;const cnt={};for(const m of S.muts)cnt[m]=(cnt[m]||0)+1;
- el.innerHTML=Object.entries(cnt).map(([m,n])=>`<span title="${MUTS[m].n}: ${MUTS[m].d}"><i>${MUTS[m].ic}</i>${MUTS[m].n}${n>1?' ×'+n:''}</span>`).join('');}
+ el.onclick=ev=>{const sp=ev.target.closest('span[data-m]');if(sp){const M=MUTS[sp.dataset.m];toast(`<b>Mutator: ${M.n}.</b> ${M.d}`,3500);}};el.innerHTML=Object.entries(cnt).map(([m,n])=>`<span data-m="${m}" title="${MUTS[m].n}: ${MUTS[m].d}"><i>${MUTS[m].ic}</i>${MUTS[m].n}${n>1?' ×'+n:''}</span>`).join('');}
 function mutHook(){if(S.endless&&S.wave>=(S.mutFrom||10)&&S.wave%5===0)addMut();if(S.mode==='endless'){if(S.wave>=30)unlock('end30');if(S.wave>=50)unlock('end50');}}
 function v7Update(dt){if(S.slime){for(const s of S.slime){s.t+=dt;for(const e of S.enemies){if(e.dead||e.boss||e.fly)continue;if(Math.hypot(e.x-s.x,e.y-s.y)<s.r){e.hp=Math.min(e.maxHp,e.hp+e.maxHp*.06*dt);if(Math.random()<dt*2)part({x:e.x,y:e.y-14,vy:-40,life:.6,size:5,s1:2,color:'#8CFF3A',kind:'star',rot:0,vr:3,add:true});}}}S.slime=S.slime.filter(s=>s.t<s.dur);}
  for(const e of S.enemies)if(e.regen&&!e.dead&&e.hp<e.maxHp)e.hp=Math.min(e.maxHp,e.hp+e.maxHp*e.regen*dt);}
@@ -1665,8 +1678,9 @@ function updLocks(){for(const k of SHOPKEYS)$('shop-'+k).classList.toggle('banne
 function campScreen(){show('camp');const g=$('cgrid');g.innerHTML='';let total=0;
  CAMP.forEach((ch,ci)=>{const col=document.createElement('div');col.className='cch';col.innerHTML=`<div class="cth"><small>KAPITEL ${ci+1} · ${MAPS[ch.map].name}</small><b>${ch.name}</b></div>`;
   ch.lv.forEach((L,li)=>{total+=3;const st=CPROG[L.id]||0;const open=campOpen(ci,li);const b=document.createElement('button');b.type='button';b.className='clv'+(open?'':' locked')+(L.boss?' boss':'')+(st?' done':'');
-   b.innerHTML=`<em>${L.id}</em><div><b>${L.name}</b><span>${open?L.goal:'Erst die Mission davor schaffen.'}</span></div><i>${[0,1,2].map(s=>`<u class="${s<st?'on':''}">★</u>`).join('')}</i>`;
+   b.innerHTML=`<em>${open?L.id:'<svg width="20" height="22" viewBox="0 0 20 22"><rect x="2" y="9" width="16" height="12" rx="3" fill="#C9D8EC"/><path d="M5 9V6a5 5 0 0 1 10 0v3" fill="none" stroke="#C9D8EC" stroke-width="3"/></svg>'}</em><div><b>${L.name}</b><span>${L.goal}</span></div><i>${[0,1,2].map(s=>`<u class="${s<st?'on':''}">★</u>`).join('')}</i>`;
    if(open)b.onclick=()=>{Sfx.init();Sfx.play('click');campStart(L);};col.appendChild(b);});g.appendChild(col);});
+ const sd=()=>{document.querySelectorAll('#cdiff button').forEach(x=>x.classList.toggle('on',+x.dataset.d===DIFF));$('cdnote').textContent=DIFFS[DIFF].note+' Gilt für alle Missionen.';};document.querySelectorAll('#cdiff button').forEach(x=>x.onclick=()=>{DIFF=+x.dataset.d;store.set('gack5-diff',DIFF);Sfx.play('click');sd();});sd();
  $('c-sub').textContent=`${campStars()} von ${total} Sternen. Die Bande hat einen Boss. Der Boss hat einen Hut.`;}
 function campStart(L){startMap(CAMP[L.ci].map,{camp:L});dialog(L.pre,()=>toast(`<b>${L.id} · ${L.name}.</b> ${L.goal}`,5000));}
 function campSave(){const L=S.camp;const st=S.lives>=S.lives0?3:S.lives>=S.lives0/2?2:1;const first=!CPROG[L.id];CPROG[L.id]=Math.max(CPROG[L.id]||0,st);store.set('gack7-camp',CPROG);
@@ -1675,14 +1689,16 @@ function campSave(){const L=S.camp;const st=S.lives>=S.lives0?3:S.lives>=S.lives
 /* Dialoge */
 let DLG=null;
 function dialog(lines,done){if(!lines||!lines.length){if(done)done();return;}DLG={lines,i:-1,done,shown:0,txt:'',acc:0};S.paused=true;$('dlg').hidden=false;dlgNext();}
-function dlgNext(){const D=DLG;if(!D)return;if(D.i>=0&&D.shown<D.txt.length){D.shown=D.txt.length;$('dline').textContent=D.txt;return;}
+function dlgNext(){const D=DLG;if(!D)return;if(D.i>=0&&D.shown<D.txt.length){D.shown=D.txt.length;$('dline').textContent=D.txt;$('dlg').classList.add('ready');return;}
  D.i++;if(D.i>=D.lines.length){$('dlg').hidden=true;DLG=null;S.paused=false;if(D.done)D.done();return;}
  const [who,txt]=D.lines[D.i];const P=SPK[who];$('dlg').classList.toggle('bad',!!P.bad);$('dname').textContent=P.n;const cnv=$('dport');if(P.e)enemyPortrait(cnv,P.e,128);else portrait(cnv,P.t[0],P.t[1],null,128);
- D.shown=0;D.acc=0;D.txt=txt;$('dline').textContent='';bump('dbox','pop');Sfx.play(P.bad?'honk':'click');}
+ D.shown=0;D.acc=0;D.txt=txt;$('dline').textContent='';$('dlg').classList.remove('ready');bump('dbox','pop');Sfx.play(P.bad?'honk':'click');}
 function dlgSkip(){const D=DLG;if(!D)return;D.i=D.lines.length-1;D.shown=D.txt.length;dlgNext();}
-function dlgTick(dt){const D=DLG;if(!D||D.i<0||D.shown>=D.txt.length)return;D.acc+=dt*60;const n=Math.min(D.txt.length,Math.floor(D.acc));if(n>D.shown){D.shown=n;$('dline').textContent=D.txt.slice(0,n);if(n%4===0&&Sfx.ac&&!Sfx.muted)Sfx.osc('triangle',SPK[D.lines[D.i][0]].bad?220:520,SPK[D.lines[D.i][0]].bad?200:560,.03,.025);}}
+function dlgTick(dt){const D=DLG;if(!D||D.i<0||D.shown>=D.txt.length)return;D.acc+=dt*60;const n=Math.min(D.txt.length,Math.floor(D.acc));if(n>D.shown){D.shown=n;$('dline').textContent=D.txt.slice(0,n);if(n>=D.txt.length)$('dlg').classList.add('ready');if(n%4===0&&Sfx.ac&&!Sfx.muted)Sfx.osc('triangle',SPK[D.lines[D.i][0]].bad?220:520,SPK[D.lines[D.i][0]].bad?200:560,.03,.025);}}
 
 /* ============ v7: EINHÄNGEN ============ */
+function pcCheck(){const touchOnly=matchMedia('(pointer:coarse)').matches&&!matchMedia('(any-pointer:fine)').matches;const bad=touchOnly||innerWidth<900||innerHeight<500;$('pconly').hidden=!bad;if(bad&&S.state==='play'&&!S.paused)pauseGame();}
+window.addEventListener('resize',pcCheck);pcCheck();
 let MODE=store.get('gack7-mode',0),LAST={mi:0,opts:{}};
 {const _spawn=spawnEnemy;spawnEnemy=function(type,dist=0){const e=_spawn(type,dist);applyMuts(e);return e;};}
 {const _bw=buildWave;buildWave=function(n,pv){let q=_bw(n,pv);const L=S.camp;if(L&&L.boss&&n===S.maxW){if(L.boss==='pate')q=q.filter(s=>s.type!=='boss');if(!q.some(s=>s.type==='boss'||s.type==='pate')){const tt=q.length?q[q.length-1].t+2.5:2;q.push({t:tt,type:L.boss==='pate'?'pate':'boss'});}}return q;};}
@@ -1704,7 +1720,9 @@ let MODE=store.get('gack7-mode',0),LAST={mi:0,opts:{}};
  else if(S.mode==='endless'&&!w){h.textContent='Runde '+S.wave+'.';const rec=BEST[MAPS[S.map].id+'_e']||S.wave;p.innerHTML=`Endlos auf ${MAPS[S.map].name}. Dein Rekord: Runde ${rec}.${S.muts.length?'<br>Mutatoren: '+S.muts.map(m=>MUTS[m].n).join(', ')+'.':''}`;}
  const a=$('e-again');if(a)a.onclick=()=>{Sfx.play('click');if(S.camp)campStart(S.camp);else startMap(LAST.mi,LAST.opts);};
  const en=$('e-endless');if(en){const o=en.onclick;en.onclick=()=>{o();S.mutFrom=30;S.mode='classic+';};}};}
-{const _ts=titleScreen;titleScreen=function(){_ts();let t=0;CAMP.forEach(ch=>t+=ch.lv.length*3);$('t-campn').textContent=campStars()+'/'+t+' ★';};}
+{const _ts=titleScreen;titleScreen=function(){_ts();let t=0;CAMP.forEach(ch=>t+=ch.lv.length*3);$('t-campn').textContent=campStars()+'/'+t+' ★';
+ const rec=[];MAPS.forEach(m=>{const a=BEST[m.id],e=BEST[m.id+'_e'];if(a||e)rec.push(m.name+' '+[a?'Runde '+a:'',e?'Endlos '+e:''].filter(Boolean).join(' / '));});
+ $('tfoot').textContent=(rec.length?'Rekorde: '+rec.join('  ·  '):'Noch keine Rekorde. Zeit, das zu ändern.')+'  ·  '+TOT.kills+' Gegner insgesamt';};}
 {const _ms=mapScreen;mapScreen=function(){_ms();document.querySelectorAll('#mcards .mcard').forEach((b,i)=>{const r=b.querySelector('.rec');const eb=BEST[MAPS[i].id+'_e'];if(r&&eb)r.textContent+=' · Endlos: '+eb;});
  const sync=()=>{document.querySelectorAll('#mode button').forEach(x=>x.classList.toggle('on',+x.dataset.m===MODE));$('mnote').textContent=MODE?'Endlos: Es hört nicht auf. Ab Runde 10 alle 5 Runden ein Mutator, Bosse alle 10 Runden, Don Kralle alle 25.':'Klassisch: 25 Runden, Boss in Runde 10, 20 und 25.';};
  document.querySelectorAll('#mode button').forEach(b=>b.onclick=()=>{MODE=+b.dataset.m;store.set('gack7-mode',MODE);Sfx.play('click');sync();});sync();};}
