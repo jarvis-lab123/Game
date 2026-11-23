@@ -96,6 +96,17 @@ Die Datei `android/grandslam.keystore` signiert alle Versionen gleich, damit Upd
 
 ---
 
+# 🐔 Gack Attack – Tower Defense (nur PC)
+
+Hoftiere verteidigen Omas Kekse gegen die Waschbär-Bande. Eine einzige Datei im Ordner `gack-attack/`, läuft offline per Doppelklick auf `index.html`.
+
+- **Kampagne „Omas Feldzug“:** 12 Missionen in 4 Kapiteln mit Story-Dialogen und Sternen
+- **Bosse mit drei Phasen** und Intro-Szene, Endboss **Don Kralle**
+- **Endlosmodus** mit Mutatoren alle 5 Runden
+- Trailer: `gack-attack/trailer/gack-attack-trailer.mp4`
+
+**Spielen:** `https://jarvis-lab123.github.io/Game/gack-attack/` am PC öffnen.
+
 # ⛳ Plopp – Daily Golf (Handy, Hochformat)
 
 Schlichtes 2D-Minigolf im Ordner `plopp/`. Ein Finger: zurückziehen, zielen, loslassen.

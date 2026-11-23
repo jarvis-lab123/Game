@@ -15,7 +15,15 @@ Der JS-Code ist in Abschnitte mit Kommentar-Bannern `/* ============ NAME ======
 - **Logik:** `update(dt)`, `updateTower`, `FIRE` (Schuss pro Tier), `hurt()`, `kill()`, `buildWave(n)`, `startWave()`, `waveCleared()`.
 - **Neue Systeme (v6):** Heldin Oma (`heroStats`, `heroXP`, `updOma`, `heroAbility`), Bienen (`updBees`, `updBeeSwarm`), Zitteraal (`updAal`, `boltPath`), Gold-Gans (`updGans`, `roundIncome`), Verpuffung (`verpuff`), Mythisch (`ascend`), Nacht-Licht (`drawNight`), Wellen-Vorschau (`renderPreview`), Rezeptbuch (`openCards`, `pickCard`), Speisekammer (`metaScreen`), Musik (`Music`, prozedural mit WebAudio).
 - **Sound:** `Sfx.play('name')`, alles synthetisch per WebAudio, keine Audiodateien.
-- **localStorage-Keys:** `gack5-ach`, `gack5-tot`, `gack5-best`, `gack5-mute`, `gack5-diff`, `gack6-meta`, `gack6-music`.
+- **localStorage-Keys:** `gack5-ach`, `gack5-tot`, `gack5-best`, `gack5-mute`, `gack5-diff`, `gack6-meta`, `gack6-music`, `gack7-camp`, `gack7-mode`.
+
+## Neu in v7 (Abschnitt `v7: ...` vor `LOOP`)
+- **Nur PC:** `pcCheck()` zeigt `#pconly` auf Touch-Geräten und Fenstern unter 900×500.
+- **Bosse:** `BOSSES` (Name, Spruch, 2 Phasen-Namen), `bossInit`, `bossIntro` (Szene mit Zoom/Letterbox, `S.cine`), `bossTick` (Phasen bei 66/33 %, Fähigkeiten pro Map), `bossPhase` (Schild 1,6 s), `bossDeath`. Neuer Endboss `ED.pate` = Don Kralle (`DRAWE.boss_pate`).
+- **Endlos:** Map-Bildschirm Klassisch/Endlos (`MODE`, `gack7-mode`). Mutatoren `MUTS` ab Runde 10 alle 5 Runden (`mutHook`, `addMut`, `applyMuts`), Bosse alle 10, Don Kralle alle 25 Runden. Rekord in `BEST[map+'_e']`.
+- **Kampagne:** `CAMP` (4 Kapitel × 3 Missionen mit `waves`, `allow`, `noEvo`, `muts`, `corn`, `lives`, `boss`, `pre`/`post`-Dialogen), Sprecher in `SPK`, Fortschritt `gack7-camp`. Regeln laufen über `S.rule`, `S.maxW` ersetzt `MAXW` im Spiel.
+- **Juice:** `S.hitstop`, `camPunch`/`updCam`/`applyCam`, `drawOverlay` (Combo-Glühen, Herzschlag bei wenig Keksen, Boss-Namenskarte), `pop`/`ripple`-FX, `confetti`.
+- Bestehende Funktionen werden am Ende des v7-Abschnitts umhüllt (`startMap`, `endScreen`, `win`, `show`, `showUp`, `selectShop`, `buildWave`, `spawnEnemy`, `titleScreen`, `mapScreen`).
 
 ## Steuerung
 1–0 Tiere wählen, H Oma, Leertaste Welle/Tempo, U Upgrade, Q/E Oma-Fähigkeiten, R Omas Zorn, T Mähdrescher, Esc Pause/Abbrechen, Shift-Klick mehrere setzen.
@@ -23,12 +31,15 @@ Der JS-Code ist in Abschnitte mit Kommentar-Bannern `/* ============ NAME ======
 ## Testen
 - Schnell: `index.html` im Browser öffnen.
 - Dev-Modus: `index.html#dev` → 99'999 Mais, voller Zorn, `window.__G` gibt Zugriff auf `S`, `openCards`, `heroXP`, `startWave`, `endScreen`.
+- v7-Test: `python tests/v7_test.py` (Kampagne, Dialog, Bosse aller Maps, Endlos, Endscreens).
+- Trailer: `node trailer/record.js` und dann `trailer/make.sh` → `trailer/gack-attack-trailer.mp4`.
 - Automatisch: `pip install playwright && playwright install chromium`, dann `python tests/play_test.py 2 a` (Map-Index 0–3, Präfix für Screenshots). Screenshots landen in `tests/screens/`. Nach jeder Änderung laufen lassen und auf `PAGEERR` prüfen.
 
 ## Bekannte offene Punkte
 - Balance ab Runde 15 nur stichprobenartig getestet (v. a. Hart + Vulkan).
 - Code ist eine einzige Datei mit langen Zeilen. Sinnvoller nächster Schritt: in Module aufteilen (z. B. `src/data.js`, `src/sprites.js`, `src/game.js`, `src/ui.js`) mit einem kleinen Build-Skript, das wieder eine einzelne `index.html` zum Weitergeben erzeugt.
-- Kein Touch-Feinschliff fürs Handy (Hover-Vorschau beim Platzieren fehlt auf Touch).
+- Bewusst nur PC. Handy ist gesperrt.
+- Balance der Kampagne und von Don Kralle (7000 Basis-LP) nur grob getestet.
 
 ## Regeln für Änderungen
 - Die fertige `index.html` muss immer offline per Doppelklick laufen. Keine CDN-Links, keine externen Dateien im Endprodukt.
