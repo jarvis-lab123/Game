@@ -8,7 +8,10 @@ MAP = int(sys.argv[1]) if len(sys.argv) > 1 else 2
 PFX = sys.argv[2] if len(sys.argv) > 2 else 'a'
 async def main():
     async with async_playwright() as p:
-        b = await p.chromium.launch()
+        try:
+            b = await p.chromium.launch()
+        except Exception:
+            b = await p.chromium.launch(executable_path='/opt/pw-browsers/chromium')
         pg = await b.new_page(viewport={'width': 1600, 'height': 900})
         errs = []
         pg.on('pageerror', lambda e: errs.append('PAGEERR ' + str(e)))
