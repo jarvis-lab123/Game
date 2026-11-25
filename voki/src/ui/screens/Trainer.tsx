@@ -78,7 +78,7 @@ export function Trainer({ deckId, cloze = false, source = 'knacknuss' }: { deckI
   return <TrainerRun key={round} words={words} left={left} phase={phase} cloze={cloze} source={source} setPhase={setPhase} onAgain={() => { setPhase('loading'); setRound((r) => r + 1) }} />
 }
 
-interface Embed { title: string; sub: string; exitTo: string; base: number; span: number }
+interface Embed { title: string; sub: string; exitTo: string; base: number; span: number; onSkipPart: () => void; onSkipAll: () => void }
 
 function TrainerRun({ words, left, phase, cloze, source, setPhase, onAgain, embed }: { words: TWord[]; left: number; phase: Phase; cloze: boolean; source: TrainerSource; setPhase: (p: Phase) => void; onAgain: () => void; embed?: Embed }) {
   const reduce = !!useReducedMotion()
@@ -125,7 +125,11 @@ function TrainerRun({ words, left, phase, cloze, source, setPhase, onAgain, embe
               <span className="font-semibold text-fg">{embed ? embed.title : cloze ? 'Lückentext-Training' : TITLE[source]}</span>{embed && ` · ${embed.sub}`} · {phase === 'learn' ? 'Einprägen' : phase === 'match' ? 'Paare finden' : phase === 'drill' && item ? EXERCISE_LABEL[item.exercise] : 'Fertig'}
             </p>
           </div>
-          <span className="shrink-0 text-sm text-muted tabular">{cracked.length}/{words.length} {cloze || embed ? '✓' : '🌰'}</span>
+          {embed ? (
+            <Button size="sm" variant="primary" onClick={embed.onSkipAll}>Zum Test</Button>
+          ) : (
+            <span className="shrink-0 text-sm text-muted tabular">{cracked.length}/{words.length} {cloze ? '✓' : '🌰'}</span>
+          )}
         </div>
       </header>
       <div className="mx-auto w-full max-w-[680px] flex-1 px-4 pb-10 pt-6 desk:pt-10">
@@ -140,6 +144,15 @@ function TrainerRun({ words, left, phase, cloze, source, setPhase, onAgain, embe
         )}
         {phase === 'match' && <Match words={words} reduce={reduce} onDone={() => setPhase('drill')} />}
         {phase === 'drill' && item && <ExerciseView key={`${item.id}-${turn}`} item={item} w={byId.get(item.id)!} reduce={reduce} onAnswer={answer} clozeOnly={cloze} baseForm={!!embed} />}
+        {embed && phase !== 'done' && (
+          <div className="mt-5 flex flex-wrap justify-center gap-x-5 gap-y-1 border-t border-line pt-3">
+            {phase === 'learn' && <button type="button" onClick={() => setPhase(words.length >= 2 ? 'match' : 'drill')} className="min-h-11 text-[15px] font-medium text-accent">Einprägen überspringen</button>}
+            {phase === 'drill' && item && (
+              <button type="button" onClick={() => { engine.skip(); setCracked((c) => [...c, item.id]); if (engine.finished) setPhase('done'); setTurn((x) => x + 1) }} className="min-h-11 text-[15px] font-medium text-accent">Wort überspringen (kann ich)</button>
+            )}
+            <button type="button" onClick={embed.onSkipPart} className="min-h-11 text-[15px] font-medium text-accent">Teil überspringen</button>
+          </div>
+        )}
         {phase === 'done' && <Done words={words} cracked={cracked} engine={engine} left={left} cloze={cloze} source={source} onAgain={onAgain} />}
       </div>
     </div>
@@ -153,7 +166,7 @@ function TrainerRun({ words, left, phase, cloze, source, setPhase, onAgain, embe
 /** Number of portions („Teile“) a block of n words is learned in. */
 export const blockParts = (n: number) => Math.max(1, Math.round(n / 8))
 
-export function BlockTrainer({ picks, title, exitTo, onFinished, startPart = 0, onPart }: { picks: TrainerPick[]; title: string; exitTo: string; onFinished: () => void; startPart?: number; onPart?: (part: number) => void }) {
+export function BlockTrainer({ picks, title, exitTo, onFinished, startPart = 0, onPart, onSkipToTest }: { picks: TrainerPick[]; title: string; exitTo: string; onFinished: () => void; startPart?: number; onPart?: (part: number) => void; onSkipToTest?: () => void }) {
   const chunks = useMemo(() => {
     const k = blockParts(picks.length)
     const out: TrainerPick[][] = []
@@ -170,7 +183,7 @@ export function BlockTrainer({ picks, title, exitTo, onFinished, startPart = 0, 
   }
   return (
     <TrainerRun key={ci} words={words} left={0} phase={phase} cloze={false} source="neu" setPhase={next} onAgain={() => {}}
-      embed={{ title, sub: `Teil ${ci + 1}/${chunks.length}`, exitTo, base: ci / chunks.length, span: 1 / chunks.length }} />
+      embed={{ title, sub: `Teil ${ci + 1}/${chunks.length}`, exitTo, base: ci / chunks.length, span: 1 / chunks.length, onSkipPart: () => next('done'), onSkipAll: onSkipToTest ?? onFinished }} />
   )
 }
 

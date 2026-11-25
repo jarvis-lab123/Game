@@ -381,6 +381,7 @@ function BlockFlow({ deck, words, index, count, label, custom }: { deck: Deck; w
         exitTo={HOME}
         startPart={phase.part ?? 0}
         onPart={(i) => remember({ phase: { k: 'train', part: i }, part: i })}
+        onSkipToTest={() => { setPhase({ k: 'test' }); window.scrollTo({ top: 0 }) }}
         onFinished={() => { setPhase(hasShort ? { k: 'sentences', short: true } : hasLong ? { k: 'sentences', short: false } : { k: 'test' }); window.scrollTo({ top: 0 }) }}
       />
     )

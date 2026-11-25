@@ -84,6 +84,15 @@ export class TrainerEngine {
     return { id: s.id, exercise: s.ladder[s.step], step: s.step, steps: s.ladder.length }
   }
 
+  /** „Kann ich“: the current word is taken out and counts as done. */
+  skip(): void {
+    const item = this.current()
+    if (!item) return
+    this.queue = this.queue.filter((id) => id !== item.id)
+    this.done.push(item.id)
+    this.turn++
+  }
+
   /** Answer the current item. Returns true when the word is now cracked. */
   answer(ok: boolean): boolean {
     const item = this.current()

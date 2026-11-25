@@ -49,6 +49,13 @@ describe('TrainerEngine', () => {
     expect(next).toContain('a:scramble')
     expect(next[0]).not.toMatch(/^a:/)
   })
+  it('skip: the word is done at once', () => {
+    const e = new TrainerEngine([W('a', false, false), W('b', false, false)])
+    e.skip()
+    expect(e.done).toEqual(['a'])
+    while (!e.finished) e.answer(true)
+    expect(e.done).toEqual(['a', 'b'])
+  })
   it('a single word still works (no gap possible)', () => {
     const e = new TrainerEngine([W('a', false, false)])
     let n = 0
