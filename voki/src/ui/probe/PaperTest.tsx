@@ -14,7 +14,7 @@ import { go } from '../router'
 import { GradeReveal } from './GradeReveal'
 import { Counter, useCalmFocus, IconUndo, InkMark, PAPER_VARS, PaperHint, PointBadge, RULED, Typewriter } from './paper'
 
-export interface PaperItem { cardId: string; question: string; answer: string; promptLabel: string; answerLang: string }
+export interface PaperItem { cardId: string; question: string; answer: string; promptLabel: string; answerLang: string; /** more words with the same German meaning, all to be written */ cardIds?: string[] }
 type Phase = 'intro' | 'write' | 'correct' | 'grade'
 
 /** Is the key event meant for a focused control (so we must not handle it twice)? */
@@ -26,7 +26,8 @@ function forControl(e: KeyboardEvent) {
 
 export interface PaperBlock { index: number; count: number; exitTo: string; againTo: string; title: string }
 
-export function PaperTest({ deck, items, n, block, exitTo: exitOverride, title, againTo, onPractice }: { deck: Deck; items: PaperItem[]; n: string | null; block?: PaperBlock; exitTo?: string; title?: string; againTo?: string; onPractice?: () => void }) {
+export function PaperTest({ deck, items, n, block, exitTo: exitOverride, title, againTo, onPractice, kind, wrongTo }: { deck: Deck; items: PaperItem[]; n: string | null; block?: PaperBlock; exitTo?: string; title?: string; againTo?: string; onPractice?: () => void; kind?: 'final' | 'errors'; wrongTo?: (testId: string) => string }) {
+  const [testId] = useState(() => uid())
   const exitTo = block?.exitTo ?? exitOverride ?? '/ueben'
   const reduce = !!useReducedMotion()
   const N = items.length
@@ -83,9 +84,11 @@ export function PaperTest({ deck, items, n, block, exitTo: exitOverride, title, 
     ;(async () => {
       const { points, grade } = paperScore(decisions)
       const now = new Date().toISOString()
-      const graded = items.map((it, k) => ({ cardId: it.cardId, typed: '', correct: decisions[k] === true, confident: false, decided: decisions[k] != null })).filter((x) => x.decided)
+      const decided = items.filter((_, k) => decisions[k] != null).length
+      // one point per item; every word of a merged item (same German) gets the result
+      const graded = items.flatMap((it, k) => [it.cardId, ...(it.cardIds ?? [])].map((cardId) => ({ cardId, typed: '', correct: decisions[k] === true, confident: false, decided: decisions[k] != null }))).filter((x) => x.decided)
       await db.transaction('rw', db.tests, db.logs, async () => {
-        await db.tests.add({ id: uid(), deckId: deck.id, date: now, total: graded.length, correct: points, grade, items: graded.map(({ decided: _d, ...x }) => x), ...(block ? { block: block.index, blocks: block.count, applied: true } : {}), updatedAt: now })
+        await db.tests.add({ id: testId, deckId: deck.id, date: now, total: decided, correct: points, grade, items: graded.map(({ decided: _d, ...x }) => x), ...(block ? { block: block.index, blocks: block.count, applied: true } : {}), ...(kind ? { kind } : {}), updatedAt: now })
         for (const a of graded) await log(db, { cardId: a.cardId, deckId: deck.id, timestamp: now, mode: 'test', rating: Rating.Manual, typedAnswer: '', correct: a.correct, durationMs: 0 })
       })
       // a block test is a clean recall: it moves the words forward in the learning progress
@@ -138,7 +141,7 @@ export function PaperTest({ deck, items, n, block, exitTo: exitOverride, title, 
         {phase === 'correct' && (
           <Correct deck={deck} items={items} decisions={decisions} cur={cur} reduce={reduce} canUndo={history.length > 0} onDecide={decide} onUndo={undo} onGrade={toGrade} points={score.points} />
         )}
-        {phase === 'grade' && <GradeReveal deck={deck} items={items} decisions={decisions} reduce={reduce} block={block} onAgain={() => go(againTo ? `${againTo}&t=${Date.now()}` : `/probetest?deck=${deck.id}${n ? `&n=${n}` : ''}&paper=1&t=${Date.now()}`)} />}
+        {phase === 'grade' && <GradeReveal deck={deck} items={items} decisions={decisions} reduce={reduce} block={block} heading={title} wrongHref={wrongTo ? wrongTo(testId) : undefined} onAgain={() => go(againTo ? `${againTo}&t=${Date.now()}` : `/probetest?deck=${deck.id}${n ? `&n=${n}` : ''}&paper=1&t=${Date.now()}`)} />}
       </div>
     </div>
   )

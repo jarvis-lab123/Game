@@ -22,7 +22,7 @@ function message(grade: number) {
  * The finale: points count up and the ring fills, then the grade rolls up from 1.0
  * and lands with a teacher's stamp (plus confetti from 5.0). Click / Enter skips ahead.
  */
-export function GradeReveal({ deck, items, decisions, reduce, onAgain, block }: { deck: Deck; items: PaperItem[]; decisions: Decision[]; reduce: boolean; onAgain: () => void; block?: PaperBlock }) {
+export function GradeReveal({ deck, items, decisions, reduce, onAgain, block, wrongHref, heading }: { heading?: string; deck: Deck; items: PaperItem[]; decisions: Decision[]; reduce: boolean; onAgain: () => void; block?: PaperBlock; wrongHref?: string }) {
   const { points, total, grade } = paperScore(decisions)
   const failed = !!block && grade < 4
   const tone = gradeTone(grade)
@@ -90,7 +90,7 @@ export function GradeReveal({ deck, items, decisions, reduce, onAgain, block }: 
         onClick={stamped ? undefined : finish}
         title={stamped ? undefined : 'Tippen zum Überspringen'}
       >
-        <p className="text-sm font-medium text-muted">{deck.name} · {block ? block.title : 'Probetest auf Papier'}</p>
+        <p className="text-sm font-medium text-muted">{deck.name} · {block ? block.title : heading ?? 'Probetest auf Papier'}</p>
         <motion.div
           className="mt-6 flex items-center justify-center gap-6 desk:gap-12"
           animate={stamped && !reduce ? { y: [0, 3, 0] } : { y: 0 }}
@@ -184,6 +184,12 @@ export function GradeReveal({ deck, items, decisions, reduce, onAgain, block }: 
                 <Button ref={focus} variant="primary" size="lg" onClick={() => go(block.exitTo)}>Block abschliessen</Button>
                 {wrong.length > 0 && <Button size="lg" onClick={() => go(`/knacknuss?deck=${deck.id}&t=${Date.now()}`)}>🌰 Falsche Wörter knacken</Button>}
                 <Button size="lg" onClick={() => go(`${block.againTo}&t=${Date.now()}`)}>Block nochmals lernen</Button>
+              </>
+            ) : wrongHref ? (
+              <>
+                {wrong.length > 0 && <Button ref={focus} variant="primary" size="lg" onClick={() => go(wrongHref)}>Falsche Wörter als Block lernen ({wrong.length})</Button>}
+                <Button ref={wrong.length > 0 ? undefined : focus} size="lg" onClick={onAgain}>Test nochmals</Button>
+                <Button size="lg" onClick={() => go('/ueben?tab=bloecke')}>Zu den Blöcken</Button>
               </>
             ) : (
               <>

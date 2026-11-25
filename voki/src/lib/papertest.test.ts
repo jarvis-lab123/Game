@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { confettiParticles, gradeTone, nextOpen, paperScore, rollSteps } from './papertest'
+import { mergeSameGerman } from './papertest'
 
 describe('paperScore', () => {
   it('counts true as 1 point, false as 0, ignores undecided', () => {
@@ -73,5 +74,17 @@ describe('confettiParticles', () => {
       expect(p.dy).toBeGreaterThan(0) // ends below its peak (gravity)
       expect(p.peak).toBeLessThan(0) // goes up first
     }
+  })
+})
+
+describe('mergeSameGerman', () => {
+  it('asks a German word once and needs both French words', () => {
+    const r = mergeSameGerman([
+      { cardId: 'a', question: 'Metzger(in)', answer: 'un boucher, une bouchère' },
+      { cardId: 'b', question: 'Bäcker(in)', answer: 'un boulanger' },
+      { cardId: 'c', question: 'Metzger(in) ', answer: 'un charcutier, une charcutière' },
+    ])
+    expect(r).toHaveLength(2)
+    expect(r[0]).toEqual({ cardId: 'a', question: 'Metzger(in)', answer: 'un boucher, une bouchère  +  un charcutier, une charcutière', cardIds: ['c'] })
   })
 })

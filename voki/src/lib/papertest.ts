@@ -74,3 +74,23 @@ export function confettiParticles(n: number, rng: () => number = Math.random): P
     }
   })
 }
+
+export interface MergeItem { cardId: string; question: string; answer: string; cardIds?: string[] }
+
+/**
+ * Same German word, different French words (e.g. „Metzger(in)“ = boucher / charcutier):
+ * asked once, and both French words have to be written.
+ */
+export function mergeSameGerman<T extends MergeItem>(items: T[]): T[] {
+  const key = (q: string) => q.trim().toLowerCase().replace(/\s+/g, ' ')
+  const out: T[] = []
+  const at = new Map<string, number>()
+  for (const it of items) {
+    const k = key(it.question)
+    const i = at.get(k)
+    if (i == null) { at.set(k, out.length); out.push({ ...it }); continue }
+    const first = out[i]
+    out[i] = { ...first, answer: `${first.answer}  +  ${it.answer}`, cardIds: [...(first.cardIds ?? []), it.cardId, ...(it.cardIds ?? [])] }
+  }
+  return out
+}

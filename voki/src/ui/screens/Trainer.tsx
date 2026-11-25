@@ -150,14 +150,18 @@ function TrainerRun({ words, left, phase, cloze, source, setPhase, onAgain, embe
  * Block learning on the computer: the block in portions of about 8 words – learn cards, pairs,
  * then per word a gap sentence (or the faded word) and one free recall. Calls onFinished at the end.
  */
-export function BlockTrainer({ picks, title, exitTo, onFinished }: { picks: TrainerPick[]; title: string; exitTo: string; onFinished: () => void }) {
+/** Number of portions („Teile“) a block of n words is learned in. */
+export const blockParts = (n: number) => Math.max(1, Math.round(n / 8))
+
+export function BlockTrainer({ picks, title, exitTo, onFinished, startPart = 0, onPart }: { picks: TrainerPick[]; title: string; exitTo: string; onFinished: () => void; startPart?: number; onPart?: (part: number) => void }) {
   const chunks = useMemo(() => {
-    const k = Math.max(1, Math.round(picks.length / 8))
+    const k = blockParts(picks.length)
     const out: TrainerPick[][] = []
     for (let i = 0; i < k; i++) out.push(picks.slice(Math.round((i * picks.length) / k), Math.round(((i + 1) * picks.length) / k)))
     return out
   }, [picks])
-  const [ci, setCi] = useState(0)
+  const [ci, setCi] = useState(() => Math.min(Math.max(0, startPart), chunks.length - 1))
+  useEffect(() => onPart?.(ci), [ci]) // eslint-disable-line react-hooks/exhaustive-deps
   const [phase, setPhase] = useState<Phase>('learn')
   const words = useMemo(() => chunks[ci].map(toWord), [chunks, ci])
   const next = (p: Phase) => {

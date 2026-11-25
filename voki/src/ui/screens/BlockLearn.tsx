@@ -9,7 +9,7 @@ import { introduceBlock, markBlockLearned } from '../../db/blocks'
 import { loadSettings } from '../../db/queries'
 import type { Card, Deck, Note } from '../../lib/types'
 import { READ_ROUNDS, blockDayPlan, passed, blockStates, drillCurrent, drillFinished, drillMark, overallGrade, pickNextBlock, splitBlocks, startDrill, type BlockState, type DrillState } from '../../lib/blocks'
-import { gradeTone } from '../../lib/papertest'
+import { gradeTone, mergeSameGerman } from '../../lib/papertest'
 import { clozeGap, needsOtherForm } from '../../lib/cloze'
 import { diffChars, gradeAnswer, normalize, type AnswerLang } from '../../lib/grade'
 import { markModel, markSentence, onlyAccents, sameSentence, startSentences, type SentenceQueue } from '../../lib/sentence'
@@ -17,7 +17,7 @@ import { Badge, Button, Empty, Kbd, Progress, cx } from '../components'
 import { Flag, IconBack, IconCheck, IconChevron, IconPlay, IconX } from '../icons'
 import { go } from '../router'
 import { AnswerInput, AudioButton, SentenceWithTranslation, faceOf } from './cards'
-import { BlockTrainer } from './Trainer'
+import { BlockTrainer, blockParts } from './Trainer'
 import { PaperTest, type PaperItem } from '../probe/PaperTest'
 import { PaperHint, useCalmFocus } from '../probe/paper'
 
@@ -118,6 +118,7 @@ function DeckBlockCard({ d }: { d: DeckBlocks }) {
           </Button>
         </div>
       )}
+      <FinalTestRow d={d} />
       <ul className="divide-y divide-line border-t border-line">
         {d.states.map((s) => (
           <li key={s.index}>
@@ -179,6 +180,28 @@ function DayPlan({ d }: { d: DeckBlocks }) {
   )
 }
 
+/** Final test over all words + the last result with a way to learn its mistakes as a block. */
+function FinalTestRow({ d }: { d: DeckBlocks }) {
+  const last = useLiveQuery(async () => (await db.tests.where('deckId').equals(d.deck.id).toArray()).filter((t) => t.kind === 'final' || t.kind === 'errors').sort((a, b) => b.date.localeCompare(a.date))[0], [d.deck.id])
+  const n = d.blocks.reduce((s, b) => s + b.length, 0)
+  const wrong = last ? last.items.filter((i) => !i.correct).length : 0
+  return (
+    <div className="mx-5 mb-4 rounded-2xl border border-line p-4">
+      <p className="text-[15px] font-semibold">Gesamttest auf Papier · alle {n} Wörter</p>
+      <p className="mt-0.5 text-[13px] text-muted">Wie die Block-Tests, nur mit allem. Gleiche deutsche Wörter kommen einmal – dann alle französischen hinschreiben. Danach lernst du die falschen als eigenen Block.</p>
+      {last && (
+        <p className="mt-2 flex items-center gap-2 text-[13px] text-muted">
+          <GradeChip grade={last.grade} size="sm" /> Letzter {last.kind === 'final' ? 'Gesamttest' : 'Fehler-Test'} · {new Date(last.date).toLocaleDateString('de-CH')} · {wrong} falsch
+        </p>
+      )}
+      <div className="mt-3 flex flex-col gap-2 desk:flex-row">
+        <Button onClick={() => go(`/bloecke?deck=${d.deck.id}&start=0&final=1`)}>Gesamttest starten</Button>
+        {last && wrong > 0 && <Button variant="primary" onClick={() => go(`/bloecke?deck=${d.deck.id}&start=0&wrong=${last.id}`)}>Falsche als Block lernen ({wrong})</Button>}
+      </div>
+    </div>
+  )
+}
+
 const GRADES = [4, 4.5, 5, 5.5, 6]
 
 /** Blocks already learned elsewhere (other device, on paper): take them over with a grade. */
@@ -235,7 +258,7 @@ function MarkLearned({ d }: { d: DeckBlocks }) {
 }
 
 /* ---------------- Ablauf eines Blocks ---------------- */
-type Phase = { k: 'choose' } | { k: 'train' } | { k: 'sentences'; short: boolean } | { k: 'cards'; v: DrillVariant } | { k: 'read'; round: number; i: number } | { k: 'readDone' } | { k: 'drill' } | { k: 'test' }
+type Phase = { k: 'choose' } | { k: 'train'; part?: number } | { k: 'sentences'; short: boolean } | { k: 'cards'; v: DrillVariant } | { k: 'read'; round: number; i: number } | { k: 'readDone' } | { k: 'drill' } | { k: 'test' }
 
 function shuffled<T>(xs: T[]): T[] {
   const a = xs.slice()
@@ -249,15 +272,26 @@ function shuffled<T>(xs: T[]): T[] {
 export const REVIEW_SIZE = 20
 
 /** `review` = number of earlier blocks: a short paper test (20 words) mixed from blocks 1..review. */
-export function BlockRun({ deckId, index, review }: { deckId: string; index: number; review?: number }) {
+export function BlockRun({ deckId, index, review, final, wrong }: { deckId: string; index: number; review?: number; final?: boolean; wrong?: string }) {
   const [data, setData] = useState<DeckBlocks | null | undefined>(undefined)
+  const [wrongIds, setWrongIds] = useState<Set<string> | null>(null)
   useEffect(() => {
     ;(async () => {
       const d = await db.decks.get(deckId)
+      if (wrong) {
+        const t = await db.tests.get(wrong)
+        setWrongIds(new Set((t?.items ?? []).filter((i) => !i.correct).map((i) => i.cardId)))
+      }
       setData(d ? await loadDeckBlocks(d) : null)
     })()
-  }, [deckId])
-  if (data === undefined) return <div className="h-60" aria-busy="true" />
+  }, [deckId, wrong])
+  if (data === undefined || (wrong && !wrongIds)) return <div className="h-60" aria-busy="true" />
+  if (data && final) return <FinalTest deck={data.deck} words={data.blocks.flat()} />
+  if (data && wrong && wrongIds) {
+    const ws = data.blocks.flat().filter((w) => wrongIds.has(w.card.id))
+    if (!ws.length) return <div className="mx-auto max-w-[640px] px-4 pt-10"><Empty title="Keine falschen Wörter" action={<Button onClick={() => go(HOME)}>Zurück</Button>}>In diesem Test war alles richtig.</Empty></div>
+    return <BlockFlow deck={data.deck} words={ws} index={-1} count={0} label={`${ws.length} Wörter aus dem Test`} custom={{ key: `wrong:${wrong}`, title: 'Fehler-Block', againTo: `/bloecke?deck=${deckId}&start=0&wrong=${wrong}` }} />
+  }
   if (data && review) {
     const pool = data.blocks.slice(0, review).flat()
     if (!pool.length) return null
@@ -268,24 +302,49 @@ export function BlockRun({ deckId, index, review }: { deckId: string; index: num
   return <BlockFlow deck={data.deck} words={words} index={index} count={data.blocks.length} label={range(data.blocks, index)} />
 }
 
+/** The final test: all words of the deck on paper. Same German = asked once, all French words needed. */
+function FinalTest({ deck, words }: { deck: Deck; words: Word[] }) {
+  const [items] = useState(() => mergeSameGerman(shuffled(words).map((w) => w.item)))
+  return (
+    <PaperTest deck={deck} items={items} n={null} exitTo={HOME} kind="final" title={`Gesamttest · alle ${words.length} Wörter`}
+      againTo={`/bloecke?deck=${deck.id}&start=0&final=1`} wrongTo={(id) => `/bloecke?deck=${deck.id}&start=0&wrong=${id}`} />
+  )
+}
+
 function ReviewTest({ deck, pool, review }: { deck: Deck; pool: Word[]; review: number }) {
   const [items] = useState(() => shuffled(pool).slice(0, REVIEW_SIZE).map((w) => w.item))
   return <PaperTest deck={deck} items={items} n={null} exitTo={HOME} title={review === 1 ? 'Kurztest Block 1' : `Kurztest Block 1–${review}`} againTo={`/bloecke?deck=${deck.id}&start=0&review=${review}`} />
 }
 
-function BlockFlow({ deck, words, index, count, label }: { deck: Deck; words: Word[]; index: number; count: number; label: string }) {
+interface CustomBlock { key: string; title: string; againTo: string }
+type Saved = { phase: Phase; part?: number }
+
+function BlockFlow({ deck, words, index, count, label, custom }: { deck: Deck; words: Word[]; index: number; count: number; label: string; custom?: CustomBlock }) {
   const reduce = !!useReducedMotion()
-  const [phase, setPhase] = useState<Phase>({ k: 'choose' })
+  // remember where you are (part of the block, exercise) – the app may be closed any time
+  const storeKey = `voki.blockpos:${deck.id}:${custom?.key ?? index}`
+  const [saved, setSaved] = useState<Saved | null>(() => { try { return JSON.parse(localStorage.getItem(storeKey) ?? 'null') } catch { return null } })
+  const [phase, setPhaseRaw] = useState<Phase>({ k: 'choose' })
+  const remember = (s: Saved | null) => { setSaved(s); if (s) localStorage.setItem(storeKey, JSON.stringify(s)); else localStorage.removeItem(storeKey) }
+  const setPhase = (p: Phase) => {
+    setPhaseRaw(p)
+    if (p.k === 'train' || p.k === 'sentences' || p.k === 'cards') remember({ phase: p, part: p.k === 'train' ? p.part ?? 0 : saved?.part })
+    else if (p.k === 'test') remember(null)
+  }
   const [order, setOrder] = useState(() => words)
   const [drill, setDrill] = useState<DrillState>(() => startDrill(words.map((w) => w.card.id)))
   const byId = useMemo(() => new Map(words.map((w) => [w.card.id, w])), [words])
-  const title = `Block ${index + 1} von ${count}`
+  const title = custom?.title ?? `Block ${index + 1} von ${count}`
 
   if (phase.k === 'test') {
-    return (
+    const items = mergeSameGerman(shuffled(words).map((w) => w.item))
+    return custom ? (
+      <PaperTest deck={deck} items={items} n={null} exitTo={HOME} kind="errors" title={`${title} · Test`} againTo={custom.againTo}
+        wrongTo={(id) => `/bloecke?deck=${deck.id}&start=0&wrong=${id}`} onPractice={() => { setPhase({ k: 'train' }); window.scrollTo({ top: 0 }) }} />
+    ) : (
       <PaperTest
         deck={deck}
-        items={shuffled(words).map((w) => w.item)}
+        items={items}
         n={null}
         block={{ index, count, exitTo: HOME, againTo: `/bloecke?deck=${deck.id}&start=${index}`, title: `${title} · Probetest` }}
         onPractice={() => { setPhase({ k: 'train' }); window.scrollTo({ top: 0 }) }}
@@ -298,13 +357,21 @@ function BlockFlow({ deck, words, index, count, label }: { deck: Deck; words: Wo
   const conjWords = words.filter((w) => w.note.example && needsOtherForm(w.note.term, w.note.gap))
   const hasConj = conjWords.length > 0
   const toPhase = (k: Pick): Phase =>
-    k === 'train' ? { k: 'train' } : k === 'classic' ? { k: 'read', round: 1, i: 0 } : k === 'short' ? { k: 'sentences', short: true } : k === 'long' ? { k: 'sentences', short: false } : k === 'flash' || k === 'write' || k === 'conj' ? { k: 'cards', v: k } : k === 'menu' ? { k: 'choose' } : { k: 'test' }
+    k === 'train' ? { k: 'train', part: 0 } : k === 'classic' ? { k: 'read', round: 1, i: 0 } : k === 'short' ? { k: 'sentences', short: true } : k === 'long' ? { k: 'sentences', short: false } : k === 'flash' || k === 'write' || k === 'conj' ? { k: 'cards', v: k } : k === 'menu' ? { k: 'choose' } : { k: 'test' }
   const pick = (k: Pick) => {
     if (k !== 'test' && k !== 'menu') void introduceBlock(db, words.map((w) => w.card.id)).then(requestSync)
     setPhase(toPhase(k))
     window.scrollTo({ top: 0 })
   }
-  if (phase.k === 'choose') return <ChooseWay deck={deck} n={words.length} title={title} label={label} reduce={reduce} has={{ short: hasShort, long: hasLong, conj: hasConj }} onPick={pick} />
+  const parts = blockParts(words.length)
+  const resume = saved && saved.phase.k !== 'choose' ? saved : null
+  const resumeLabel = resume ? (resume.phase.k === 'train' ? `Weitermachen: Teil ${(resume.part ?? 0) + 1} von ${parts}` : resume.phase.k === 'sentences' ? `Weitermachen: ${resume.phase.short ? 'kurze' : 'lange'} Sätze` : resume.phase.k === 'cards' ? `Weitermachen: ${DRILL_TITLE[resume.phase.v]}` : 'Weitermachen') : null
+  if (phase.k === 'choose')
+    return (
+      <ChooseWay deck={deck} n={words.length} title={title} label={label} reduce={reduce} has={{ short: hasShort, long: hasLong, conj: hasConj }} onPick={pick}
+        parts={parts} onPart={(i) => { void introduceBlock(db, words.map((w) => w.card.id)).then(requestSync); setPhase({ k: 'train', part: i }); window.scrollTo({ top: 0 }) }}
+        resume={resume && resumeLabel ? { label: resumeLabel, go: () => { setPhase(resume.phase.k === 'train' ? { k: 'train', part: resume.part ?? 0 } : resume.phase); window.scrollTo({ top: 0 }) } } : null} />
+    )
   if (phase.k === 'cards') return <WordDrill key={phase.v} deck={deck} words={phase.v === 'conj' ? conjWords : words} variant={phase.v} title={title} onPick={pick} />
   if (phase.k === 'train')
     return (
@@ -312,6 +379,8 @@ function BlockFlow({ deck, words, index, count, label }: { deck: Deck; words: Wo
         picks={words.map((w) => ({ note: w.note, card: w.card, deck, score: 0, wrong: 0, reason: title }))}
         title={title}
         exitTo={HOME}
+        startPart={phase.part ?? 0}
+        onPart={(i) => remember({ phase: { k: 'train', part: i }, part: i })}
         onFinished={() => { setPhase(hasShort ? { k: 'sentences', short: true } : hasLong ? { k: 'sentences', short: false } : { k: 'test' }); window.scrollTo({ top: 0 }) }}
       />
     )
@@ -525,7 +594,7 @@ function AccentRow({ onInsert }: { onInsert: (c: string) => void }) {
 type DrillVariant = 'flash' | 'write' | 'conj'
 type Pick = 'train' | 'flash' | 'write' | 'conj' | 'short' | 'long' | 'test' | 'classic' | 'menu'
 
-function ChooseWay({ deck, n, title, label, reduce, onPick, has }: { deck: Deck; n: number; title: string; label: string; reduce: boolean; onPick: (k: Pick) => void; has: { short: boolean; long: boolean; conj: boolean } }) {
+function ChooseWay({ deck, n, title, label, reduce, onPick, has, parts, onPart, resume }: { deck: Deck; n: number; title: string; label: string; reduce: boolean; onPick: (k: Pick) => void; has: { short: boolean; long: boolean; conj: boolean }; parts: number; onPart: (i: number) => void; resume: { label: string; go: () => void } | null }) {
   const focus = useCalmFocus<HTMLButtonElement>()
   useEffect(() => {
     const on = (e: KeyboardEvent) => { if (e.key === 'Escape') go(HOME) }
@@ -549,8 +618,17 @@ function ChooseWay({ deck, n, title, label, reduce, onPick, has }: { deck: Deck;
         <p className="mt-2 text-[15px] text-muted">
           Empfohlen: <span className="font-medium text-fg">Block lernen</span> (ca. {minutes} Min) → {has.short ? 'kurze Sätze → ' : ''}Test auf Papier. Ab Note 4 ist der Block geschafft, darunter nochmals.
         </p>
-        <Button ref={focus} variant="primary" size="lg" className="mt-6 w-full" onClick={() => onPick('train')}><IconPlay /> Block lernen</Button>
-        <p className="mt-1.5 text-center text-[13px] text-muted">Einprägen, Paare, übersetzen, im Satz einsetzen – in Portionen</p>
+        {resume && <Button ref={focus} variant="primary" size="lg" className="mt-6 w-full" onClick={resume.go}><IconPlay /> {resume.label}</Button>}
+        <Button ref={resume ? undefined : focus} variant={resume ? undefined : 'primary'} size="lg" className={cx('w-full', resume ? 'mt-2' : 'mt-6')} onClick={() => onPick('train')}>{!resume && <IconPlay />} {resume ? 'Block von vorne lernen' : 'Block lernen'}</Button>
+        <p className="mt-1.5 text-center text-[13px] text-muted">Einprägen, Paare, übersetzen, im Satz einsetzen – in {parts} Teilen</p>
+        {parts > 1 && (
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5" role="group" aria-label="Bei Teil einsteigen">
+            <span className="mr-1 text-[13px] text-muted">Bei Teil einsteigen:</span>
+            {Array.from({ length: parts }, (_, i) => (
+              <button key={i} type="button" onClick={() => onPart(i)} className="grid h-10 min-w-10 place-items-center rounded-xl bg-surface-2 px-2 text-[15px] font-semibold tabular hover:brightness-95 dark:hover:brightness-125" aria-label={`Bei Teil ${i + 1} einsteigen`}>{i + 1}</button>
+            ))}
+          </div>
+        )}
         <h2 className="mt-7 text-[13px] font-semibold uppercase tracking-[0.04em] text-muted">Üben, wie du willst</h2>
         <div className="mt-2.5 grid gap-2 desk:grid-cols-2">
           {modes.filter((m) => m.show).map((m) => (

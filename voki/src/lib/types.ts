@@ -88,6 +88,8 @@ export interface TestResult {
   blocks?: number
   /** block test results were applied to the learning progress */
   applied?: boolean
+  /** final test over all words, or the test of an error block */
+  kind?: 'final' | 'errors'
   updatedAt: string
 }
 
