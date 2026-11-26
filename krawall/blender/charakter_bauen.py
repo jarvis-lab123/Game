@@ -700,6 +700,31 @@ class Figur:
             pmid, _ = self.kopf_punkt((innen.x + aussen.x) / 2, (innen.y + aussen.y) / 2 + 0.035, raus=0.018)
             rohr("braue", [pi, pmid, pa], [d * 1.05, d * 1.15, d * 0.6], m["brauen"], "head", abflachen=0.6)
 
+        # Falten, Tränensäcke, Doppelkinn, Warze (für ältere oder fiese Figuren)
+        if a.get("falten"):
+            fm = material("falte", abdunkeln(a["hautfarbe"], 0.8), rau=0.7)   # "falte*" = im Spiel ohne Umrisslinie
+            fk = 0.65 if a.get("falten") == "leicht" else 1.0
+            for i, zz in enumerate((0.62, 0.70, 0.78)):
+                stirn = [self.kopf_punkt(t * (0.38 - i * 0.05), zz + 0.03 * (1 - t * t), raus=0.003)[0] for t in (-1, -0.5, 0, 0.5, 1)]
+                rohr("stirnfalte", stirn, [0.004 * fk, 0.007 * fk, 0.008 * fk, 0.007 * fk, 0.004 * fk], fm, "head", abflachen=0.5)
+            for sx in (1, -1):
+                xa = sx * (0.34 * a["augen"]["abstand"] + 0.22)
+                for k in range(3):
+                    kraehe = [self.kopf_punkt(xa, 0.05 - k * 0.07, raus=0.003)[0],
+                              self.kopf_punkt(xa + sx * 0.1, 0.08 - k * 0.11, raus=0.002)[0]]
+                    rohr("kraehenfuss", kraehe, [0.004 * fk, 0.002 * fk], fm, "head", abflachen=0.5)
+                sack = [self.kopf_punkt(sx * (0.34 * a["augen"]["abstand"] + t * 0.13), -0.17 - 0.03 * (1 - t * t), raus=0.006)[0]
+                        for t in (-1, -0.5, 0, 0.5, 1)]
+                rohr("traenensack", sack, [0.004 * fk, 0.009 * fk, 0.011 * fk, 0.009 * fk, 0.004 * fk], fm, "head", abflachen=0.5)
+                naso = [self.kopf_punkt(sx * (0.2 + 0.1 * t), -0.22 - 0.2 * t, raus=0.004)[0] for t in (0, 0.33, 0.66, 1)]
+                rohr("nasolabial", naso, [0.004 * fk, 0.008 * fk, 0.008 * fk, 0.004 * fk], fm, "head", abflachen=0.5)
+        if a.get("doppelkinn"):
+            pk, rk = self.auf_kopf(0.0, -0.9, raus=-0.02)
+            ellipsoid("doppelkinn", pk + Vector((0, 0.02, -0.045)), (0.2, 0.15, 0.09), m["haut"], "head",
+                      rot=rk.to_matrix().to_4x4())
+        if a.get("warze"):
+            wp, _ = self.kopf_punkt(0.2, -0.05, raus=0.015)
+            ellipsoid("warze", wp, (0.022, 0.022, 0.02), material("warze", "#8B5A3C"), "head", segs=12, ringe=8)
         # Wangen
         if a["wangenroete"]:
             for sx in (1, -1):
@@ -724,6 +749,16 @@ class Figur:
             ellipsoid("nase", p, (0.058, 0.035, 0.034), m["haut"], "head", rot=R)
             for sx in (1, -1):
                 ellipsoid("nasenfluegel", p + Vector((sx * 0.04, 0.008, -0.01)), (0.022, 0.02, 0.02), m["haut"], "head")
+        elif nase == "haken":
+            # große Hakennase: hoher Rücken, Höcker, nach unten gebogene Spitze
+            oben, _ = self.kopf_punkt(0.0, 0.14, raus=0.004)
+            hoecker, _ = self.kopf_punkt(0.0, -0.02, raus=0.06)
+            spitze, _ = self.kopf_punkt(0.0, -0.24, raus=0.085)
+            rohr("hakennase", [oben, hoecker, spitze], [0.03, 0.042, 0.04], m["haut"], "head", glatt_teilen=1)
+            ellipsoid("nasenspitze", spitze + Vector((0, 0.004, -0.022)), (0.045, 0.04, 0.05), m["haut"], "head")
+            for sx in (1, -1):
+                pf, _ = self.kopf_punkt(sx * 0.12, -0.27, raus=0.025)
+                ellipsoid("nasenfluegel", pf, (0.03, 0.026, 0.026), m["haut"], "head")
         elif nase == "lang":
             # gerader, langer Nasenrücken mit runder Spitze und Nasenflügeln
             oben, _ = self.kopf_punkt(0.0, 0.12, raus=0.004)
@@ -743,8 +778,8 @@ class Figur:
         # Mund
         mund = a["mund"]
         pts = []
-        breite = {"laecheln": 0.24, "grinsen": 0.30, "neutral": 0.18, "frech": 0.22, "lachen": 0.34}[mund]
-        kurve = {"laecheln": 0.10, "grinsen": 0.12, "neutral": 0.0, "frech": 0.06, "lachen": 0.14}[mund]
+        breite = {"laecheln": 0.24, "grinsen": 0.30, "neutral": 0.18, "frech": 0.22, "lachen": 0.34, "grimmig": 0.22}[mund]
+        kurve = {"laecheln": 0.10, "grinsen": 0.12, "neutral": 0.0, "frech": 0.06, "lachen": 0.14, "grimmig": -0.09}[mund]
         n = 7
         for i in range(n):
             t = i / (n - 1) * 2 - 1  # -1..1

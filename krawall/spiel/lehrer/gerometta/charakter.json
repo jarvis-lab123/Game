@@ -1,41 +1,118 @@
 {
   "name": "Frau Gerometta",
-  "titel": "Französischlehrerin (Riesin)",
-  "beschreibung": "Dreimal so groß wie alle. Wirft französische Wörter. Ulti SILENCE: Wer dann angreift, ist sofort K.o. Nach Dauerkampf: ANGRY MODE mit doppeltem Schaden.",
-  "modell_hoehe": 5.25,
-  "werte": { "leben": 5000, "tempo": 0.85 },
+  "titel": "Französischlehrerin",
+  "beschreibung": "Wirft französische Wörter. Ulti SILENCE: Wer dann angreift, ist sofort K.o. Nach Dauerkampf: ANGRY MODE mit doppeltem Schaden.",
+  "werte": {
+    "leben": 5200,
+    "tempo": 0.85
+  },
   "angriff": {
-    "typ": "schuss", "name": "Vokabelwurf",
-    "schaden": 420, "projektile": 2, "streuung": 16, "reichweite": 9.5,
-    "projektil_tempo": 13, "nachladen": 1.5, "farbe": "#7FB2FF",
-    "geschoss_text": ["Bonjour !", "Merci !", "Oui !", "Non !", "Zut alors !", "Ça va ?", "Croissant", "Baguette",
-      "Fromage", "Au revoir !", "Voilà !", "Mon Dieu !", "Le subjonctif", "Excusez-moi", "Silence !", "Très bien !",
-      "Pamplemousse", "C'est la vie", "Oh là là !", "Escargot"]
+    "typ": "schuss",
+    "name": "Vokabelwurf",
+    "schaden": 420,
+    "projektile": 2,
+    "streuung": 16,
+    "reichweite": 9.5,
+    "projektil_tempo": 13,
+    "nachladen": 1.5,
+    "farbe": "#7FB2FF",
+    "geschoss_text": [
+      "Bonjour !",
+      "Merci !",
+      "Oui !",
+      "Non !",
+      "Zut alors !",
+      "Ça va ?",
+      "Croissant",
+      "Baguette",
+      "Fromage",
+      "Au revoir !",
+      "Voilà !",
+      "Mon Dieu !",
+      "Le subjonctif",
+      "Excusez-moi",
+      "Silence !",
+      "Très bien !",
+      "Pamplemousse",
+      "C'est la vie",
+      "Oh là là !",
+      "Escargot"
+    ]
   },
   "super": {
-    "typ": "schweigen", "name": "Silence", "ruf": "SILENCE !",
-    "dauer": 4.0, "reichweite": 14.0, "ladung_pro_treffer": 0.12, "farbe": "#B05CFF"
+    "typ": "schweigen",
+    "name": "Silence",
+    "ruf": "SILENCE !",
+    "dauer": 4.0,
+    "reichweite": 14.0,
+    "ladung_pro_treffer": 0.12,
+    "farbe": "#B05CFF"
   },
   "lehrer": {
-    "anzahl": 1, "raeume": ["klasse"], "sicht": 11, "sichtwinkel": 120,
-    "zorn": { "nach": 10.0, "dauer": 6.0, "faktor": 2.0, "text": "ANGRY MODE !" }
+    "anzahl": 1,
+    "raeume": [
+      "klasse"
+    ],
+    "sicht": 11,
+    "sichtwinkel": 120,
+    "zorn": {
+      "nach": 10.0,
+      "dauer": 6.0,
+      "faktor": 2.0,
+      "text": "ANGRY MODE !"
+    }
   },
   "aussehen": {
     "proportionen": "comic",
     "figur": "weiblich",
     "hautfarbe": "#EBBE9E",
     "kopfform": "oval",
-    "wangenroete": true,
-    "augen": { "farbe": "#5A3A22", "form": "mandel" },
-    "augenbrauen": { "dicke": 1.0, "winkel": 2, "farbe": "#3B2416" },
+    "wangenroete": false,
+    "augen": {
+      "farbe": "#5A3A22",
+      "form": "mandel",
+      "groesse": 1.0
+    },
+    "augenbrauen": {
+      "dicke": 1.2,
+      "winkel": 9,
+      "farbe": "#3B2416"
+    },
     "nase": "klein",
-    "mund": "laecheln",
-    "haare": { "stil": "lang", "farbe": "#3B2416", "pony": false, "scheitel": "links" },
-    "brille": { "stil": "keine" },
-    "oberteil": { "stil": "jacke", "farbe": "#2E3A59", "farbe2": "#F4F1EA" },
-    "hose": { "stil": "lang", "farbe": "#1F1F24" },
-    "schuhe": { "farbe": "#5A3A22", "sohle": "#2A2140" },
-    "kette": { "an": true, "farbe": "#F2C94C" },
-    "waffe": { "stil": "buch", "farbe": "#3A7BD5", "farbe2": "#F4F1EA" }
+    "mund": "neutral",
+    "haare": {
+      "stil": "lang",
+      "farbe": "#3B2416",
+      "pony": false,
+      "scheitel": "links"
+    },
+    "brille": {
+      "stil": "keine"
+    },
+    "oberteil": {
+      "stil": "jacke",
+      "farbe": "#2E3A59",
+      "farbe2": "#F4F1EA"
+    },
+    "hose": {
+      "stil": "lang",
+      "farbe": "#1F1F24"
+    },
+    "schuhe": {
+      "farbe": "#5A3A22",
+      "sohle": "#2A2140"
+    },
+    "kette": {
+      "an": true,
+      "farbe": "#F2C94C"
+    },
+    "waffe": {
+      "stil": "buch",
+      "farbe": "#3A7BD5",
+      "farbe2": "#F4F1EA"
+    },
+    "koerperbau": "kraeftig",
+    "groesse": 1.0,
+    "falten": "leicht"
   }
 }

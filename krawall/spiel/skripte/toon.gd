@@ -55,6 +55,8 @@ static func material_aus(alt: Material, linie := 0.016, eigen := false) -> Shade
 		m.set_shader_parameter("hat_textur", true)
 	m.set_shader_parameter("glanz", glanz)
 	m.set_shader_parameter("leuchten", leuchten)
+	if name.begins_with("falte"):
+		linie = 0.0   # feine Details (Falten) ohne Comic-Umriss
 	if linie > 0.0 and leuchten == 0.0:
 		var l := ShaderMaterial.new()
 		l.shader = LINIE
