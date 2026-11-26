@@ -76,12 +76,24 @@ Bibliothek, Hauptgang, Eingangshalle, Mensa, Lehrerzimmer und Sekretariat.
 - **? gelb = misstrauisch:** Der Lehrer bleibt stehen und schaut in deine Richtung. Bleibst du in seiner Sicht,
   wird daraus ein Alarm, aus der Nähe schneller.
 - **! rot = entdeckt:** Er erschrickt und greift an.
-- **Höchstens 3 greifen gleichzeitig an.** Weitere Lehrer, die dich entdecken (! orange), halten Abstand
-  und warten, bis ein Platz frei wird.
+- **Pro Raum höchstens ein Lehrer.** Jeder Lehrer hat einen eigenen Heimraum und besucht andere Räume nur,
+  wenn dort gerade niemand ist.
+- **Nur ein Lehrer greift gleichzeitig an.** Weitere, die dich entdecken (! orange), ziehen sich in ihren Raum
+  zurück und warten, bis der Kampf vorbei ist.
 - **Suchen:** Verliert ein Lehrer dich 5 s aus den Augen, sucht er an der letzten Stelle, schaut sich um und
   kehrt danach in seinen Alltag zurück.
 - **Überraschungsangriff:** Der erste Treffer auf einen ahnungslosen Lehrer macht **50 % mehr Schaden**.
   Anschleichen lohnt sich.
+
+### Der Kampf
+- **Angriffe werden angekündigt:** Kurz vor jedem Lehrerangriff erscheint eine rote Fläche am Boden
+  (Schusslinie, Zielkreis oder Halbkreis). Wer rechtzeitig ausweicht, wird nicht getroffen.
+- **Lehrer weichen aus:** Schießt du auf sie, springen sie manchmal zur Seite.
+- **Wutphase:** Bei halbem Leben ruft der Lehrer „JETZT REICHT'S!“, glüht rot, läuft schneller und greift öfter an.
+- **Bosskampf-Balken:** Unten zeigt ein großer Balken Name und Leben deines aktuellen Gegners (Strich = Wutphase).
+- **Balance:** Lehrer haben doppeltes Leben, machen 55 % Schaden und schießen langsamer; du hast in der
+  Schule 50 % mehr Leben. Ein Duell dauert etwa eine halbe Minute. Alle Werte in `spiel/daten/regeln.json`.
+- **Roter Bildschirmrand** = du wurdest getroffen.
 
 ### Minikarte
 Rechts oben: du (grün), Lehrer in der Nähe (weiß), misstrauisch (gelb), wartend oder suchend (orange),

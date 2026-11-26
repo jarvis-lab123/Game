@@ -1,11 +1,20 @@
 {
-  "_info": "Regeln für den Schul-Modus. Heilung ist in Anteilen des maximalen Lebens (0.3 = 30 %).",
+  "_info": "Regeln für den Schul-Modus. Heilung in Anteilen des maximalen Lebens (0.3 = 30 %). lehrer_schaden = Schadensfaktor der Lehrer, spieler_leben = Lebensfaktor des Spielers, lehrer_feuerpause = Sekunden zwischen Lehrer-Schüssen, lehrer_ausflug_chance = wie oft ein Lehrer kurz einen leeren Raum besucht (pro Raum immer nur ein Lehrer). lehrer_leben = Lebensfaktor der Lehrer (längere Kämpfe), angriff_ansage = Sekunden, die ein Lehrerangriff vorher rot angezeigt wird.",
   "schule": {
     "leben": 1,
-    "max_angreifer": 3,
+    "max_angreifer": 1,
     "heilung_super_ko": 0.3,
     "heilung_doppel_ko": 0.35,
     "doppel_ko_fenster": 4.0,
-    "heilung_ueberraschungs_ko": 0.25
+    "heilung_ueberraschungs_ko": 0.25,
+    "lehrer_schaden": 0.55,
+    "spieler_leben": 1.5,
+    "lehrer_feuerpause": [
+      0.9,
+      1.6
+    ],
+    "lehrer_ausflug_chance": 0.15,
+    "lehrer_leben": 2.0,
+    "angriff_ansage": 0.5
   }
 }

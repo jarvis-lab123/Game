@@ -462,17 +462,42 @@ func _moeblieren(r: Dictionary) -> void:
 
 # ---------------------------------------------------------------- Aktivitäten
 func aktivitaet_waehlen(l: Lehrer) -> Dictionary:
+	## Pro Raum höchstens ein Lehrer: meistens im eigenen Raum, manchmal kurz in einen gerade leeren Raum
 	var frei := _plaetze.filter(func(p): return p["belegt"] == null)
-	if frei.is_empty():
-		return {"pos": l.global_position + Vector3(randf_range(-3, 3), 0, randf_range(-3, 3)), "blick": Vector3.ZERO, "anim": "", "min": 2, "max": 4}
-	# meistens im eigenen Raum bleiben, manchmal woanders hin (Gang, Mensa, Lehrerzimmer …)
-	var eigene := frei.filter(func(p): return l.raum_wahl.has(p["raum"]) or l.raum_wahl.has(_raumtyp(p["raum"])))
-	var auswahl := eigene if eigene.size() > 0 and randf() < 0.75 else frei
-	# nahe Plätze bevorzugen (natürlicher)
-	auswahl.sort_custom(func(a, b): return a["pos"].distance_to(l.global_position) + randf() * 25.0 < b["pos"].distance_to(l.global_position) + randf() * 25.0)
+	var eigene := frei.filter(func(p): return p["raum"] == l.heimraum)
+	var auswahl: Array = eigene
+	if randf() < float(regeln.get("lehrer_ausflug_chance", 0.15)) or eigene.is_empty():
+		var leer := frei.filter(func(p): return p["raum"] != l.heimraum and not raum_belegt(p["raum"], l))
+		if leer.size() > 0:
+			auswahl = leer
+	if auswahl.is_empty():
+		return {"pos": raum_mitte(l.heimraum), "blick": Vector3.ZERO, "anim": "", "min": 3, "max": 6, "raum": l.heimraum}
+	auswahl.sort_custom(func(a, b): return a["pos"].distance_to(l.global_position) + randf() * 12.0 < b["pos"].distance_to(l.global_position) + randf() * 12.0)
 	var p: Dictionary = auswahl[mini(randi() % 3, auswahl.size() - 1)]
 	p["belegt"] = l
 	return p
+
+
+## Ist ein Raum schon von einem anderen Lehrer besetzt (dort anwesend oder auf dem Weg dorthin)?
+func raum_belegt(raum_id: String, ausser: Lehrer) -> bool:
+	for o in lehrer_liste:
+		if o == ausser or o.tot:
+			continue
+		if raum_bei(o.global_position).get("id", "") == raum_id:
+			return true
+		if not o._platz.is_empty() and o._platz.get("raum", "") == raum_id:
+			return true
+		if o.heimraum == raum_id and o.zustand in ["alltag", "misstrauisch"] and raum_bei(o.global_position).get("id", "") == raum_id:
+			return true
+	return false
+
+
+func raum_mitte(raum_id: String) -> Vector3:
+	for r in RAEUME:
+		if r["id"] == raum_id:
+			var a: Array = r["r"]
+			return freier_punkt(plan((a[0] + a[2]) / 2.0, (a[1] + a[3]) / 2.0))
+	return Vector3.ZERO
 
 
 func _raumtyp(id: String) -> String:
@@ -500,6 +525,8 @@ func _spieler_erzeugen() -> void:
 	var id: String = d.get("id", "")
 	k.einrichten(d, 0, true, self, Konto.stufe(id), Konto.gewaehlt_gadget(id), Konto.gewaehlt_passiv(id))
 	k.regeneration = false
+	k.max_leben *= float(regeln.get("spieler_leben", 1.5))
+	k.leben = k.max_leben
 	k.spawn_punkt = plan(40, 2.5)
 	k.global_position = k.spawn_punkt
 	k.blick = Vector3(0, 0, 1)
@@ -523,14 +550,16 @@ func _lehrer_erzeugen() -> void:
 			l.einrichten(v, 1, false, self, stufe, randi() % 4, randi() % 4)
 			l.lehrer_einrichten(info)
 			l.regeneration = false
-			# Startplatz: freier Aktivitätsplatz in einem passenden Raum, weit genug vom Eingang
-			var p := aktivitaet_waehlen(l)
-			var start: Vector3 = p["pos"]
-			if start.distance_to(spieler.global_position) < 14.0:
-				platz_freigeben(p)
-				p = aktivitaet_waehlen(l)
-				start = p["pos"]
-			platz_freigeben(p)
+			l.schadens_multiplikator = float(regeln.get("lehrer_schaden", 0.55))
+			l.max_leben *= float(regeln.get("lehrer_leben", 2.0))
+			l.leben = l.max_leben
+			l.ansage_zeit = float(regeln.get("angriff_ansage", 0.5))
+			var fp: Array = regeln.get("lehrer_feuerpause", [0.9, 1.6])
+			l.ki_feuerpause = Vector2(float(fp[0]), float(fp[1]))
+			# eigener Raum: bevorzugt passend zu "raeume", jeder Raum nur einmal vergeben
+			l.heimraum = _heimraum_vergeben(info.get("raeume", []))
+			var plaetze := _plaetze.filter(func(p): return p["raum"] == l.heimraum)
+			var start: Vector3 = plaetze[randi() % plaetze.size()]["pos"] if plaetze.size() > 0 else raum_mitte(l.heimraum)
 			l.global_position = freier_punkt(start + Vector3(randf_range(-1, 1), 0, randf_range(-1, 1)))
 			l.spawn_punkt = l.global_position
 			l.modell.rotation.y = randf() * TAU
@@ -538,6 +567,27 @@ func _lehrer_erzeugen() -> void:
 			kaempfer.append(l)
 			lehrer_liste.append(l)
 	lehrer_gesamt = lehrer_liste.size()
+
+
+var _vergebene_raeume: Array = []
+
+
+func _heimraum_vergeben(wunsch: Array) -> String:
+	var kandidaten: Array = []
+	for r in RAEUME:
+		if r["id"] in _vergebene_raeume or r["id"] == "halle":
+			continue
+		if wunsch.has(r["id"]) or wunsch.has(r["typ"]):
+			kandidaten.append(r["id"])
+	if kandidaten.is_empty():
+		for r in RAEUME:
+			if not (r["id"] in _vergebene_raeume) and r["id"] != "halle":
+				kandidaten.append(r["id"])
+	if kandidaten.is_empty():
+		return "gang"
+	var id: String = kandidaten[randi() % kandidaten.size()]
+	_vergebene_raeume.append(id)
+	return id
 
 
 func gegner_von(t: int) -> Array:
@@ -553,7 +603,7 @@ func angriff_anmelden(l: Lehrer) -> bool:
 	angreifer = angreifer.filter(func(a): return is_instance_valid(a) and not a.tot and a.zustand in ["alarm", "angriff"])
 	if l in angreifer:
 		return true
-	if angreifer.size() < int(regeln.get("max_angreifer", 3)):
+	if angreifer.size() < int(regeln.get("max_angreifer", 1)):
 		angreifer.append(l)
 		return true
 	return false

@@ -58,7 +58,11 @@ var _blase: MeshInstance3D
 var _posen: Array = []
 var regeneration := true        # Arena-Modus: ja · Schule: nein (nur über besondere K.o.s)
 var letzter_super := -99.0
-var einrasten := Vector3.INF     # wenn gesetzt: gleitet ohne Kollision dorthin (Sitzplatz)
+var einrasten := Vector3.INF
+var schadens_multiplikator := 1.0   # Balance (z. B. Lehrer in der Schule schwächer)
+var ki_feuerpause := Vector2(0.45, 0.9)   # Sekunden zwischen KI-Schüssen (min, max)
+var ansage_zeit := 0.0           # > 0: KI zeigt Angriffe vorher als rote Markierung an (Ausweichen möglich)
+var _ansage_laeuft := false     # wenn gesetzt: gleitet ohne Kollision dorthin (Sitzplatz)
 
 # KI
 var ki := false
@@ -318,7 +322,7 @@ func passiv(typ: String) -> float:
 
 
 func schadens_faktor() -> float:
-	var f := 1.0 + STUFEN_BONUS * (stufe - 1)
+	var f := (1.0 + STUFEN_BONUS * (stufe - 1)) * schadens_multiplikator
 	if hat_effekt("wut"):
 		f *= 1.3
 	if passiv("letzte_kraft") > 0.0 and leben < max_leben * float(passiv_info.get("grenze", 0.4)):
@@ -395,7 +399,7 @@ func _physics_process(delta: float) -> void:
 	var q := sin(_quetsch * PI) * 0.18
 	modell.scale = Vector3(1.0 + q, 1.0 - q, 1.0 + q)
 	if _blase:
-		_blase.visible = hat_effekt("schild") or hat_effekt("blase") or hat_effekt("wut")
+		_blase.visible = hat_effekt("schild") or hat_effekt("blase") or hat_effekt("wut") or hat_effekt("wut_glut")
 	im_busch = arena.ist_busch(global_position)
 	var glimmen := 0.0
 	if ist_spieler and (im_busch or ist_unsichtbar()):
@@ -553,6 +557,64 @@ func angreifen(richtung: Vector3, ziel_punkt := Vector3.INF) -> void:
 			Arena.ton("schlag")
 
 
+## Rote Warnung am Boden (Linie/Fächer, Zielkreis oder Halbkreis), dann wird genau dorthin angegriffen.
+func _angriff_ankuendigen(richtung: Vector3, ziel: Vector3) -> void:
+	if _ansage_laeuft or not kann_angreifen():
+		return
+	_ansage_laeuft = true
+	richtung.y = 0
+	richtung = richtung.normalized() if richtung.length() > 0.01 else blick
+	zielen_auf(richtung)
+	var a: Dictionary = daten["angriff"]
+	var marke := MeshInstance3D.new()
+	var farbe := Color(1.0, 0.15, 0.2, 0.0)
+	match a["typ"]:
+		"wurf":
+			var weg := ziel - global_position
+			weg.y = 0
+			if weg.length() > reichweite():
+				ziel = global_position + weg.normalized() * reichweite()
+			var r := float(a.get("radius", 1.4))
+			var z := CylinderMesh.new()
+			z.top_radius = r
+			z.bottom_radius = r
+			z.height = 0.02
+			z.radial_segments = 32
+			marke.mesh = z
+			arena.add_child(marke)
+			marke.global_position = Vector3(ziel.x, 0.04, ziel.z)
+		"nahkampf":
+			var z2 := CylinderMesh.new()
+			z2.top_radius = reichweite()
+			z2.bottom_radius = reichweite()
+			z2.height = 0.02
+			marke.mesh = z2
+			arena.add_child(marke)
+			marke.global_position = global_position + Vector3(0, 0.04, 0) + richtung * reichweite() * 0.35
+			marke.scale = Vector3(1, 1, 0.6)
+			marke.rotation.y = atan2(richtung.x, richtung.z)
+		_:
+			var q := QuadMesh.new()
+			var breite := 0.5 + deg_to_rad(float(a.get("streuung", 0))) * reichweite() * 0.6
+			q.size = Vector2(breite, reichweite())
+			q.center_offset = Vector3(0, reichweite() / 2.0, 0)
+			q.orientation = PlaneMesh.FACE_Y
+			marke.mesh = q
+			arena.add_child(marke)
+			marke.global_position = global_position + Vector3(0, 0.05, 0)
+			marke.rotation.y = atan2(richtung.x, richtung.z)
+	var mat := Toon.unschattiert(farbe, true)
+	marke.material_override = mat
+	var tw := marke.create_tween()
+	tw.tween_property(mat, "albedo_color:a", 0.5, ansage_zeit * 0.8)
+	await get_tree().create_timer(ansage_zeit).timeout
+	if is_instance_valid(marke):
+		marke.queue_free()
+	_ansage_laeuft = false
+	if not tot and not hat_effekt("betaeubt"):
+		angreifen(richtung, ziel)
+
+
 func _tarnung_beenden() -> void:
 	if super_info.get("bleibt_beim_angriff", false):
 		return
@@ -631,6 +693,8 @@ func schaden_nehmen(menge: float, quelle: Kaempfer, stoss := Vector3.ZERO) -> vo
 	menge *= 1.0 - passiv("dicke_haut")
 	leben -= menge
 	_letzter_schaden = zeit()
+	if ist_spieler and arena.hud and arena.hud.has_method("treffer_blitz"):
+		arena.hud.treffer_blitz(menge / max_leben)
 	_blitz = 1.0
 	_quetsch = 1.0
 	_rueckstoss += stoss * (0.2 if hat_effekt("blase") else 1.0)
@@ -732,8 +796,11 @@ func _ki_denken(delta: float) -> void:
 			var flug := d / maxf(float(daten["angriff"]["projektil_tempo"]), 1.0)
 			var vorhalt: Vector3 = _ki_ziel.global_position + _ki_ziel.velocity * flug * 0.7 - global_position
 			vorhalt = vorhalt.rotated(Vector3.UP, randf_range(-0.12, 0.12))
-			angreifen(vorhalt, _ki_ziel.global_position + _ki_ziel.velocity * 0.4)
-			_ki_schuss_pause = randf_range(0.45, 0.9)
+			if ansage_zeit > 0.0:
+				_angriff_ankuendigen(vorhalt, _ki_ziel.global_position + _ki_ziel.velocity * 0.4)
+			else:
+				angreifen(vorhalt, _ki_ziel.global_position + _ki_ziel.velocity * 0.4)
+			_ki_schuss_pause = randf_range(ki_feuerpause.x, ki_feuerpause.y)
 		if super_bereit() and d < float(super_info.get("reichweite", 7.0)) * 0.9 and sicht:
 			super_ausloesen(zu, _ki_ziel.global_position)
 		if gadget_bereit() and _ki_gadget_sinnvoll(d):

@@ -15,6 +15,10 @@ var sicht := 9.0
 var sichtwinkel := 115.0
 var raum_wahl: Array = []
 var beute_heilung := 0.0
+var heimraum := ""               # eigener Raum (pro Raum nur ein Lehrer)
+var wut_text := "JETZT REICHT'S!"
+var _wutphase := false
+var _ausweichen_ab := 0.0
 var burnout: Dictionary = {}     # {"nach": s Dauerkampf, "dauer": s reglos, "text": "BURN OUT"}
 var _kampfzeit := 0.0
 var _dampf_timer := 0.0
@@ -36,6 +40,7 @@ func lehrer_einrichten(info: Dictionary) -> void:
 	raum_wahl = info.get("raeume", [])
 	beute_heilung = float(info.get("beute_heilung", 0.0))
 	burnout = info.get("burnout", {})
+	wut_text = str(info.get("wut_text", wut_text))
 	_blase_label = Label3D.new()
 	_blase_label.font = Effekte.SCHRIFT
 	_blase_label.font_size = 120
@@ -86,6 +91,7 @@ func _ki_denken(delta: float) -> void:
 			if zeit() - _zustand_seit > 0.55:
 				_zu("angriff" if arena.angriff_anmelden(self) else "warten")
 		"angriff":
+			_wut_pruefen()
 			if sp.tot:
 				_zu("suchen")
 				return
@@ -171,6 +177,12 @@ func _wahrnehmen(delta: float, sp: Kaempfer) -> void:
 
 ## Geräusch in der Nähe (Schüsse, Supers): Durch Wände hört man nur halb so weit.
 func hoeren(pos: Vector3, reichweite: float) -> void:
+	# im Kampf: ab und zu seitlich ausweichen, wenn der Spieler schießt
+	if zustand == "angriff" and not tot and zeit() > _ausweichen_ab and not hat_effekt("betaeubt") \
+			and global_position.distance_to(pos) < 12.0 and randf() < 0.3:
+		_ausweichen_ab = zeit() + 2.5
+		var weg := (global_position - pos).normalized().cross(Vector3.UP) * (1.0 if randf() < 0.5 else -1.0)
+		springen_zu(global_position + weg * 2.4, 0.28, Callable(), true)
 	if tot or not ist_ahnungslos():
 		if zustand in ["suchen", "warten"]:
 			_zuletzt_gesehen = pos
@@ -209,6 +221,19 @@ func schaden_nehmen(menge: float, quelle: Kaempfer, stoss := Vector3.ZERO) -> vo
 		if zustand == "suchen":
 			entdecken()
 	super.schaden_nehmen(menge, quelle, stoss)
+
+
+## Wutphase: einmal bei halbem Leben – Ruf, schneller und häufiger angreifen
+func _wut_pruefen() -> void:
+	if _wutphase or tot or leben > max_leben * 0.5:
+		return
+	_wutphase = true
+	Effekte.ruf(self, wut_text, Color("#FF4757"))
+	ki_feuerpause *= 0.7
+	ansage_zeit *= 0.8
+	effekt_setzen("turbo", 9999.0, 0.2)
+	blase_zeigen(Color("#FF3B30"), 9999.0, 0.12)
+	effekt_setzen("wut_glut", 9999.0, 1.0)
 
 
 func _blase_aktualisieren() -> void:
@@ -283,25 +308,29 @@ func _hinschauen(p: Vector3) -> void:
 
 # ---------------------------------------------------------------- Warten (Platz frei für max. 3 Angreifer)
 func _warten(sp: Kaempfer) -> void:
-	if zeit() - _zustand_seit > 0.8 and arena.angriff_anmelden(self):
+	## Kein Angriffsplatz frei: zurück in den eigenen Raum und dort abwarten (nicht mit mehreren um den Spieler stehen)
+	if zeit() - _zustand_seit > 0.8 and int(zeit() * 2.0) % 2 == 0 and arena.freie_sicht(global_position, sp.global_position) \
+			and global_position.distance_to(sp.global_position) < sicht and arena.angriff_anmelden(self):
 		_zu("angriff")
 		return
-	var zu := sp.global_position - global_position
-	zu.y = 0
-	var d := zu.length()
-	_hinschauen(sp.global_position)
-	var wunsch := reichweite() + 3.5
-	if d < wunsch - 1.0:
-		bewegung = -zu.normalized() * 0.6
-	elif d > wunsch + 3.0:
-		var p: PackedVector3Array = arena.pfad(global_position, sp.global_position)
-		bewegung = ((p[0] - global_position) * Vector3(1, 0, 1)).normalized() * 0.6 if p.size() > 0 else Vector3.ZERO
+	var ziel: Vector3 = arena.raum_mitte(heimraum) if heimraum != "" else spawn_punkt
+	var flach := Vector3(ziel.x - global_position.x, 0, ziel.z - global_position.z)
+	if flach.length() > 1.5:
+		if _ki_pfad.is_empty() or int(zeit() * 2.0) % 4 == 0:
+			_ki_pfad = arena.pfad(global_position, ziel)
+		while _ki_pfad.size() > 0 and Vector2(_ki_pfad[0].x - global_position.x, _ki_pfad[0].z - global_position.z).length() < 0.4:
+			_ki_pfad.remove_at(0)
+		var r := (_ki_pfad[0] if _ki_pfad.size() > 0 else ziel) - global_position
+		r.y = 0
+		bewegung = r.normalized() * 0.5
 	else:
-		bewegung = zu.normalized().cross(Vector3.UP) * 0.35 * (1.0 if int(zeit() / 3.0) % 2 == 0 else -1.0)
-	if arena.freie_sicht(global_position, sp.global_position):
+		bewegung = Vector3.ZERO
+		_hinschauen(sp.global_position)
+	if arena.freie_sicht(global_position, sp.global_position) and global_position.distance_to(sp.global_position) < sicht:
 		_gesehen_zeit = zeit()
 	elif zeit() - _gesehen_zeit > 6.0:
-		_zu("suchen")
+		verdacht = 0.0
+		_zu("alltag")
 
 
 # ---------------------------------------------------------------- Suchen

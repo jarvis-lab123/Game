@@ -14,6 +14,8 @@ var modus := "arena"            # arena | schule
 var _untertitel: Label
 var _raum_label: Label
 var _karte: Control
+var _treffer_rand: TextureRect
+var _boss: Control
 var stick_bewegung := Vector2.ZERO
 var stick_ziel := Vector2.ZERO
 
@@ -75,8 +77,10 @@ func _process(_d: float) -> void:
 		var g := int(arena.restzeit)
 		_zeit.text = "%d:%02d" % [g / 60, g % 60]
 		var n := sch.angreifer.filter(func(a): return is_instance_valid(a) and not a.tot).size()
-		_untertitel.text = "Lehrer übrig: %d   ·   greifen an: %d / %d" % [uebrig, n, int(sch.regeln.get("max_angreifer", 3))]
+		_untertitel.text = "Lehrer übrig: %d" % uebrig + ("   ·   im Kampf!" if n > 0 else "")
 		_karte.queue_redraw()
+		if _boss:
+			_boss.queue_redraw()
 	else:
 		_punkte_blau.text = str(arena.punkte[0])
 		_punkte_rot.text = str(arena.punkte[1])
@@ -209,6 +213,75 @@ func _schule_bauen() -> void:
 	_karte.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_karte.draw.connect(_karte_zeichnen)
 	add_child(_karte)
+	_boss = Control.new()
+	_boss.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	_boss.position = Vector2(-330, -150)
+	_boss.size = Vector2(660, 90)
+	_boss.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_boss.draw.connect(_boss_zeichnen)
+	add_child(_boss)
+
+
+## Großer Lebensbalken des Lehrers, gegen den man gerade kämpft (mit Markierung der Wutphase)
+func _boss_zeichnen() -> void:
+	var sch: Schule = arena
+	var l: Lehrer = null
+	for a in sch.angreifer:
+		if is_instance_valid(a) and not a.tot:
+			l = a
+			break
+	if l == null:
+		return
+	var b := _boss.size.x
+	var name := "%s  –  %s" % [l.daten["name"], l.daten.get("titel", "")]
+	var fs := 30
+	var tb := SCHRIFT.get_string_size(name, HORIZONTAL_ALIGNMENT_LEFT, -1, fs)
+	_boss.draw_string_outline(SCHRIFT, Vector2((b - tb.x) / 2, 30), name, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, 10, DUNKEL)
+	_boss.draw_string(SCHRIFT, Vector2((b - tb.x) / 2, 30), name, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color.WHITE)
+	var r := Rect2(Vector2(0, 42), Vector2(b, 30))
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = DUNKEL
+	sb.set_corner_radius_all(14)
+	_boss.draw_style_box(sb, r.grow(5))
+	var sb2 := StyleBoxFlat.new()
+	sb2.bg_color = Color("#3A2E4F")
+	sb2.set_corner_radius_all(11)
+	_boss.draw_style_box(sb2, r)
+	var anteil := clampf(l.leben / l.max_leben, 0.0, 1.0)
+	if anteil > 0.0:
+		var sb3 := StyleBoxFlat.new()
+		sb3.bg_color = Color("#FF4757") if anteil > 0.5 else Color("#FF9F1C").lerp(Color("#FF3B30"), 0.5 + 0.5 * sin(Time.get_ticks_msec() / 90.0))
+		sb3.set_corner_radius_all(11)
+		_boss.draw_style_box(sb3, Rect2(r.position, Vector2(maxf(b * anteil, 22), r.size.y)))
+	_boss.draw_line(r.position + Vector2(b * 0.5, -4), r.position + Vector2(b * 0.5, r.size.y + 4), Color.WHITE, 3.0)
+	var zahl := "%d / %d" % [int(ceil(l.leben)), int(l.max_leben)]
+	var zb := SCHRIFT.get_string_size(zahl, HORIZONTAL_ALIGNMENT_LEFT, -1, 22)
+	_boss.draw_string_outline(SCHRIFT, r.position + Vector2((b - zb.x) / 2, 23), zahl, HORIZONTAL_ALIGNMENT_LEFT, -1, 22, 7, DUNKEL)
+	_boss.draw_string(SCHRIFT, r.position + Vector2((b - zb.x) / 2, 23), zahl, HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color.WHITE)
+
+
+## Roter Bildschirmrand, wenn der Spieler getroffen wird (stärker bei viel Schaden)
+func treffer_blitz(anteil: float) -> void:
+	if _treffer_rand == null:
+		_treffer_rand = TextureRect.new()
+		var g := GradientTexture2D.new()
+		var gr := Gradient.new()
+		gr.set_color(0, Color(0.9, 0.1, 0.15, 0.0))
+		gr.set_color(1, Color(0.9, 0.1, 0.15, 0.85))
+		gr.add_point(0.55, Color(0.9, 0.1, 0.15, 0.0))
+		g.gradient = gr
+		g.fill = GradientTexture2D.FILL_RADIAL
+		g.fill_from = Vector2(0.5, 0.5)
+		g.fill_to = Vector2(1.05, 1.05)
+		_treffer_rand.texture = g
+		_treffer_rand.set_anchors_preset(Control.PRESET_FULL_RECT)
+		_treffer_rand.stretch_mode = TextureRect.STRETCH_SCALE
+		_treffer_rand.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(_treffer_rand)
+		move_child(_treffer_rand, 0)
+	_treffer_rand.modulate.a = clampf(0.35 + anteil * 3.0, 0.35, 1.0)
+	var tw := create_tween()
+	tw.tween_property(_treffer_rand, "modulate:a", 0.0, 0.45)
 
 
 func raum_anzeigen(name: String) -> void:

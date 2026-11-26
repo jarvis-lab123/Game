@@ -182,6 +182,9 @@ static func begleiter_rufen(k: Kaempfer, id: String, dauer: float, richtung: Vec
 	arena.add_child(b)
 	b.einrichten(d, k.team, false, arena, k.stufe)
 	b.regeneration = false
+	b.schadens_multiplikator = k.schadens_multiplikator
+	b.ki_feuerpause = k.ki_feuerpause
+	b.ansage_zeit = k.ansage_zeit
 	var seite := richtung.cross(Vector3.UP).normalized()
 	b.global_position = arena.freier_punkt(k.global_position + seite * 1.6)
 	b.spawn_punkt = k.global_position

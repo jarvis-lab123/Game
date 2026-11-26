@@ -1,0 +1,43 @@
+<script>
+// Krawall Crew: index.wasm liegt gzip-komprimiert als Base64-Text daneben, index.pck in Base64-Teilen.
+// Beides wird hier im Browser wieder zusammengesetzt (Dateigrößen-Grenze des Hosts).
+(() => {
+	const original = window.fetch.bind(window);
+	const PCK_TEILE = ['index.pck.teil0.b64.txt', 'index.pck.teil1.b64.txt', 'index.pck.teil2.b64.txt'];
+	// Daten liegen als Base64-Text vor (der Host liefert nur bestimmte Dateitypen aus)
+	const laden = async (url, optionen) => {
+		const antwort = await original(url, optionen);
+		if (!antwort.ok) throw new Error(url + ': ' + antwort.status);
+		const text = (await antwort.text()).trim();
+		const roh = atob(text);
+		const daten = new Uint8Array(roh.length);
+		for (let i = 0; i < roh.length; i++) daten[i] = roh.charCodeAt(i);
+		return daten;
+	};
+	const entpacken = async (daten) => {
+		if (daten[0] === 0x1f && daten[1] === 0x8b) {
+			const strom = new Blob([daten]).stream().pipeThrough(new DecompressionStream('gzip'));
+			return new Uint8Array(await new Response(strom).arrayBuffer());
+		}
+		return daten;
+	};
+	window.fetch = (eingabe, optionen) => {
+		const url = typeof eingabe === 'string' ? eingabe : eingabe.url;
+		const pfad = url.split('?')[0];
+		const basis = pfad.substring(0, pfad.lastIndexOf('/') + 1);
+		if (pfad.endsWith('.wasm')) {
+			return laden(pfad + '.gz.b64.txt', optionen).then(entpacken).then((d) =>
+				new Response(d, { status: 200, headers: { 'Content-Type': 'application/wasm', 'Content-Length': String(d.length) } }));
+		}
+		if (pfad.endsWith('.pck')) {
+			return Promise.all(PCK_TEILE.map((t) => laden(basis + t, optionen))).then((teile) => {
+				const gesamt = new Uint8Array(teile.reduce((n, t) => n + t.length, 0));
+				let pos = 0;
+				for (const t of teile) { gesamt.set(t, pos); pos += t.length; }
+				return new Response(gesamt, { status: 200, headers: { 'Content-Type': 'application/octet-stream', 'Content-Length': String(gesamt.length) } });
+			});
+		}
+		return original(eingabe, optionen);
+	};
+})();
+</script>

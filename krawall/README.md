@@ -8,6 +8,8 @@ Comic-Charaktere modelliert. Neue Kämpfer bekommt man aus Laptops mit verschied
 
 ## Spielen
 
+**Im Browser:** Browser-Version über `werkzeuge/web_bauen.sh` (wird als Claude-Artefakt bereitgestellt).
+
 1. [Godot 4.5](https://godotengine.org/download) installieren
 2. In Godot **Importieren** → `krawall/spiel/project.godot` wählen → **F5**
 
