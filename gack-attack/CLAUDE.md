@@ -34,6 +34,9 @@ Der JS-Code ist in Abschnitte mit Kommentar-Bannern `/* ============ NAME ======
 - **Comic-FX:** Mündungsfeuer (`shotFx`, `muzzle`), Rückstoß in `drawTower`-Hülle, Treffer-Bursts (`hitFx`, `burst`), Geschoss-Spuren (`trails`), Raster am Bildrand (`halftone`).
 - Test: `python tests/v8_test.py`.
 
+## App (PWA)
+- `manifest.webmanifest`, `sw.js` (Netz zuerst, sonst Cache) und `icons/` machen das Spiel über GitHub Pages in Chrome/Edge am PC installierbar. Bei neuen Dateien die Liste `FILES` in `sw.js` ergänzen und `CACHE` hochzählen.
+
 ## Steuerung
 1–0 Tiere wählen, H Oma, Leertaste Welle/Tempo, U Upgrade, Q/E Oma-Fähigkeiten, R Omas Zorn, T Mähdrescher, Esc Pause/Abbrechen, Shift-Klick mehrere setzen.
 

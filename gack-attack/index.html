@@ -347,6 +347,9 @@ body{font-family:"Fredoka","Trebuchet MS",system-ui,sans-serif;color:#fff;-webki
 .tbtn b{font-family:"Lilita One";font-weight:400;font-size:14px}.tbtn span{font-size:11px;color:var(--soft);line-height:1.2}.tbtn .cost{font-style:normal;display:flex;align-items:center;gap:4px;font-family:"Lilita One";font-size:13px;color:var(--gold)}.tbtn .cost i{width:11px;height:11px;border-radius:50%;background:var(--gold);display:inline-block}
 .tbtn:disabled{opacity:.45;cursor:default}.tbtn.on{opacity:1;background:linear-gradient(180deg,#3AA8E0,#1F6EA8);box-shadow:inset 0 0 0 2px #BFE8FF,0 3px 0 #0F2340}.tbtn.off{opacity:.25}
 </style>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<meta name="theme-color" content="#0A1424">
 </head>
 <body>
 
@@ -1911,5 +1914,6 @@ $('loading').hidden=true;requestAnimationFrame(frame);
 })();
 </script>
 
+<script>if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});</script>
 </body>
 </html>

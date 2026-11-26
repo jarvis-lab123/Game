@@ -108,6 +108,8 @@ Hoftiere verteidigen Omas Kekse gegen die Waschbär-Bande. Eine einzige Datei im
 
 **Spielen:** `https://jarvis-lab123.github.io/Game/gack-attack/` am PC öffnen.
 
+**Als App installieren (Windows/Mac/Linux):** die Seite in Chrome oder Edge öffnen → rechts in der Adressleiste auf das Installieren-Symbol klicken (oder Menü ⋮ → „Gack Attack installieren“). Danach liegt Gack Attack im Startmenü bzw. auf dem Desktop, startet im eigenen Fenster und läuft auch offline.
+
 # ⛳ Plopp – Daily Golf (Handy, Hochformat)
 
 Schlichtes 2D-Minigolf im Ordner `plopp/`. Ein Finger: zurückziehen, zielen, loslassen.
