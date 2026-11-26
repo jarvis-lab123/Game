@@ -89,6 +89,7 @@ Bibliothek, Hauptgang, Eingangshalle, Mensa, Lehrerzimmer und Sekretariat.
 - **Angriffe werden angekündigt:** Kurz vor jedem Lehrerangriff erscheint eine rote Fläche am Boden
   (Schusslinie, Zielkreis oder Halbkreis). Wer rechtzeitig ausweicht, wird nicht getroffen.
 - **Lehrer weichen aus:** Schießt du auf sie, springen sie manchmal zur Seite.
+- **Ulti der Lehrer:** lädt im Kampf zusätzlich mit der Zeit (etwa alle 12 s eine Ulti), dazu durch Treffer.
 - **Wutphase:** Bei halbem Leben ruft der Lehrer „JETZT REICHT'S!“, glüht rot, läuft schneller und greift öfter an.
 - **Bosskampf-Balken:** Unten zeigt ein großer Balken Name und Leben deines aktuellen Gegners (Strich = Wutphase).
 - **Balance:** Lehrer haben doppeltes Leben, machen 55 % Schaden und schießen langsamer; du hast in der

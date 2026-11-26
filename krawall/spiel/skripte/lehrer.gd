@@ -16,6 +16,7 @@ var sichtwinkel := 115.0
 var raum_wahl: Array = []
 var beute_heilung := 0.0
 var heimraum := ""               # eigener Raum (pro Raum nur ein Lehrer)
+var ulti_sekunden := 12.0         # im Kampf lädt die Ulti zusätzlich in dieser Zeit voll auf
 var wut_text := "JETZT REICHT'S!"
 var _wutphase := false
 var _ausweichen_ab := 0.0
@@ -94,6 +95,8 @@ func _ki_denken(delta: float) -> void:
 			if zeit() - _zustand_seit > 0.55:
 				_zu("angriff" if arena.angriff_anmelden(self) else "warten")
 		"angriff":
+			if ulti_sekunden > 0.0:
+				super_ladung = minf(1.0, super_ladung + delta / ulti_sekunden)
 			_wut_pruefen()
 			_zorn_pruefen(delta)
 			if sp.tot:

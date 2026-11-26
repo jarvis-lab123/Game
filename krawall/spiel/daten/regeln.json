@@ -1,5 +1,5 @@
 {
-  "_info": "Regeln für den Schul-Modus. Heilung in Anteilen des maximalen Lebens (0.3 = 30 %). lehrer_schaden = Schadensfaktor der Lehrer, spieler_leben = Lebensfaktor des Spielers, lehrer_feuerpause = Sekunden zwischen Lehrer-Schüssen, lehrer_ausflug_chance = wie oft ein Lehrer kurz einen leeren Raum besucht (pro Raum immer nur ein Lehrer). lehrer_leben = Lebensfaktor der Lehrer (längere Kämpfe), angriff_ansage = Sekunden, die ein Lehrerangriff vorher rot angezeigt wird.",
+  "_info": "Regeln für den Schul-Modus. Heilung in Anteilen des maximalen Lebens (0.3 = 30 %). lehrer_schaden = Schadensfaktor der Lehrer, spieler_leben = Lebensfaktor des Spielers, lehrer_feuerpause = Sekunden zwischen Lehrer-Schüssen, lehrer_ausflug_chance = wie oft ein Lehrer kurz einen leeren Raum besucht (pro Raum immer nur ein Lehrer). lehrer_leben = Lebensfaktor der Lehrer (längere Kämpfe), angriff_ansage = Sekunden, die ein Lehrerangriff vorher rot angezeigt wird. lehrer_ulti_sekunden = Lehrer-Ulti lädt im Kampf zusätzlich in so vielen Sekunden voll.",
   "schule": {
     "leben": 1,
     "max_angreifer": 1,
@@ -15,6 +15,7 @@
     ],
     "lehrer_ausflug_chance": 0.15,
     "lehrer_leben": 2.0,
-    "angriff_ansage": 0.5
+    "angriff_ansage": 0.5,
+    "lehrer_ulti_sekunden": 12.0
   }
 }

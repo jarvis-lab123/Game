@@ -304,6 +304,8 @@ func _moebel_setzen(name: String, x: float, z: float, drehung := 0.0, kollision 
 		v.transform = Transform3D.IDENTITY
 		Toon.anwenden(v, 0.015)
 		v.set_meta("toon", true)
+	if kollision and _vor_tuer(plan(x, z), v.get_aabb()):
+		return null   # Türen bleiben immer frei
 	var m: MeshInstance3D = v.duplicate()
 	add_child(m)
 	m.position = plan(x, z)
@@ -326,6 +328,23 @@ func _moebel_setzen(name: String, x: float, z: float, drehung := 0.0, kollision 
 	return m
 
 
+func _tuer_an_kante(z_kante: float, x0: float, x1: float) -> bool:
+	for t in TUEREN:
+		if t.has("z") and float(t["z"]) == z_kante and float(t["mitte"]) > x0 and float(t["mitte"]) < x1:
+			return true
+	return false
+
+
+func _vor_tuer(pos: Vector3, box: AABB) -> bool:
+	var halb := maxf(box.size.x, box.size.z) / 2.0
+	for t in TUEREN:
+		var tp := plan(float(t["mitte"]), float(t["z"]))
+		var frei := float(t["breite"]) / 2.0 + 1.6
+		if Vector2(pos.x - tp.x, pos.z - tp.z).length() < halb + frei * 0.8:
+			return true
+	return false
+
+
 func _platz(x: float, z: float, blick: Vector3, anim: String, raum: String, minimum := 6.0, maximum := 15.0) -> void:
 	_plaetze.append({"pos": plan(x, z), "blick": blick, "anim": anim, "raum": raum, "min": minimum, "max": maximum, "belegt": null})
 
@@ -344,28 +363,34 @@ func _moeblieren(r: Dictionary) -> void:
 	var W := Vector3(-1, 0, 0)
 	match r["typ"]:
 		"klasse":
+			# Tafel immer an die Wand gegenüber der Tür (sonst wäre der Eingang zugestellt)
+			var oben := _tuer_an_kante(z0, x0, x1)
+			var zf := func(d: float) -> float: return z1 - d if oben else z0 + d
+			var dreh := PI if oben else 0.0
+			var vorn := N if not oben else S       # Richtung zur Tafel
+			var hinten := S if not oben else N
 			var mx := (x0 + x1) / 2.0
-			_moebel_setzen("Tafel", mx, z0 + 0.25)
-			_moebel_setzen("Lehrerpult", mx, z0 + 2.6, PI)
-			_moebel_setzen("Stuhl", mx - 0.3, z0 + 1.7, 0.0, false)
-			_platz(mx - 0.3, z0 + 1.7, S, "Sit", id, 8, 18)                 # am Pult sitzen
-			_platz(mx - 0.8, z0 + 1.0, N, "Talk", id, 6, 12)                # an die Tafel schreiben
-			_platz(mx + 1.0, z0 + 3.6, S, "Talk", id, 6, 14)                # vor der Klasse reden
+			_moebel_setzen("Tafel", mx, zf.call(0.25), dreh)
+			_moebel_setzen("Lehrerpult", mx, zf.call(2.6), PI + dreh)
+			_moebel_setzen("Stuhl", mx - 0.3, zf.call(1.7), dreh, false)
+			_platz(mx - 0.3, zf.call(1.7), hinten, "Sit", id, 8, 18)          # am Pult sitzen
+			_platz(mx - 0.8, zf.call(1.0), vorn, "Talk", id, 6, 12)           # an die Tafel schreiben
+			_platz(mx + 1.0, zf.call(3.6), hinten, "Talk", id, 6, 14)         # vor der Klasse reden
 			var spalten := int((w - 3.0) / 3.0)
 			for c in spalten:
+				var bx := x0 + 2.2 + c * ((w - 4.4) / maxf(spalten - 1, 1))
 				for rr in 4:
-					var bx := x0 + 2.2 + c * ((w - 4.4) / maxf(spalten - 1, 1))
-					var bz := z0 + 6.5 + rr * 3.6
-					_moebel_setzen("Schulbank", bx, bz, PI)
-					_moebel_setzen("Stuhl", bx, bz + 0.75, PI, false)
-				_platz(x0 + 2.2 + c * ((w - 4.4) / maxf(spalten - 1, 1)) + 0.9, z0 + 9.0, W, "", id, 4, 8)  # durch die Reihen gehen
-			_moebel_setzen("Buecherregal", x1 - 0.4, z0 + 12, -PI / 2)
-			_platz(x1 - 1.3, z0 + 12, O, "Read", id, 6, 12)
-			_moebel_setzen("Pflanze", x0 + 0.8, z0 + 0.8)
-			_moebel_setzen("Pflanze", x1 - 0.8, z1 - 0.8)
-			_moebel_setzen("Muelleimer", x0 + 0.7, z1 - 0.7)
+					var bz: float = zf.call(6.5 + rr * 3.6)
+					_moebel_setzen("Schulbank", bx, bz, PI + dreh)
+					_moebel_setzen("Stuhl", bx, bz + (0.75 if not oben else -0.75), PI + dreh, false)
+				_platz(bx + 0.9, zf.call(9.0), W, "", id, 4, 8)               # durch die Reihen gehen
+			_moebel_setzen("Buecherregal", x1 - 0.4, (z0 + z1) / 2.0, -PI / 2)
+			_platz(x1 - 1.3, (z0 + z1) / 2.0, O, "Read", id, 6, 12)
+			_moebel_setzen("Pflanze", x0 + 0.8, zf.call(0.8))
+			_moebel_setzen("Pflanze", x1 - 0.8, zf.call((z1 - z0) - 0.8))
+			_moebel_setzen("Muelleimer", x0 + 0.7, zf.call((z1 - z0) - 0.7))
 			if id == "chemie":
-				_moebel_setzen("Kopierer", x0 + 1.0, z0 + 3.5, PI / 2)
+				_moebel_setzen("Kopierer", x0 + 1.0, zf.call(3.5), PI / 2)
 		"bibliothek":
 			for reihe in 3:
 				for spalte in 5:
@@ -558,6 +583,7 @@ func _lehrer_erzeugen() -> void:
 			l.max_leben *= float(regeln.get("lehrer_leben", 2.0))
 			l.leben = l.max_leben
 			l.ansage_zeit = float(regeln.get("angriff_ansage", 0.5))
+			l.ulti_sekunden = float(regeln.get("lehrer_ulti_sekunden", 12.0))
 			var fp: Array = regeln.get("lehrer_feuerpause", [0.9, 1.6])
 			l.ki_feuerpause = Vector2(float(fp[0]), float(fp[1]))
 			# eigener Raum: bevorzugt passend zu "raeume", jeder Raum nur einmal vergeben
