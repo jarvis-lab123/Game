@@ -1,0 +1,17 @@
+[package]
+name = "gack-attack"
+version = "8.0.0"
+description = "Gack Attack – Tower Defense"
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+strip = true
