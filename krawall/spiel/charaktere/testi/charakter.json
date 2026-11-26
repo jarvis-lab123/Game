@@ -1,0 +1,23 @@
+{
+  "id": "testi",
+  "name": "Testi",
+  "titel": "Der Prototyp",
+  "beschreibung": "Platzhalter-Figur zum Testen. Wird ersetzt, sobald deine eigenen Charaktere drin sind.",
+  "platzhalter": true,
+  "werte": { "leben": 3800, "tempo": 1.0 },
+  "angriff": {
+    "typ": "schuss", "name": "Farbklecks-Salve",
+    "schaden": 380, "projektile": 3, "streuung": 10, "reichweite": 8.5,
+    "projektil_tempo": 17, "nachladen": 1.3, "farbe": "#FFB703"
+  },
+  "super": { "typ": "sprint", "name": "Turbo-Rempler", "schaden": 1100, "ladung_pro_treffer": 0.12, "farbe": "#FF4D6D" },
+  "aussehen": {
+    "hautfarbe": "#F2C29B",
+    "haare": { "stil": "stachel", "farbe": "#2B1B10" },
+    "augen": { "farbe": "#3B6EA8" },
+    "oberteil": { "stil": "hoodie", "farbe": "#3A7BD5", "farbe2": "#FFFFFF" },
+    "hose": { "stil": "lang", "farbe": "#2E3A59" },
+    "schuhe": { "farbe": "#FFFFFF", "sohle": "#FF4D6D" },
+    "waffe": { "stil": "blaster", "farbe": "#FFB703", "farbe2": "#333333" }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "name": "Name",
+  "titel": "Spitzname oder kurzer Titel",
+  "beschreibung": "Ein, zwei Sätze, wer das ist und wie er/sie kämpft.",
+  "werte": { "leben": 3600, "tempo": 1.0 },
+  "angriff": {
+    "typ": "schuss",
+    "name": "Name des Angriffs",
+    "schaden": 400,
+    "projektile": 2,
+    "streuung": 8,
+    "reichweite": 8.0,
+    "projektil_tempo": 16,
+    "nachladen": 1.4,
+    "radius": 1.4,
+    "farbe": "#FFD23F"
+  },
+  "super": {
+    "typ": "sprint",
+    "name": "Name des Supers",
+    "schaden": 1000,
+    "reichweite": 7.0,
+    "ladung_pro_treffer": 0.12,
+    "farbe": "#FF4D6D"
+  },
+  "modell_hoehe": 1.75,
+  "meshy": {
+    "groesse_m": 1.75,
+    "kleidung": "z. B. rotes Hoodie, schwarze Jogginghose, weiße Sneaker, Cap nach hinten",
+    "stil_zusatz": "",
+    "animationen": {}
+  }
+}

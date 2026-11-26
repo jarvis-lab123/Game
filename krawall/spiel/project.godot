@@ -1,0 +1,49 @@
+; Krawall Crew – Godot 4.5 Projekt
+config_version=5
+
+[application]
+
+config/name="Krawall Crew"
+config/description="3D-Arena-Brawler im Comic-Stil mit eigenen Charakteren"
+run/main_scene="res://szenen/menue.tscn"
+config/features=PackedStringArray("4.5", "GL Compatibility")
+boot_splash/bg_color=Color(0.988, 0.776, 0.243, 1)
+boot_splash/show_image=false
+
+[autoload]
+
+Daten="*res://skripte/daten.gd"
+
+[display]
+
+window/size/viewport_width=1600
+window/size/viewport_height=900
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation=4
+
+[filesystem]
+
+import/blender/enabled=false
+import/fbx2gltf/enabled=false
+
+[gui]
+
+theme/custom_font="res://schrift/LilitaOne-Regular.ttf"
+
+[input_devices]
+
+pointing/emulate_touch_from_mouse=false
+
+[physics]
+
+common/physics_ticks_per_second=60
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+anti_aliasing/quality/msaa_3d=2
+textures/vram_compression/import_etc2_astc=true
+lights_and_shadows/directional_shadow/size=4096
+lights_and_shadows/directional_shadow/soft_shadow_filter_quality=1

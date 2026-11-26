@@ -196,3 +196,11 @@ Online: `https://<user>.github.io/Game/schach/`. Lokal: `npx serve .` und dann `
 - **iPhone und Android ohne APK:** `https://<user>.github.io/Game/schach/` öffnen. Dann in Safari Teilen → „Zum Home-Bildschirm“ oder in Chrome ⋮ → „App installieren“. Danach startet Claude Chess im Vollbild mit eigenem Icon und läuft offline.
 
 **Lizenzen**: Stockfish 19 / stockfish.js (GPLv3, siehe `schach/engine/Copying.txt`, Quellcode: https://github.com/nmrugg/stockfish.js) · chess.js (BSD-2) · Figuren „cburnett“ von Colin M.L. Burnett (CC BY-SA 3.0)
+
+---
+
+# 💥 Krawall Crew (3D-Arena-Brawler)
+
+3D-Comic-Arena-Spiel (3 gegen 3) in Godot 4.5, Charaktere werden aus Fotos echter Personen erzeugt.
+Alles dazu im Ordner [`krawall/`](krawall/README.md).
+
