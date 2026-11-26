@@ -94,7 +94,7 @@ func _eingaben() -> void:
 	var tasten := {
 		"hoch": [KEY_W, KEY_UP], "runter": [KEY_S, KEY_DOWN],
 		"links": [KEY_A, KEY_LEFT], "rechts": [KEY_D, KEY_RIGHT],
-		"auto_angriff": [KEY_SPACE], "super": [KEY_E, KEY_Q], "gadget": [KEY_F, KEY_R], "pause": [KEY_ESCAPE, KEY_P],
+		"auto_angriff": [KEY_SPACE], "super": [KEY_E], "gadget": [KEY_F], "pause": [KEY_ESCAPE, KEY_P],
 	}
 	for aktion in tasten:
 		if not InputMap.has_action(aktion):
@@ -103,12 +103,9 @@ func _eingaben() -> void:
 			var ev := InputEventKey.new()
 			ev.physical_keycode = t
 			InputMap.action_add_event(aktion, ev)
-	for paar in [["angriff", MOUSE_BUTTON_LEFT], ["super", MOUSE_BUTTON_RIGHT], ["gadget", MOUSE_BUTTON_MIDDLE]]:
-		if not InputMap.has_action(paar[0]):
-			InputMap.add_action(paar[0])
-		var m := InputEventMouseButton.new()
-		m.button_index = paar[1]
-		InputMap.action_add_event(paar[0], m)
+	# Keine Maus-Steuerung: Angriff Leertaste, Ulti E, Gadget F
+	if not InputMap.has_action("angriff"):
+		InputMap.add_action("angriff")
 	# Gamepad
 	var achsen := [["links", JOY_AXIS_LEFT_X, -1.0], ["rechts", JOY_AXIS_LEFT_X, 1.0],
 		["hoch", JOY_AXIS_LEFT_Y, -1.0], ["runter", JOY_AXIS_LEFT_Y, 1.0]]

@@ -13,8 +13,7 @@ Comic-Charaktere modelliert. Neue Kämpfer bekommt man aus Laptops mit verschied
 1. [Godot 4.5](https://godotengine.org/download) installieren
 2. In Godot **Importieren** → `krawall/spiel/project.godot` wählen → **F5**
 
-**Steuerung (PC):** WASD laufen · Maus zielen · Linksklick Angriff · Leertaste Auto-Ziel ·
-Rechtsklick/E Super · Esc Pause. Gamepad geht auch.
+**Steuerung (PC):** WASD laufen · Leertaste Angriff (zielt automatisch) · E Ulti · F Gadget · Esc Pause.
 **Handy/Tablet:** links Bewegungs-Stick, rechts Angriffs-Stick (ziehen = zielen, tippen = Auto-Ziel),
 daneben der Super-Knopf.
 

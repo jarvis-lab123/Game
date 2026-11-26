@@ -105,11 +105,6 @@ angreifend (rot).
 | **Herr Mouscho** (echt) | Klassenzimmer, Lehrerzimmer | Formelwurf (fliegende Formeln) | **„Papi Tag“**: 5 s unsichtbar, greift dabei weiter an | trägt seine Heizjacke |
 | **Frau Rahn** (echt) | Klassen, Lehrerzimmer, Bibliothek | Schneckenwurf (Bogen, Schleim verlangsamt) | **Herr Lascha** erscheint und wirft Kameras (10 s, schwach) | **BURN OUT**: nach 12 s Dauerkampf 5 s reglos, schwankender Gang |
 | **Frau Gerometta** (echt) | Klassenzimmer | Vokabelwurf (fliegende französische Wörter) | **SILENCE !**: 4 s „PSST! NICHT ANGREIFEN!“ – wer angreift, ist sofort K.o. | **ANGRY MODE**: nach 10 s Dauerkampf 6 s doppelter Schaden |
-| Frau Leise | Bibliothek | Buchwurf | „Psst!“ (Eisfeld) | sieht weit |
-| Hausmeister Schraube | Gang, Halle | Schraubenschlüssel | Wischmopp-Sprint | viel Leben, Beute |
-| Frau Kelle | Mensa | Suppenkelle (Wurf) | Großer Topf (Bombe) | Beute |
-| Dr. Reagenz | Chemie, Lehrerzimmer | Säurespritzer | Reagenzglas-Bombe | – |
-| Direktor Glocke | Sekretariat, Lehrerzimmer | Tadel (3er-Schuss) | Konferenz-Strudel | Boss, große Beute |
 
 Eigene Lehrer kommen nach `spiel/lehrer/<id>/charakter.json` (Format wie bei Kämpfern, zusätzlich
 `"lehrer": {"anzahl", "raeume", "sicht", "sichtwinkel", "beute_heilung"}`).
@@ -118,9 +113,9 @@ Eigene Lehrer kommen nach `spiel/lehrer/<id>/charakter.json` (Format wie bei Kä
 
 | | Wie | Steuerung (PC) |
 |---|---|---|
-| **Angriff** | 3 Munitionsbalken, laden sich nach | Linksklick (zielt zur Maus) · Leertaste = Auto-Ziel |
-| **Super** | lädt sich durch **Treffer** auf (Kreis unten rechts) | Rechtsklick oder E |
-| **Gadget** | **3× pro Match**, 7 s Abklingzeit | F (oder mittlere Maustaste) |
+| **Angriff** | 3 Munitionsbalken, laden sich nach. Zielt automatisch auf den nächsten Lehrer (roter Ring) | **Leertaste** |
+| **Ulti (Super)** | lädt sich durch **Treffer** auf (Kreis „ULTI“ unten rechts) | **E** |
+| **Gadget** | **3× pro Einsatz**, 7 s Abklingzeit | **F** |
 | **Passiv** | immer aktiv | – |
 
 **Handy:** Links Laufen-Stick, rechts Angriffs-Stick (ziehen = zielen, tippen = Auto-Ziel), daneben
@@ -137,8 +132,8 @@ Die vollständige Liste aller Fähigkeiten steht in `spiel/charaktere/_vorlage/L
 
 ## Platzhalter
 
-Die Kämpfer Testi, Pixel, Kiki, Brocken, Funke, Nebel und Krone und die sechs Lehrer sind erfundene
-Test-Figuren. Sobald es eigene Kämpfer bzw. eigene Lehrer gibt, werden die Platzhalter automatisch ausgeblendet.
+Die Kämpfer Testi, Pixel, Kiki, Brocken, Funke, Nebel und Krone sind erfundene Test-Figuren und verschwinden,
+sobald es eigene Kämpfer gibt. Lehrer gibt es nur die echten, die eingebracht wurden.
 
 Der alte 3-gegen-3-Modus („Arena“, `szenen/spiel.tscn`) steckt noch im Projekt, wird aber vom Menü
 nicht mehr gestartet.

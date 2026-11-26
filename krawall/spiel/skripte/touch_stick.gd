@@ -79,7 +79,7 @@ func _draw() -> void:
 	draw_circle(m + wert * r * 0.9, r * 0.42, Color(1, 1, 1, 0.75) if art == "bewegung" else Color("#FF9F1C"))
 
 
-static func super_kreis(ziel: CanvasItem, m: Vector2, r: float, ladung: float, schrift: Font) -> void:
+static func super_kreis(ziel: CanvasItem, m: Vector2, r: float, ladung: float, schrift: Font, taste := "") -> void:
 	var bereit := ladung >= 1.0
 	ziel.draw_circle(m, r + 6, Color("#1B1424"))
 	ziel.draw_circle(m, r, Color("#3A2E4F"))
@@ -88,8 +88,15 @@ static func super_kreis(ziel: CanvasItem, m: Vector2, r: float, ladung: float, s
 	if bereit:
 		var puls := 0.5 + 0.5 * sin(Time.get_ticks_msec() / 150.0)
 		ziel.draw_circle(m, r - 18, Color("#FFD23F").lerp(Color("#FFF3B0"), puls))
-	var text := "SUPER"
+	var text := "ULTI"
 	var fs := int(r * 0.42)
 	var tb := schrift.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs)
 	ziel.draw_string_outline(schrift, m + Vector2(-tb.x / 2, fs * 0.35), text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, 8, Color("#1B1424"))
 	ziel.draw_string(schrift, m + Vector2(-tb.x / 2, fs * 0.35), text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color.WHITE)
+	if taste != "":
+		# Tasten-Plakette über dem Kreis
+		var p := m + Vector2(0, -r - 22)
+		ziel.draw_circle(p, 22, Color("#1B1424"))
+		ziel.draw_circle(p, 18, Color("#FFD23F"))
+		var tb2 := schrift.get_string_size(taste, HORIZONTAL_ALIGNMENT_LEFT, -1, 26)
+		ziel.draw_string(schrift, p + Vector2(-tb2.x / 2, 9), taste, HORIZONTAL_ALIGNMENT_LEFT, -1, 26, Color("#1B1424"))

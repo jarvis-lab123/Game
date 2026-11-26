@@ -180,7 +180,7 @@ func _kopfleiste() -> void:
 func _hinweise() -> void:
 	if DisplayServer.is_touchscreen_available():
 		return
-	var h := _label("WASD laufen · Maus zielen · Linksklick Angriff · Leertaste Auto-Ziel · Rechtsklick/E Super · F Gadget · Esc Pause", 20, Color.WHITE, 6)
+	var h := _label("WASD laufen  ·  LEERTASTE Angriff  ·  E Ulti  ·  F Gadget  ·  Esc Pause", 24, Color.WHITE, 7)
 	h.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
 	h.position = Vector2(-560, -40)
 	h.size = Vector2(1120, 30)
@@ -194,7 +194,7 @@ func _hinweise() -> void:
 	_super_knopf_desktop.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_super_knopf_desktop.draw.connect(func():
 		var l: float = arena.spieler.super_ladung if arena and arena.spieler else 0.0
-		TouchStick.super_kreis(_super_knopf_desktop, Vector2(70, 70), 62.0, l, SCHRIFT))
+		TouchStick.super_kreis(_super_knopf_desktop, Vector2(70, 70), 62.0, l, SCHRIFT, "E"))
 	add_child(_super_knopf_desktop)
 
 

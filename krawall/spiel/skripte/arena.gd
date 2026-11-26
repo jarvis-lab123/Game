@@ -536,32 +536,42 @@ func _spieler_steuern() -> void:
 		v = hud.stick_bewegung
 		_touch_aktiv = true
 	spieler.bewegung = Vector3(v.x, 0, v.y) if laeuft else Vector3.ZERO
-	# Maus auf Bodenebene
-	var mp := get_viewport().get_mouse_position()
-	var ursprung := _kamera.project_ray_origin(mp)
-	var strahl := _kamera.project_ray_normal(mp)
-	if absf(strahl.y) > 0.001:
-		_maus_ziel = ursprung + strahl * (-ursprung.y / strahl.y)
-	var zur_maus := _maus_ziel - spieler.global_position
-	zur_maus.y = 0
-	# Zielanzeige
+	# Kein Maus-Zielen: Angriffe zielen automatisch auf den nächsten Gegner in Reichweite (roter Ring)
 	var zielend := hud.zielt_mit_stick()
-	var richtung := zur_maus
-	var ziel_punkt := _maus_ziel
-	if zielend:
-		richtung = Vector3(hud.stick_ziel.x, 0, hud.stick_ziel.y)
-		ziel_punkt = spieler.global_position + richtung * spieler.reichweite()
-	_ziel_anzeige_aktualisieren(richtung, ziel_punkt, (not _touch_aktiv or zielend) and laeuft and not spieler.tot)
+	var anvisiert := _auto_ziel()
+	_ziel_anzeige.visible = false
+	_ziel_kreis.visible = anvisiert != null and laeuft and not spieler.tot
+	if _ziel_kreis.visible:
+		_ziel_kreis.global_position = anvisiert.global_position + Vector3(0, 0.08, 0)
+		var r := 0.9 * minf(anvisiert.groesse_faktor(), 1.6)
+		_ziel_kreis.scale = Vector3(r, 0.3, r)
+		(_ziel_kreis.material_override as StandardMaterial3D).albedo_color = Color(1, 0.25, 0.3, 0.85)
 	if not laeuft or spieler.tot:
 		return
-	if Input.is_action_just_pressed("angriff") and not hud.maus_ueber_knopf():
-		spieler.angreifen(zur_maus, _maus_ziel)
 	if Input.is_action_just_pressed("auto_angriff"):
 		_auto_angriff()
 	if Input.is_action_just_pressed("super"):
-		spieler.super_ausloesen(zur_maus, _maus_ziel)
+		_auto_angriff(true)
 	if Input.is_action_just_pressed("gadget"):
-		spieler.gadget_ausloesen(zur_maus if not _touch_aktiv else spieler.blick)
+		var g := spieler.blick
+		if anvisiert:
+			g = anvisiert.global_position - spieler.global_position
+		spieler.gadget_ausloesen(g)
+	if zielend:
+		pass   # Touch-Stick: Zielen beim Loslassen (touch_angriff)
+
+
+func _auto_ziel() -> Kaempfer:
+	var bester: Kaempfer = null
+	var beste_d := spieler.reichweite() * 1.1
+	for k in gegner_von(spieler.team):
+		if not sichtbar_fuer(k, spieler):
+			continue
+		var d: float = k.global_position.distance_to(spieler.global_position)
+		if d < beste_d:
+			beste_d = d
+			bester = k
+	return bester
 
 
 func _auto_angriff(ist_super := false) -> void:
