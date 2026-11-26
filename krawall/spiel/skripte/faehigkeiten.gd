@@ -32,6 +32,8 @@ const SUPERS := {
 		"dauer": 4.0, "reichweite": 14.0},
 	"brandbombe": {"name": "Molotow-Cocktail", "beschreibung": "Wirft eine große Brandflasche: Explosion und ein Feuerfeld, das mehrere Sekunden brennt.",
 		"schaden": 700, "reichweite": 9.0, "radius": 2.4, "feuer_schaden": 1600, "feuer_dauer": 4.5, "feuer_radius": 3.2},
+	"co2_wolke": {"name": "CO₂-Wolke", "beschreibung": "Eine dicke CO₂-Wolke hüllt den Werfer ein und wandert mit: Gegner darin nehmen Schaden und werden langsamer. Selten wird die Map zur Wüste.",
+		"schaden": 1400, "dauer": 6.0, "radius": 3.6, "wueste_chance": 0.01},
 	"beschwoeren": {"name": "Verstärkung", "beschreibung": "Ein Begleiter erscheint und kämpft eine Weile mit.",
 		"begleiter": "", "dauer": 10.0},
 }
@@ -177,6 +179,19 @@ static func super_ausfuehren(k: Kaempfer, s: Dictionary, richtung: Vector3, ziel
 					g.verstummt_von = k
 					if g.ist_spieler and arena.hud and arena.hud.has_method("stille_warnung"):
 						arena.hud.stille_warnung(d)
+		"co2_wolke":
+			var z := Zone.new()
+			z.art = "co2"
+			z.besitzer = k
+			z.radius = float(s.get("radius", 3.6))
+			z.dauer = float(s.get("dauer", 6.0))
+			z.schaden_gesamt = schaden
+			z.farbe = Color("#8A8F94")
+			z.folgt = k
+			arena.add_child(z)
+			z.global_position = Vector3(k.global_position.x, 0, k.global_position.z)
+			if randf() < float(s.get("wueste_chance", 0.01)) and arena.has_method("wueste_machen"):
+				arena.wueste_machen(k)
 		"beschwoeren":
 			begleiter_rufen(k, str(s.get("begleiter", "")), float(s.get("dauer", 10.0)), richtung)
 		"unsichtbar":
@@ -384,6 +399,8 @@ class Zone extends Node3D:
 	var _t := 0.0
 	var _tick := 0.0
 	var _scheibe: MeshInstance3D
+	var folgt: Node3D = null        # co2: Zone wandert mit (z. B. mit dem Lehrer)
+	var _tropfen: Array = []
 
 	func _ready() -> void:
 		_scheibe = MeshInstance3D.new()
@@ -433,12 +450,78 @@ class Zone extends Node3D:
 				f.set_meta("phase", randf() * TAU)
 				f.add_to_group("zonen_deko")
 				add_child(f)
+		if art == "regen":
+			# grünliche Wolke schwebt über der Stelle, giftiger Regen fällt
+			var wolke := Node3D.new()
+			wolke.position.y = 3.0
+			add_child(wolke)
+			for i in 9:
+				var w := TAU * i / 9.0
+				var b := MeshInstance3D.new()
+				var kb := SphereMesh.new()
+				kb.radius = randf_range(0.45, 0.75) * radius / 1.6
+				kb.height = kb.radius * 2.0
+				b.mesh = kb
+				b.material_override = Toon.farbig(Color("#5F6E5A") if i % 2 else Color("#71806A"), 0.02)
+				b.position = Vector3(cos(w) * radius * 0.55, randf_range(-0.15, 0.25), sin(w) * radius * 0.55)
+				wolke.add_child(b)
+			for i in 22:
+				var d := MeshInstance3D.new()
+				var tz := CylinderMesh.new()
+				tz.top_radius = 0.04
+				tz.bottom_radius = 0.04
+				tz.height = 0.3
+				d.mesh = tz
+				d.material_override = Toon.farbig(Color("#9DFF6A"), 0.0, 0.9)
+				var w2 := randf() * TAU
+				var rr := sqrt(randf()) * radius * 0.85
+				d.position = Vector3(cos(w2) * rr, randf_range(0.1, 2.7), sin(w2) * rr)
+				add_child(d)
+				_tropfen.append(d)
+		if art == "co2":
+			# dicke graue CO2-Wolke um den Lehrer
+			for i in 16:
+				var w := TAU * i / 16.0
+				var b := MeshInstance3D.new()
+				var kb := SphereMesh.new()
+				kb.radius = randf_range(0.55, 0.95)
+				kb.height = kb.radius * 2.0
+				b.mesh = kb
+				var g := randf_range(0.42, 0.6)
+				b.material_override = Toon.unschattiert(Color(g, g, g * 1.02, 0.55), true)
+				var rr := radius * randf_range(0.45, 0.95)
+				b.position = Vector3(cos(w) * rr, randf_range(0.4, 2.0), sin(w) * rr)
+				b.set_meta("basis", b.position)
+				b.set_meta("phase", randf() * TAU)
+				add_child(b)
+			var schild := Label3D.new()
+			schild.text = "CO₂"
+			schild.font_size = 96
+			schild.outline_size = 18
+			schild.modulate = Color("#E6E6E6")
+			schild.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+			schild.position.y = 3.2
+			schild.set_meta("phase", 0.0)
+			add_child(schild)
 		Effekte.ring(besitzer.arena, global_position, radius, farbe)
 
 	func _physics_process(delta: float) -> void:
 		_t += delta
 		_tick -= delta
+		if folgt != null and is_instance_valid(folgt):
+			global_position = Vector3(folgt.global_position.x, 0, folgt.global_position.z)
 		rotation.y += delta * (9.0 if art == "wirbel" else 0.3)
+		for d in _tropfen:
+			d.position.y -= delta * 7.0
+			if d.position.y < 0.05:
+				d.position.y = 2.7
+		if art == "co2":
+			for b in get_children():
+				if b.has_meta("basis"):
+					var ph: float = b.get_meta("phase") + _t * 1.7
+					b.position = b.get_meta("basis") + Vector3(0, 0.25 * sin(ph), 0)
+		if (art == "regen" or art == "co2") and _t > dauer - 0.5:
+			scale = Vector3.ONE * maxf(0.01, (dauer - _t) * 2.0)
 		if art == "feuer" or art == "gift":
 			for f in get_children():
 				if f.has_meta("phase"):

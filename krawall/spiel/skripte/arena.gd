@@ -388,7 +388,7 @@ func explosion(quelle: Kaempfer, team: int, pos: Vector3, radius: float, schaden
 		z.radius = float(zd.get("radius", 2.0))
 		z.dauer = float(zd.get("dauer", 3.0))
 		z.schaden_gesamt = float(zd.get("schaden", 600)) * (quelle.schadens_faktor() if is_instance_valid(quelle) else 1.0)
-		z.farbe = Color("#FF7A1A") if z.art == "feuer" else Color("#7CFF5B")
+		z.farbe = {"feuer": Color("#FF7A1A"), "regen": Color("#9DFF6A")}.get(z.art, Color("#7CFF5B"))
 		add_child(z)
 		z.global_position = Vector3(pos.x, 0, pos.z)
 	elif effekt.has("dauer"):

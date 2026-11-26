@@ -47,6 +47,13 @@ var _start_zeit := 0.0
 var _aktueller_raum := ""
 var _leben_uebrig := 1
 var _beute: Array = []
+var wueste := false               # Herr Lüthi hat die Map in eine Wüste verwandelt (bleibt bis Spielende)
+var _env: Environment
+var _sonne: DirectionalLight3D
+var _rasen_mat: ShaderMaterial
+var _boden_mats: Array = []
+var _wand_mats: Array = []
+var _baeume: Array = []
 
 
 func _ready() -> void:
@@ -141,7 +148,9 @@ func _umgebung_schule() -> void:
 	env.adjustment_saturation = 1.1
 	we.environment = env
 	add_child(we)
+	_env = env
 	var sonne := DirectionalLight3D.new()
+	_sonne = sonne
 	sonne.rotation_degrees = Vector3(-62, -28, 0)
 	sonne.light_color = Color("#FFF4E0")
 	sonne.light_energy = 1.2
@@ -160,6 +169,7 @@ func _umgebung_schule() -> void:
 	bm.set_shader_parameter("kachel", 2.0)
 	bm.set_shader_parameter("halb_groesse", Vector2(1000, 1000))
 	rasen.material_override = bm
+	_rasen_mat = bm
 	add_child(rasen)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 7
@@ -169,7 +179,9 @@ func _umgebung_schule() -> void:
 			continue
 		if absf(p.x) < 4 and p.z < 0:
 			continue  # Weg zum Eingang frei
-		_setze("Baum" if rng.randf() < 0.7 else "Fels", p, rng.randf() * TAU, rng.randf_range(0.9, 1.5))
+		var baum := _setze("Baum" if rng.randf() < 0.7 else "Fels", p, rng.randf() * TAU, rng.randf_range(0.9, 1.5))
+		if baum:
+			_baeume.append(baum)
 
 
 func _raeume_bauen() -> void:
@@ -186,6 +198,7 @@ func _raeume_bauen() -> void:
 		m.set_shader_parameter("farbe_b", Color.html(r["boden"][1]))
 		m.set_shader_parameter("kachel", float(r["boden"][2]))
 		b.material_override = m
+		_boden_mats.append(m)
 		add_child(b)
 		b.position = plan((a[0] + a[2]) / 2.0, (a[1] + a[3]) / 2.0) + Vector3(0, -0.035, 0)
 		# Raumname auf dem Boden
@@ -216,8 +229,9 @@ func _waende_bauen() -> void:
 			if not linien.has(schl):
 				linien[schl] = []
 			linien[schl].append([float(kante[2]), float(kante[3])])
-	var innen := Toon.farbig(Color("#F6EEDF"), 0.02)
-	var aussen := Toon.farbig(Color("#E9A86B"), 0.02)
+	var innen: ShaderMaterial = Toon.farbig(Color("#F6EEDF"), 0.02).duplicate()
+	var aussen: ShaderMaterial = Toon.farbig(Color("#E9A86B"), 0.02).duplicate()
+	_wand_mats = [innen, aussen]
 	var kappe := Toon.farbig(Color("#3A2E4F"), 0.0)
 	for schl in linien:
 		var teile: Array = schl.split("@")
@@ -810,3 +824,146 @@ func _ende_schule(sieg: bool) -> void:
 		spieler.stehen_bleiben()
 	ton("sieg" if sieg else "ko")
 	hud.ende(1 if sieg else -1, verdient)
+
+
+# ---------------------------------------------------------------- Wüste (Herr Lüthi, 1 % pro Ulti)
+## Verwandelt die ganze Schule in eine Wüste. Bleibt bis zum Ende des Spiels.
+func wueste_machen(ausloeser: Kaempfer = null) -> void:
+	if wueste:
+		return
+	wueste = true
+	await get_tree().create_timer(1.3).timeout   # erst CO2-Ruf ausklingen lassen
+	var tw := create_tween().set_parallel(true)
+	tw.tween_property(_env, "background_color", Color("#E8A26A"), 2.5)
+	tw.tween_property(_env, "ambient_light_color", Color("#BFAE9C"), 2.5)
+	tw.tween_property(_sonne, "light_color", Color("#FFE2B8"), 2.5)
+	tw.tween_property(_sonne, "light_energy", 1.15, 2.5)
+	_env.adjustment_saturation = 1.0
+	_farbe_tweenen(tw, _rasen_mat, {"farbe_a": Color("#C29A63"), "farbe_b": Color("#B88F59"),
+		"fuge": Color("#A67F4C"), "aussen": Color("#C29A63")})
+	for m in _boden_mats:
+		_farbe_tweenen(tw, m, {"farbe_a": Color("#C9A473"), "farbe_b": Color("#BB9665")})
+	if _wand_mats.size() == 2:
+		_farbe_tweenen(tw, _wand_mats[0], {"farbe": Color("#D2B48A")})
+		_farbe_tweenen(tw, _wand_mats[1], {"farbe": Color("#C4834A")})
+	for b in _baeume:
+		if is_instance_valid(b):
+			var t2 := create_tween()
+			t2.tween_property(b, "scale", Vector3.ONE * 0.01, 1.2).set_delay(randf() * 1.2)
+			t2.tween_callback(b.queue_free)
+	_baeume.clear()
+	# Kakteen, Sandhügel und Steppenläufer
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 42
+	for i in 70:
+		var p := Vector3(rng.randf_range(-75, 75), 0, rng.randf_range(-58, 58))
+		if absf(p.x) < BREITE / 2 + 2 and absf(p.z) < TIEFE / 2 + 2:
+			continue
+		if absf(p.x) < 4 and p.z < 0:
+			continue
+		if rng.randf() < 0.6:
+			_kaktus(p, rng.randf_range(0.8, 1.6), rng)
+		else:
+			_duene(p, rng.randf_range(2.0, 5.0))
+	# ein paar kleine Kakteen in den Raumecken (rein dekorativ, blockieren nichts)
+	for r in RAEUME:
+		var a: Array = r["r"]
+		if (a[2] - a[0]) < 6 or (a[3] - a[1]) < 6:
+			continue
+		var ecke := plan(a[0] + 0.7, a[1] + 0.7) if rng.randf() < 0.5 else plan(a[2] - 0.7, a[3] - 0.7)
+		_kaktus(ecke, 0.45, rng)
+	for i in 6:
+		_steppenlaeufer(rng)
+	if hud and hud.has_method("gross_text"):
+		hud.gross_text("WÜSTE!", 3.0)
+	ton("explosion")
+	wackeln(0.5)
+
+
+func _farbe_tweenen(tw: Tween, m: ShaderMaterial, werte: Dictionary) -> void:
+	if m == null:
+		return
+	for n in werte:
+		var alt = m.get_shader_parameter(n)
+		if alt == null:
+			alt = werte[n]
+		tw.tween_method(func(c: Color): m.set_shader_parameter(n, c), alt, werte[n], 2.5)
+
+
+func _kaktus(pos: Vector3, skala: float, rng: RandomNumberGenerator) -> void:
+	var k := Node3D.new()
+	add_child(k)
+	k.position = pos
+	var gruen := Toon.farbig(Color("#4E9F52"), 0.03)
+	var stamm := MeshInstance3D.new()
+	var c := CapsuleMesh.new()
+	c.radius = 0.28
+	c.height = 2.2
+	stamm.mesh = c
+	stamm.material_override = gruen
+	stamm.position.y = 1.0
+	k.add_child(stamm)
+	for seite in [-1, 1]:
+		if rng.randf() < 0.75:
+			var h := rng.randf_range(0.7, 1.3)
+			var quer := MeshInstance3D.new()
+			var cq := CapsuleMesh.new()
+			cq.radius = 0.17
+			cq.height = 0.7
+			quer.mesh = cq
+			quer.material_override = gruen
+			quer.rotation.z = PI / 2
+			quer.position = Vector3(seite * 0.4, h, 0)
+			k.add_child(quer)
+			var arm := MeshInstance3D.new()
+			var ca := CapsuleMesh.new()
+			ca.radius = 0.17
+			ca.height = 0.9
+			arm.mesh = ca
+			arm.material_override = gruen
+			arm.position = Vector3(seite * 0.66, h + 0.35, 0)
+			k.add_child(arm)
+	if rng.randf() < 0.4:
+		var bl := MeshInstance3D.new()
+		var sb := SphereMesh.new()
+		sb.radius = 0.12
+		sb.height = 0.2
+		bl.mesh = sb
+		bl.material_override = Toon.farbig(Color("#FF5D8F"), 0.0, 0.3)
+		bl.position.y = 2.15
+		k.add_child(bl)
+	k.scale = Vector3.ONE * 0.01
+	create_tween().tween_property(k, "scale", Vector3.ONE * skala, 0.6).set_delay(rng.randf() * 1.5).set_trans(Tween.TRANS_BACK)
+
+
+func _duene(pos: Vector3, groesse: float) -> void:
+	var d := MeshInstance3D.new()
+	var sm := SphereMesh.new()
+	sm.radius = groesse * 0.7
+	sm.height = groesse * 2.0
+	d.mesh = sm
+	d.material_override = Toon.farbig(Color("#A97C47"), 0.0)
+	d.scale = Vector3(1.4, 0.18, 1.0)
+	d.rotation.y = randf() * TAU
+	add_child(d)
+	d.position = pos
+
+
+func _steppenlaeufer(rng: RandomNumberGenerator) -> void:
+	var t := MeshInstance3D.new()
+	var sm := SphereMesh.new()
+	sm.radius = 0.45
+	sm.height = 0.9
+	sm.radial_segments = 8
+	sm.rings = 5
+	t.mesh = sm
+	t.material_override = Toon.farbig(Color("#A9814F"), 0.04)
+	add_child(t)
+	var z := rng.randf_range(-TIEFE / 2 - 8, TIEFE / 2 + 8)
+	if absf(z) < TIEFE / 2 + 2:
+		z = (TIEFE / 2 + 5) * (1 if z > 0 else -1)
+	t.position = Vector3(-80, 0.45, z)
+	var tw := create_tween().set_loops()
+	tw.tween_property(t, "position:x", 80.0, rng.randf_range(14, 22)).from(-80.0)
+	var dreh := create_tween().set_loops()
+	dreh.tween_property(t, "rotation:z", -TAU, 1.4).from(0.0)

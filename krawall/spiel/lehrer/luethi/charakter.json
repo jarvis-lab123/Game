@@ -1,0 +1,35 @@
+{
+  "name": "Herr Lüthi",
+  "titel": "Geografielehrer",
+  "beschreibung": "Schießt kleine Regenwolken mit giftigem Regen. Ulti: CO₂-Wolke um sich herum – mit 1 % Chance wird die ganze Schule zur Wüste.",
+  "werte": { "leben": 3400, "tempo": 1.02 },
+  "angriff": {
+    "typ": "wurf", "name": "Giftregen",
+    "schaden": 260, "reichweite": 8.5, "nachladen": 1.5, "radius": 1.5,
+    "farbe": "#9DFF6A", "geschoss_modell": "wolke",
+    "aufprall": { "zone": { "art": "regen", "radius": 1.6, "dauer": 2.6, "schaden": 520 } }
+  },
+  "super": {
+    "typ": "co2_wolke", "name": "CO₂-Wolke", "ruf": "CO₂-ALARM!",
+    "schaden": 1400, "dauer": 6.0, "radius": 3.6, "wueste_chance": 0.01,
+    "ladung_pro_treffer": 0.13, "farbe": "#8A8F94"
+  },
+  "lehrer": { "anzahl": 1, "raeume": ["klasse", "bibliothek"], "sicht": 9.5, "sichtwinkel": 115 },
+  "aussehen": {
+    "proportionen": "comic",
+    "hautfarbe": "#EEC9AE",
+    "groesse": 1.03,
+    "kopfform": "schmal",
+    "ohren": 1.05,
+    "wangenroete": false,
+    "augen": { "farbe": "#5A6B78", "form": "mandel", "groesse": 0.95 },
+    "augenbrauen": { "dicke": 1.15, "winkel": 0, "farbe": "#3A2C22" },
+    "nase": "lang",
+    "mund": "laecheln",
+    "haare": { "stil": "tolle", "farbe": "#4A3626", "farbe2": "#5C4431" },
+    "oberteil": { "stil": "hemd", "farbe": "#2A2D35", "farbe2": "#1A1C22", "streifen": false },
+    "hose": { "stil": "lang", "farbe": "#3B3E48" },
+    "schuhe": { "farbe": "#2B211B", "sohle": "#16161A" },
+    "waffe": { "stil": "wolke", "farbe": "#8E9A84", "farbe2": "#9DFF6A" }
+  }
+}

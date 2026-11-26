@@ -526,8 +526,9 @@ class Figur:
             torus("kragen2", Vector((0, 0.01, self.hals_z + 0.035)), 0.095 * bau / 0.82 * 0.82, 0.03, ober, "neck",
                   normale=(0, 0.15, 1), skal=(1.12, 1.0))
         elif stil == "hemd":
-            # Hemd mit Kragen, Knopfleiste und Längsstreifen
+            # Hemd mit Kragen, Knopfleiste und (optional) Längsstreifen
             streifen = material("hemdstreifen", a["oberteil"]["farbe2"])
+            mit_streifen = a["oberteil"].get("streifen", True)
             for sx in (1, -1):
                 kragen_a = Vector((sx * 0.02, self.rumpf_y(self.hals_z - 0.05) - 0.01, self.hals_z - 0.02))
                 kragen_b = Vector((sx * 0.09 * bau / 0.82, self.rumpf_y(self.hals_z - 0.09) + 0.005, self.hals_z - 0.1))
@@ -539,7 +540,7 @@ class Figur:
                 ellipsoid("knopf", Vector((0, self.rumpf_y(zk) - 0.004, zk)), (0.012, 0.006, 0.012), streifen, "chest" if i < 3 else "spine",
                           segs=10, ringe=6)
             for j in range(-3, 4):
-                if j == 0:
+                if j == 0 or not mit_streifen:
                     continue
                 x = j * 0.045 * bau / 0.82
                 pkt = []
@@ -905,6 +906,14 @@ class Figur:
                    versatz=lambda phi, a_: 0.035 * math.sin(min(a_ / math.radians(55), 1.0) * math.pi) * (0.6 + 0.4 * math.cos(phi)))
             return
 
+        if stil == "tolle":
+            # kurze Seiten, oben länger und vorne nach oben/hinten gestylt (kleine Tolle)
+            schale("haare", km, (kr.x * 1.012, kr.y * 1.012, kr.z * 1.012), hm, "head",
+                   haarlinie(math.radians(48), math.radians(84), math.radians(112), math.radians(14)), dicke=0.016,
+                   versatz=lambda phi, a_: (0.025 + 0.13 * max(0.0, math.cos(phi)) ** 2)
+                   * math.sin(min(a_ / math.radians(50), 1.0) * math.pi) ** 0.7)
+            return
+
         if stil in ("kurz", "stachel", "seitenscheitel", "iro", "locken", "lang", "zopf", "dutt"):
             vorne = math.radians(54)
             seite = math.radians(80 if stil != "lang" else 92)
@@ -1170,6 +1179,14 @@ class Figur:
         elif w["stil"] == "kamera":
             rundbox("kamera", hm + Vector((0, -0.08, 0.04)), (0.12, 0.08, 0.08), m1, k, rundung=0.3)
             kapsel("objektiv", hm + Vector((0, -0.11, 0.04)), hm + Vector((0, -0.16, 0.04)), 0.028, m2, k)
+        elif w["stil"] == "wolke":
+            # kleine Regenwolke, die über der Hand schwebt, mit grünen Gifttropfen
+            wm = material("wolke", w["farbe"])
+            for dx, dz, r in ((0.0, 0.22, 0.07), (-0.06, 0.2, 0.05), (0.06, 0.2, 0.05), (0.02, 0.26, 0.05)):
+                ellipsoid("wolke", hm + Vector((dx, -0.06, dz)), (r, r * 0.9, r * 0.85), wm, k)
+            gift = material("gifttropfen", w["farbe2"], leuchten=True)
+            for dx, dz in ((-0.04, 0.12), (0.0, 0.09), (0.04, 0.13)):
+                ellipsoid("tropfen", hm + Vector((dx, -0.06, dz)), (0.01, 0.01, 0.018), gift, k, segs=8, ringe=6)
         elif w["stil"] == "kreide":
             kapsel("kreide", hm + Vector((0, -0.04, -0.02)), hm + Vector((0, -0.16, 0.03)), 0.022, m1, k)
 

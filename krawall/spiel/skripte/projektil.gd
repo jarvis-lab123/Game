@@ -206,6 +206,14 @@ func _modell_bauen(art: String) -> Node3D:
 				fl3.height = 0.35 + i * 0.1
 				var flamme := _teil(form, fl3, Color("#FFB703") if i == 1 else Color("#FF5A1F"), Vector3(0.04 * (i - 1), 0.85 + i * 0.05, 0))
 				flamme.material_override = Toon.farbig(Color("#FFB703") if i == 1 else Color("#FF5A1F"), 0.0, 1.4)
+		"wolke":
+			# kleine giftige Regenwolke mit Tropfen
+			for b in [[0, 0.05, 0, 0.2], [-0.17, 0, 0.02, 0.15], [0.17, 0, -0.02, 0.15], [0.05, 0.13, 0.05, 0.13]]:
+				_teil(form, _kugel(b[3]), Color("#8E9A84"), Vector3(b[0], b[1], b[2]))
+			for i in 4:
+				var tr := _teil(form, _kugel(0.035), Color("#9DFF6A"), Vector3(-0.15 + i * 0.1, -0.2 - (i % 2) * 0.08, 0))
+				tr.scale = Vector3(1, 1.8, 1)
+				tr.material_override = Toon.farbig(Color("#9DFF6A"), 0.0, 0.9)
 		_:
 			_teil(form, _kugel(radius), farbe, Vector3.ZERO)
 	return form
