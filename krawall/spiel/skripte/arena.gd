@@ -263,7 +263,14 @@ func _kaempfer_erzeugen() -> void:
 			var k := Kaempfer.new()
 			k.name = "%s_%d_%d" % [d.get("id", "k"), team, i]
 			add_child(k)
-			k.einrichten(d, team, team == 0 and i == 0, self)
+			var ist_sp := team == 0 and i == 0
+			var id: String = d.get("id", "")
+			if ist_sp:
+				k.einrichten(d, team, true, self, Konto.stufe(id), Konto.gewaehlt_gadget(id), Konto.gewaehlt_passiv(id))
+			else:
+				# Bots: ungefähr auf der Stufe des Spielers, mit zufälligem Gadget/Passiv
+				var st := clampi(Konto.stufe(eigene.get("id", "")) + randi_range(-1, 1), 1, int(Konto.regeln.get("max_stufe", 10)))
+				k.einrichten(d, team, false, self, st, randi() % 4, randi() % 4)
 			k.spawn_punkt = _spawns[team][i % _spawns[team].size()]
 			k.global_position = k.spawn_punkt
 			k.blick = Vector3(0, 0, -1) if team == 0 else Vector3(0, 0, 1)
@@ -283,7 +290,11 @@ func team_von(team: int) -> Array:
 
 
 func sichtbar_fuer(ziel: Kaempfer, betrachter: Kaempfer) -> bool:
-	if ziel.team == betrachter.team or not ziel.im_busch:
+	if ziel.team == betrachter.team:
+		return true
+	if ziel.ist_unsichtbar():
+		return ziel.global_position.distance_to(betrachter.global_position) < 1.8
+	if not ziel.im_busch:
 		return true
 	if ziel.global_position.distance_to(betrachter.global_position) < 3.2:
 		return true
@@ -376,11 +387,23 @@ func explosion(quelle: Kaempfer, team: int, pos: Vector3, radius: float, schaden
 				kiste_zerstoeren(kachel)
 
 
-func heilzone(quelle: Kaempfer, pos: Vector3, menge: float, farbe: Color) -> void:
+func freier_punkt(p: Vector3) -> Vector3:
+	## nächster begehbarer Punkt (für Sprünge, die nicht in Wänden landen dürfen)
+	var hg := halb_groesse()
+	p.x = clampf(p.x, -hg.x + 0.6, hg.x - 0.6)
+	p.z = clampf(p.z, -hg.y + 0.6, hg.y - 0.6)
+	var k := kachel_von(p)
+	if _astar.region.has_point(k) and not _astar.is_point_solid(k):
+		return Vector3(p.x, 0, p.z)
+	var f := _frei(k)
+	return kachel_mitte(f.x, f.y)
+
+
+func heilzone(quelle: Kaempfer, pos: Vector3, menge: float, farbe: Color, radius := 3.0, dauer := 4.0) -> void:
 	var zone := MeshInstance3D.new()
 	var zyl := CylinderMesh.new()
-	zyl.top_radius = 3.0
-	zyl.bottom_radius = 3.0
+	zyl.top_radius = radius
+	zyl.bottom_radius = radius
 	zyl.height = 0.06
 	zone.mesh = zyl
 	var c := farbe
@@ -388,14 +411,17 @@ func heilzone(quelle: Kaempfer, pos: Vector3, menge: float, farbe: Color) -> voi
 	zone.material_override = Toon.unschattiert(c, true)
 	add_child(zone)
 	zone.global_position = pos + Vector3(0, 0.05, 0)
-	Effekte.ring(self, pos, 3.0, farbe, 0.4)
-	for schritt in 8:
+	Effekte.ring(self, pos, radius, farbe, 0.4)
+	var schritte := maxi(1, int(dauer / 0.5))
+	for schritt in schritte:
+		if not is_instance_valid(quelle):
+			break
 		for k in team_von(quelle.team):
-			if k.global_position.distance_to(pos) < 3.0:
-				k.heilen(menge / 8.0)
+			if k.global_position.distance_to(pos) < radius:
+				k.heilen(menge / schritte)
 		for k in gegner_von(quelle.team):
-			if k.global_position.distance_to(pos) < 3.0:
-				k.schaden_nehmen(menge / 24.0, quelle)
+			if k.global_position.distance_to(pos) < radius:
+				k.schaden_nehmen(menge / (schritte * 3.0), quelle)
 		await get_tree().create_timer(0.5).timeout
 	zone.queue_free()
 
@@ -444,6 +470,7 @@ func _ende() -> void:
 		ergebnis = -1
 	if ergebnis == 1:
 		Daten.siege += 1
+	var verdient := Konto.match_belohnung(ergebnis, spieler.ko_zaehler)
 	for k in kaempfer:
 		k.bewegung = Vector3.ZERO
 		k.set_physics_process(false)
@@ -459,7 +486,7 @@ func _ende() -> void:
 	if ergebnis >= 0:
 		spieler.jubeln()
 	ton("sieg" if ergebnis == 1 else "ko")
-	hud.ende(ergebnis)
+	hud.ende(ergebnis, verdient)
 
 
 func _process(delta: float) -> void:
@@ -475,6 +502,10 @@ func _process(delta: float) -> void:
 		if not k.tot and spieler:
 			k.modell.visible = sichtbar_fuer(k, spieler)
 			k._ring.visible = k.modell.visible
+	# gegnerische Minen sind unsichtbar
+	if spieler:
+		for m in get_tree().get_nodes_in_group("minen"):
+			m.visible = m.fuer_spieler_sichtbar(spieler)
 
 
 # ---------------------------------------------------------------- Spieler
@@ -514,6 +545,8 @@ func _spieler_steuern() -> void:
 		_auto_angriff()
 	if Input.is_action_just_pressed("super"):
 		spieler.super_ausloesen(zur_maus, _maus_ziel)
+	if Input.is_action_just_pressed("gadget"):
+		spieler.gadget_ausloesen(zur_maus if not _touch_aktiv else spieler.blick)
 
 
 func _auto_angriff(ist_super := false) -> void:

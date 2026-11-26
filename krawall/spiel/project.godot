@@ -13,6 +13,7 @@ boot_splash/show_image=false
 [autoload]
 
 Daten="*res://skripte/daten.gd"
+Konto="*res://skripte/konto.gd"
 
 [display]
 

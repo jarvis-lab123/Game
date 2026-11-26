@@ -1,0 +1,23 @@
+{
+  "_info": "chancen = Wahrscheinlichkeit in Prozent, dass der Laptop einen Charakter dieser Seltenheit enthält. Der Rest bis 100 % = nur Münzen. Bei 'garantie_nach' Laptops ohne Charakter hintereinander ist der nächste Charakter garantiert.",
+  "start_muenzen": 300,
+  "garantie_nach": 8,
+  "belohnung": { "sieg": 60, "unentschieden": 40, "niederlage": 25, "pro_ko": 5 },
+  "boxen": [
+    {
+      "id": "holz", "name": "Alter Laptop", "preis": 100, "farbe": "#C98B4B",
+      "muenzen": [20, 60],
+      "chancen": { "gewoehnlich": 22, "selten": 8, "episch": 2, "mythisch": 0.5, "legendaer": 0.1 }
+    },
+    {
+      "id": "gross", "name": "Gaming-Laptop", "preis": 300, "farbe": "#3DA5FF",
+      "muenzen": [60, 150],
+      "chancen": { "gewoehnlich": 25, "selten": 20, "episch": 8, "mythisch": 2.5, "legendaer": 0.6 }
+    },
+    {
+      "id": "mega", "name": "Super-Laptop", "preis": 800, "farbe": "#B05CFF",
+      "muenzen": [150, 350],
+      "chancen": { "gewoehnlich": 10, "selten": 35, "episch": 25, "mythisch": 9, "legendaer": 3 }
+    }
+  ]
+}

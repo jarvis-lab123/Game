@@ -19,6 +19,7 @@ const STANDARD := {
 	"super": {"typ": "sprint", "name": "Super", "schaden": 1000, "ladung_pro_treffer": 0.12,
 		"reichweite": 7.0, "farbe": "#FF4D6D"},
 	"modell_hoehe": 1.75,
+	"seltenheit": "gewoehnlich",
 }
 
 
@@ -58,7 +59,14 @@ func laden() -> void:
 
 
 func gewaehlt() -> Dictionary:
-	return charaktere[gewaehlt_index] if charaktere.size() > 0 else STANDARD
+	return Konto.gewaehlter_charakter()
+
+
+func charakter(id: String) -> Dictionary:
+	for c in charaktere:
+		if c["id"] == id:
+			return c
+	return {}
 
 
 func _mischen(basis: Dictionary, neu: Dictionary) -> Dictionary:
@@ -74,7 +82,7 @@ func _eingaben() -> void:
 	var tasten := {
 		"hoch": [KEY_W, KEY_UP], "runter": [KEY_S, KEY_DOWN],
 		"links": [KEY_A, KEY_LEFT], "rechts": [KEY_D, KEY_RIGHT],
-		"auto_angriff": [KEY_SPACE], "super": [KEY_E, KEY_Q], "pause": [KEY_ESCAPE, KEY_P],
+		"auto_angriff": [KEY_SPACE], "super": [KEY_E, KEY_Q], "gadget": [KEY_F, KEY_R], "pause": [KEY_ESCAPE, KEY_P],
 	}
 	for aktion in tasten:
 		if not InputMap.has_action(aktion):
@@ -83,7 +91,7 @@ func _eingaben() -> void:
 			var ev := InputEventKey.new()
 			ev.physical_keycode = t
 			InputMap.action_add_event(aktion, ev)
-	for paar in [["angriff", MOUSE_BUTTON_LEFT], ["super", MOUSE_BUTTON_RIGHT]]:
+	for paar in [["angriff", MOUSE_BUTTON_LEFT], ["super", MOUSE_BUTTON_RIGHT], ["gadget", MOUSE_BUTTON_MIDDLE]]:
 		if not InputMap.has_action(paar[0]):
 			InputMap.add_action(paar[0])
 		var m := InputEventMouseButton.new()
@@ -97,7 +105,7 @@ func _eingaben() -> void:
 		j.axis = a[1]
 		j.axis_value = a[2]
 		InputMap.action_add_event(a[0], j)
-	for b in [["auto_angriff", JOY_BUTTON_A], ["super", JOY_BUTTON_B]]:
+	for b in [["auto_angriff", JOY_BUTTON_A], ["super", JOY_BUTTON_B], ["gadget", JOY_BUTTON_X]]:
 		var jb := InputEventJoypadButton.new()
 		jb.button_index = b[1]
 		InputMap.action_add_event(b[0], jb)

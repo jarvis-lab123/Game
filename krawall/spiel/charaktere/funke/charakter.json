@@ -1,0 +1,78 @@
+{
+  "name": "Funke",
+  "titel": "Die Hitzköpfige",
+  "seltenheit": "episch",
+  "beschreibung": "Schrot aus nächster Nähe. Im Wutausbruch kaum zu stoppen.",
+  "werte": {
+    "leben": 3900,
+    "tempo": 1.05
+  },
+  "angriff": {
+    "typ": "schrot",
+    "name": "Funkenregen",
+    "schaden": 260,
+    "projektile": 6,
+    "streuung": 34,
+    "reichweite": 5.2,
+    "projektil_tempo": 15,
+    "nachladen": 1.5,
+    "farbe": "#FF6B35"
+  },
+  "super": {
+    "typ": "wut",
+    "farbe": "#FF3B30"
+  },
+  "gadgets": [
+    {
+      "typ": "sprung"
+    },
+    {
+      "typ": "munition"
+    }
+  ],
+  "passive": [
+    {
+      "typ": "letzte_kraft"
+    },
+    {
+      "typ": "vampir"
+    }
+  ],
+  "aussehen": {
+    "hautfarbe": "#F2C29B",
+    "haare": {
+      "stil": "iro",
+      "farbe": "#FF6B35"
+    },
+    "augen": {
+      "farbe": "#C0392B",
+      "form": "mandel"
+    },
+    "augenbrauen": {
+      "winkel": 15
+    },
+    "oberteil": {
+      "stil": "jacke",
+      "farbe": "#2A2140",
+      "farbe2": "#FF6B35"
+    },
+    "hose": {
+      "stil": "lang",
+      "farbe": "#1B1424"
+    },
+    "schuhe": {
+      "farbe": "#FF6B35",
+      "sohle": "#1B1424"
+    },
+    "kette": {
+      "an": true
+    },
+    "waffe": {
+      "stil": "blaster",
+      "farbe": "#FF6B35",
+      "farbe2": "#1B1424"
+    },
+    "mund": "frech"
+  },
+  "platzhalter": true
+}

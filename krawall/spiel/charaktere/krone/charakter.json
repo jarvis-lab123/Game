@@ -1,0 +1,79 @@
+{
+  "name": "Krone",
+  "titel": "Die Sturmkönigin",
+  "seltenheit": "legendaer",
+  "beschreibung": "Springt mitten ins Getümmel und zieht alle in ihren Wirbelsturm.",
+  "werte": {
+    "leben": 4000,
+    "tempo": 1.05
+  },
+  "angriff": {
+    "typ": "wurf",
+    "name": "Blitzkugel",
+    "schaden": 820,
+    "reichweite": 8.5,
+    "nachladen": 1.4,
+    "radius": 1.7,
+    "farbe": "#FFD23F"
+  },
+  "super": {
+    "typ": "wirbel",
+    "name": "Königssturm",
+    "schaden": 1600,
+    "farbe": "#FFD23F"
+  },
+  "gadgets": [
+    {
+      "typ": "stosswelle"
+    },
+    {
+      "typ": "heiltrank"
+    }
+  ],
+  "passive": [
+    {
+      "typ": "vampir"
+    },
+    {
+      "typ": "dicke_haut"
+    }
+  ],
+  "aussehen": {
+    "hautfarbe": "#5C3A21",
+    "haare": {
+      "stil": "afro",
+      "farbe": "#1A1A1A"
+    },
+    "augen": {
+      "farbe": "#F2C94C",
+      "groesse": 1.05
+    },
+    "kopfbedeckung": {
+      "stil": "stirnband",
+      "farbe": "#FFD23F"
+    },
+    "kette": {
+      "an": true
+    },
+    "oberteil": {
+      "stil": "pulli",
+      "farbe": "#7A3FD1",
+      "farbe2": "#FFD23F"
+    },
+    "hose": {
+      "stil": "lang",
+      "farbe": "#FFFFFF"
+    },
+    "schuhe": {
+      "farbe": "#FFD23F",
+      "sohle": "#7A3FD1"
+    },
+    "waffe": {
+      "stil": "stab",
+      "farbe": "#FFD23F",
+      "farbe2": "#7A3FD1"
+    },
+    "mund": "laecheln"
+  },
+  "platzhalter": true
+}

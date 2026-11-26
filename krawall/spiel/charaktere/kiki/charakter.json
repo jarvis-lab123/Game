@@ -1,0 +1,71 @@
+{
+  "name": "Kiki",
+  "titel": "Die Wasserbomberin",
+  "seltenheit": "selten",
+  "beschreibung": "Wirft Wasserbomben über Wände und heilt ihr Team.",
+  "werte": {
+    "leben": 3000,
+    "tempo": 1.0
+  },
+  "angriff": {
+    "typ": "wurf",
+    "name": "Wasserbombe",
+    "schaden": 700,
+    "reichweite": 8.0,
+    "nachladen": 1.5,
+    "radius": 1.5,
+    "farbe": "#4CC9F0"
+  },
+  "super": {
+    "typ": "heilzone",
+    "name": "Spa-Tag",
+    "farbe": "#7CFF5B"
+  },
+  "gadgets": [
+    {
+      "typ": "sprung"
+    },
+    {
+      "typ": "frost"
+    }
+  ],
+  "passive": [
+    {
+      "typ": "schnelle_heilung"
+    },
+    {
+      "typ": "superlader"
+    }
+  ],
+  "aussehen": {
+    "hautfarbe": "#F6D2B8",
+    "haare": {
+      "stil": "zopf",
+      "farbe": "#E85D75"
+    },
+    "augen": {
+      "farbe": "#2E8B57",
+      "groesse": 1.1
+    },
+    "oberteil": {
+      "stil": "tshirt",
+      "farbe": "#7CFFCB",
+      "farbe2": "#FFFFFF"
+    },
+    "hose": {
+      "stil": "kurz",
+      "farbe": "#3A7BD5"
+    },
+    "schuhe": {
+      "farbe": "#FFFFFF",
+      "sohle": "#E85D75"
+    },
+    "waffe": {
+      "stil": "ball",
+      "farbe": "#4CC9F0",
+      "farbe2": "#FFFFFF"
+    },
+    "sommersprossen": true
+  },
+  "platzhalter": true
+}

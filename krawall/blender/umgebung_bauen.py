@@ -162,12 +162,102 @@ def spawn_platte():
     return gruppe("Spawn", cb.TEILE[:])
 
 
+def truhe():
+    """Box-Truhe: Korpus (Holz wird in Godot passend zur Box eingefärbt)."""
+    m_holz = cb.material("truhe_holz", "#C98B4B")
+    m_metall = cb.material("truhe_metall", "#F2C94C", glanz=True)
+    m_dunkel = cb.material("truhe_innen", "#2A1A0E")
+    cb.rundbox("korpus", Vector((0, 0, 0.36)), (1.3, 0.86, 0.72), m_holz, "", rundung=0.18)
+    cb.rundbox("innen", Vector((0, 0, 0.70)), (1.12, 0.68, 0.06), m_dunkel, "", rundung=0.4)
+    for x in (-0.42, 0.42):
+        cb.rundbox("band", Vector((x, 0, 0.36)), (0.14, 0.9, 0.76), m_metall, "", rundung=0.35)
+    for x in (-0.62, 0.62):
+        for y in (-0.4, 0.4):
+            cb.ellipsoid("ecke", Vector((x, y, 0.08)), (0.09, 0.09, 0.09), m_metall, "", segs=12, ringe=8)
+    cb.rundbox("schloss", Vector((0, -0.45, 0.6)), (0.2, 0.08, 0.24), m_metall, "", rundung=0.4)
+    return gruppe("Truhe", cb.TEILE[:])
+
+
+def truhe_deckel():
+    """Deckel mit Drehpunkt am Scharnier (hinten oben) = Ursprung."""
+    m_holz = cb.material("truhe_holz", "#C98B4B")
+    m_metall = cb.material("truhe_metall", "#F2C94C", glanz=True)
+    cb.rundbox("deckel", Vector((0, -0.43, 0.16)), (1.32, 0.88, 0.32), m_holz, "", rundung=0.5)
+    cb.ellipsoid("woelbung", Vector((0, -0.43, 0.3)), (0.64, 0.42, 0.16), m_holz, "", segs=32, ringe=12)
+    for x in (-0.42, 0.42):
+        cb.rundbox("band", Vector((x, -0.43, 0.2)), (0.14, 0.92, 0.4), m_metall, "", rundung=0.45)
+    cb.ellipsoid("stern", Vector((0, -0.88, 0.16)), (0.12, 0.05, 0.12), m_metall, "", segs=12, ringe=8)
+    return gruppe("TruheDeckel", cb.TEILE[:])
+
+
+def laptop():
+    """Comic-Laptop, Unterteil. Gehäusefarbe wird in Godot je Seltenheitsstufe eingefärbt.
+    Scharnier hinten oben bei (0, 0.55, 0.16) – dort sitzt in Godot der Deckel."""
+    m_geh = cb.material("pc_gehaeuse", "#3DA5FF")
+    m_dunkel = cb.material("pc_dunkel", "#2A2140")
+    m_taste = cb.material("pc_taste", "#3A2E4F")
+    m_rot = cb.material("pc_knopf", "#FF4757")
+    m_led = cb.material("pc_led", "#7CFF5B", leuchten=True)
+    m_innen = cb.material("pc_innen", "#7CFFCB", leuchten=True)
+    m_hell = cb.material("pc_hell", "#F4F1EA")
+    cb.rundbox("unterteil", Vector((0, 0, 0.08)), (1.7, 1.15, 0.16), m_geh, "", rundung=0.45)
+    cb.rundbox("tastenfeld", Vector((0, 0.08, 0.16)), (1.46, 0.58, 0.02), m_dunkel, "", rundung=0.3)
+    # Tasten in 4 Reihen + Leertaste
+    for r in range(4):
+        for c in range(12):
+            mat = m_rot if (r, c) == (3, 11) else m_taste
+            cb.rundbox("taste", Vector((-0.66 + c * 0.12, 0.3 - r * 0.12, 0.19)), (0.095, 0.095, 0.045), mat, "", rundung=0.45)
+    cb.rundbox("leertaste", Vector((0, -0.18, 0.19)), (0.6, 0.09, 0.045), m_taste, "", rundung=0.45)
+    # Touchpad und Lautsprecher
+    cb.rundbox("touchpad", Vector((0, -0.38, 0.165)), (0.5, 0.2, 0.012), m_hell, "", rundung=0.3)
+    for sx in (-1, 1):
+        for k in range(3):
+            cb.ellipsoid("lautsprecher", Vector((sx * 0.68, -0.32 - k * 0.07, 0.165)), (0.02, 0.02, 0.01), m_dunkel, "", segs=8, ringe=5)
+    # Status-LEDs vorne, Lüftung an der Seite
+    for i in range(3):
+        cb.ellipsoid("led", Vector((-0.12 + i * 0.12, -0.575, 0.09)), (0.03, 0.015, 0.02), m_led, "", segs=10, ringe=6)
+    for sx in (-1, 1):
+        for k in range(4):
+            cb.rundbox("schlitz", Vector((sx * 0.85, 0.15 - k * 0.12, 0.08)), (0.02, 0.07, 0.05), m_dunkel, "", rundung=0.45)
+    # Leuchtstreifen am Scharnier (glüht beim Öffnen)
+    cb.rundbox("glut", Vector((0, 0.5, 0.17)), (1.3, 0.05, 0.03), m_innen, "", rundung=0.45)
+    # Kabel
+    cb.rohr("kabel", [(0.86, 0.3, 0.06), (1.05, 0.35, 0.04), (1.25, 0.6, 0.04), (1.3, 0.95, 0.04)], 0.035, m_dunkel, "")
+    return gruppe("Laptop", cb.TEILE[:])
+
+
+def laptop_deckel():
+    """Deckel. Ursprung = Scharnier. Geschlossen liegt er flach nach vorne (-Y) auf dem Unterteil,
+    Bildschirm zeigt nach unten (-Z). In Godot wird er um die X-Achse aufgeklappt."""
+    m_geh = cb.material("pc_gehaeuse", "#3DA5FF")
+    m_rahmen = cb.material("pc_dunkel", "#2A2140")
+    m_logo = cb.material("pc_logo", "#FFD23F", leuchten=True)
+    m_hell = cb.material("pc_hell", "#F4F1EA")
+    cb.rundbox("deckel", Vector((0, -0.56, 0.045)), (1.7, 1.12, 0.09), m_geh, "", rundung=0.45)
+    cb.rundbox("rahmen", Vector((0, -0.56, -0.003)), (1.56, 0.98, 0.02), m_rahmen, "", rundung=0.3)
+    cb.ellipsoid("kamera", Vector((0, -1.04, -0.01)), (0.025, 0.025, 0.01), m_hell, "", segs=10, ringe=6)
+    # Logo oben drauf: Blitz aus drei Teilen
+    cb.rundbox("blitz1", Vector((0.06, -0.42, 0.095)), (0.12, 0.3, 0.02), m_logo, "", rundung=0.4,
+               rot=Matrix.Rotation(math.radians(-25), 3, 'Z').to_quaternion())
+    cb.rundbox("blitz2", Vector((0.0, -0.56, 0.095)), (0.26, 0.08, 0.02), m_logo, "", rundung=0.4)
+    cb.rundbox("blitz3", Vector((-0.06, -0.70, 0.095)), (0.12, 0.3, 0.02), m_logo, "", rundung=0.4,
+               rot=Matrix.Rotation(math.radians(-25), 3, 'Z').to_quaternion())
+    # Sticker
+    cb.ellipsoid("sticker", Vector((-0.55, -0.85, 0.093)), (0.12, 0.12, 0.008), cb.material("pc_sticker", "#FF5E8A"), "",
+                 segs=20, ringe=6)
+    cb.rundbox("sticker2", Vector((0.55, -0.25, 0.093)), (0.22, 0.13, 0.01), m_hell, "", rundung=0.4,
+               rot=Matrix.Rotation(math.radians(12), 3, 'Z').to_quaternion())
+    # Scharnierwalze
+    cb.kapsel("scharnier", (-0.6, 0.0, 0.0), (0.6, 0.0, 0.0), 0.05, m_rahmen, "")
+    return gruppe("LaptopDeckel", cb.TEILE[:])
+
+
 def main():
     bpy.ops.wm.read_factory_settings(use_empty=True)
     cb.MATERIALIEN.clear()
     cb.TEILE.clear()
     objekte = []
-    for i, fn in enumerate((wand, kiste, busch, wasser, baum, fels, zaun, spawn_platte)):
+    for i, fn in enumerate((wand, kiste, busch, wasser, baum, fels, zaun, spawn_platte, laptop, laptop_deckel)):
         ob = fn()
         ob.location.x = i * 3.0  # nur zur Übersicht in Blender; Godot setzt sie neu
         objekte.append(ob)

@@ -1,0 +1,11 @@
+{
+  "_info": "Reihenfolge = von häufig nach selten. 'duplikat_muenzen' = Münzen, wenn ein Charakter schon auf Maximalstufe ist.",
+  "seltenheiten": [
+    { "id": "gewoehnlich", "name": "Gewöhnlich", "farbe": "#B8C4D6", "duplikat_muenzen": 20 },
+    { "id": "selten",      "name": "Selten",     "farbe": "#5BE37A", "duplikat_muenzen": 40 },
+    { "id": "episch",      "name": "Episch",     "farbe": "#B05CFF", "duplikat_muenzen": 80 },
+    { "id": "mythisch",    "name": "Mythisch",   "farbe": "#FF4D6D", "duplikat_muenzen": 150 },
+    { "id": "legendaer",   "name": "Legendär",   "farbe": "#FFD23F", "duplikat_muenzen": 300 }
+  ],
+  "max_stufe": 10
+}

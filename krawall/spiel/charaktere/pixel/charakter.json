@@ -1,0 +1,75 @@
+{
+  "name": "Pixel",
+  "titel": "Die Bastlerin",
+  "seltenheit": "gewoehnlich",
+  "beschreibung": "Stellt Geschütze auf und hält Abstand.",
+  "werte": {
+    "leben": 3200,
+    "tempo": 1.0
+  },
+  "angriff": {
+    "typ": "schuss",
+    "name": "Laserpunkte",
+    "schaden": 300,
+    "projektile": 2,
+    "streuung": 6,
+    "reichweite": 9.0,
+    "projektil_tempo": 19,
+    "nachladen": 1.2,
+    "farbe": "#4CC9F0"
+  },
+  "super": {
+    "typ": "geschuetz",
+    "farbe": "#4CC9F0"
+  },
+  "gadgets": [
+    {
+      "typ": "mine"
+    },
+    {
+      "typ": "munition"
+    }
+  ],
+  "passive": [
+    {
+      "typ": "superlader"
+    },
+    {
+      "typ": "flink"
+    }
+  ],
+  "aussehen": {
+    "hautfarbe": "#8D5A3B",
+    "haare": {
+      "stil": "dutt",
+      "farbe": "#1A1A1A"
+    },
+    "augen": {
+      "farbe": "#3B2414"
+    },
+    "brille": {
+      "stil": "rund",
+      "farbe": "#F2C94C"
+    },
+    "oberteil": {
+      "stil": "jacke",
+      "farbe": "#F7B32B",
+      "farbe2": "#FFFFFF"
+    },
+    "hose": {
+      "stil": "lang",
+      "farbe": "#2E3A59"
+    },
+    "schuhe": {
+      "farbe": "#4CC9F0",
+      "sohle": "#FFFFFF"
+    },
+    "waffe": {
+      "stil": "blaster",
+      "farbe": "#4CC9F0",
+      "farbe2": "#333333"
+    },
+    "mund": "grinsen"
+  },
+  "platzhalter": true
+}

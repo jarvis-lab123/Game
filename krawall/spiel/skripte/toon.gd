@@ -12,7 +12,10 @@ static var _cache := {}
 ## (eigene Kopien, wenn `eigen` = true, damit z. B. der Treffer-Blitz pro Figur funktioniert).
 static func anwenden(wurzel: Node, linie := 0.016, eigen := false) -> Array:
 	var mats: Array = []
-	for mi in wurzel.find_children("*", "MeshInstance3D", true, false):
+	var liste: Array = wurzel.find_children("*", "MeshInstance3D", true, false)
+	if wurzel is MeshInstance3D:
+		liste.push_front(wurzel)
+	for mi in liste:
 		var m: MeshInstance3D = mi
 		if m.mesh == null:
 			continue

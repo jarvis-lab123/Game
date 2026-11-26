@@ -1,0 +1,81 @@
+{
+  "name": "Brocken",
+  "titel": "Der Türsteher",
+  "seltenheit": "episch",
+  "beschreibung": "Nahkämpfer mit viel Leben. Rammt sich durch alles.",
+  "werte": {
+    "leben": 5200,
+    "tempo": 1.0
+  },
+  "angriff": {
+    "typ": "nahkampf",
+    "name": "Schwinger",
+    "schaden": 1050,
+    "reichweite": 2.6,
+    "nachladen": 1.1,
+    "farbe": "#FF9F1C"
+  },
+  "super": {
+    "typ": "sprint",
+    "name": "Bulldozer",
+    "schaden": 1300,
+    "reichweite": 8.0,
+    "farbe": "#FF9F1C"
+  },
+  "gadgets": [
+    {
+      "typ": "stosswelle"
+    },
+    {
+      "typ": "schutzblase"
+    }
+  ],
+  "passive": [
+    {
+      "typ": "dicke_haut"
+    },
+    {
+      "typ": "dornen"
+    }
+  ],
+  "aussehen": {
+    "hautfarbe": "#C68863",
+    "koerperbau": "kraeftig",
+    "groesse": 1.08,
+    "kopfform": "eckig",
+    "haare": {
+      "stil": "buzz",
+      "farbe": "#2B1B10"
+    },
+    "bart": {
+      "stil": "vollbart"
+    },
+    "augenbrauen": {
+      "dicke": 1.5,
+      "winkel": 12
+    },
+    "oberteil": {
+      "stil": "tanktop",
+      "farbe": "#2A2140",
+      "farbe2": "#FF9F1C"
+    },
+    "hose": {
+      "stil": "lang",
+      "farbe": "#5E6578"
+    },
+    "schuhe": {
+      "farbe": "#2A2140",
+      "sohle": "#FF9F1C"
+    },
+    "handschuhe": {
+      "an": true,
+      "farbe": "#FF4757"
+    },
+    "waffe": {
+      "stil": "keine"
+    },
+    "mund": "neutral",
+    "nase": "breit"
+  },
+  "platzhalter": true
+}

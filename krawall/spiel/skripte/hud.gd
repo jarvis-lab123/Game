@@ -26,6 +26,8 @@ var _stick_links: TouchStick
 var _stick_angriff: TouchStick
 var _stick_super: TouchStick
 var _super_knopf_desktop: Control
+var _gadget_anzeige: Control
+var _gadget_knopf: Button
 
 
 func _ready() -> void:
@@ -53,6 +55,7 @@ func _ready() -> void:
 	add_child(_meldungen)
 	_touch_steuerung()
 	_hinweise()
+	_gadget_bauen()
 
 
 func _process(_d: float) -> void:
@@ -74,6 +77,8 @@ func _process(_d: float) -> void:
 	_leisten.queue_redraw()
 	if _super_knopf_desktop:
 		_super_knopf_desktop.queue_redraw()
+	if _gadget_anzeige:
+		_gadget_anzeige.queue_redraw()
 
 
 func zielt_mit_stick() -> bool:
@@ -153,7 +158,7 @@ func _kopfleiste() -> void:
 func _hinweise() -> void:
 	if DisplayServer.is_touchscreen_available():
 		return
-	var h := _label("WASD laufen · Maus zielen · Linksklick Angriff · Leertaste Auto-Ziel · Rechtsklick/E Super · Esc Pause", 20, Color.WHITE, 6)
+	var h := _label("WASD laufen · Maus zielen · Linksklick Angriff · Leertaste Auto-Ziel · Rechtsklick/E Super · F Gadget · Esc Pause", 20, Color.WHITE, 6)
 	h.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
 	h.position = Vector2(-560, -40)
 	h.size = Vector2(1120, 30)
@@ -169,6 +174,54 @@ func _hinweise() -> void:
 		var l: float = arena.spieler.super_ladung if arena and arena.spieler else 0.0
 		TouchStick.super_kreis(_super_knopf_desktop, Vector2(70, 70), 62.0, l, SCHRIFT))
 	add_child(_super_knopf_desktop)
+
+
+func _gadget_bauen() -> void:
+	## Gadget: runder Knopf mit Ladungs-Punkten (am Handy antippbar, am PC Taste F)
+	_gadget_anzeige = Control.new()
+	_gadget_anzeige.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+	var touch := DisplayServer.is_touchscreen_available()
+	_gadget_anzeige.position = Vector2(-300, -150) if not touch else Vector2(-200, -470)
+	_gadget_anzeige.size = Vector2(110, 110)
+	_gadget_anzeige.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_gadget_anzeige.draw.connect(_gadget_zeichnen)
+	add_child(_gadget_anzeige)
+	if touch:
+		_gadget_knopf = Button.new()
+		_gadget_knopf.flat = true
+		_gadget_knopf.set_anchors_preset(Control.PRESET_FULL_RECT)
+		_gadget_knopf.pressed.connect(func():
+			if arena and arena.spieler and arena.laeuft:
+				arena.spieler.gadget_ausloesen(arena.spieler.blick))
+		_gadget_anzeige.add_child(_gadget_knopf)
+		_gadget_anzeige.mouse_filter = Control.MOUSE_FILTER_PASS
+
+
+func _gadget_zeichnen() -> void:
+	if arena == null or arena.spieler == null or arena.spieler.gadget_info.is_empty():
+		return
+	var k: Kaempfer = arena.spieler
+	var m := Vector2(55, 55)
+	var r := 46.0
+	var bereit := k.gadget_bereit()
+	_gadget_anzeige.draw_circle(m, r + 5, DUNKEL)
+	_gadget_anzeige.draw_circle(m, r, Color("#2EC4B6") if bereit else Color("#3A2E4F"))
+	var ab := k.gadget_abklingen()
+	if ab > 0.0 and k.gadget_ladungen > 0:
+		_gadget_anzeige.draw_arc(m, r - 6, -PI / 2, -PI / 2 + TAU * (1.0 - ab), 40, Color("#2EC4B6"), 8.0, true)
+	var text := "F" if not DisplayServer.is_touchscreen_available() else "G"
+	var fs := 34
+	var tb := SCHRIFT.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs)
+	_gadget_anzeige.draw_string_outline(SCHRIFT, m + Vector2(-tb.x / 2, 12), text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, 8, DUNKEL)
+	_gadget_anzeige.draw_string(SCHRIFT, m + Vector2(-tb.x / 2, 12), text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color.WHITE)
+	for i in Faehigkeiten.GADGET_LADUNGEN:
+		var p := m + Vector2(-24 + i * 24, r + 16)
+		_gadget_anzeige.draw_circle(p, 9, DUNKEL)
+		_gadget_anzeige.draw_circle(p, 6, Color("#2EC4B6") if i < k.gadget_ladungen else Color("#4A3B63"))
+	var name: String = k.gadget_info.get("name", "")
+	var nb := SCHRIFT.get_string_size(name, HORIZONTAL_ALIGNMENT_LEFT, -1, 18)
+	_gadget_anzeige.draw_string_outline(SCHRIFT, m + Vector2(-nb.x / 2, -r - 10), name, HORIZONTAL_ALIGNMENT_LEFT, -1, 18, 6, DUNKEL)
+	_gadget_anzeige.draw_string(SCHRIFT, m + Vector2(-nb.x / 2, -r - 10), name, HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color.WHITE)
 
 
 func _touch_steuerung() -> void:
@@ -344,7 +397,7 @@ func _zum_menue() -> void:
 	get_tree().change_scene_to_file("res://szenen/menue.tscn")
 
 
-func ende(ergebnis: int) -> void:
+func ende(ergebnis: int, verdient := 0) -> void:
 	_leisten.visible = false
 	if _touch:
 		_touch.visible = false
@@ -361,6 +414,11 @@ func ende(ergebnis: int) -> void:
 	var s := _label("%d : %d   ·   deine K.o.s: %d" % [arena.punkte[0], arena.punkte[1], arena.spieler.ko_zaehler], 34, Color.WHITE, 8)
 	s.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(s)
+	var m := _label("+%d Münzen  (jetzt %d)" % [verdient, Konto.muenzen], 40, GOLD, 10)
+	m.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(m)
+	if _gadget_anzeige:
+		_gadget_anzeige.visible = false
 	v.add_child(_knopf("Nochmal!", Color("#FF9F1C"), func(): get_tree().reload_current_scene()))
 	v.add_child(_knopf("Zum Menü", Color("#8E7DBE"), _zum_menue))
 	t.scale = Vector2.ONE * 0.2

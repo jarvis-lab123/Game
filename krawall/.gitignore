@@ -1,11 +1,8 @@
 # Godot-Importcache
 spiel/.godot/
-# Fotos echter Personen und Meshy-Zwischenstände bleiben lokal (nicht ins Repo)
+# Fotos echter Personen bleiben lokal (nicht ins Repo)
 spiel/charaktere/*/fotos/*
 !spiel/charaktere/_vorlage/fotos/.gitkeep
-spiel/charaktere/*/meshy_*.glb
-spiel/charaktere/*/comic_bild.png
-spiel/charaktere/*/meshy_vorschau.png
 export/
 web/
 __pycache__/

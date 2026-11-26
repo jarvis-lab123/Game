@@ -1,0 +1,77 @@
+{
+  "name": "Nebel",
+  "titel": "Der Schatten",
+  "seltenheit": "mythisch",
+  "beschreibung": "Scharfschütze, der sich unsichtbar macht und aus dem Hinterhalt zuschlägt.",
+  "werte": {
+    "leben": 2900,
+    "tempo": 1.05
+  },
+  "angriff": {
+    "typ": "schuss",
+    "name": "Präzisionsschuss",
+    "schaden": 1100,
+    "projektile": 1,
+    "streuung": 0,
+    "reichweite": 10.5,
+    "projektil_tempo": 24,
+    "nachladen": 1.9,
+    "farbe": "#B05CFF"
+  },
+  "super": {
+    "typ": "unsichtbar",
+    "farbe": "#B05CFF"
+  },
+  "gadgets": [
+    {
+      "typ": "mine"
+    },
+    {
+      "typ": "frost"
+    }
+  ],
+  "passive": [
+    {
+      "typ": "flink"
+    },
+    {
+      "typ": "superlader"
+    }
+  ],
+  "aussehen": {
+    "hautfarbe": "#E8C4A0",
+    "haare": {
+      "stil": "seitenscheitel",
+      "farbe": "#D9D9E3",
+      "scheitel": "links"
+    },
+    "augen": {
+      "farbe": "#7A3FD1",
+      "form": "muede"
+    },
+    "kopfbedeckung": {
+      "stil": "muetze",
+      "farbe": "#2A2140"
+    },
+    "oberteil": {
+      "stil": "hoodie",
+      "farbe": "#3A2E4F",
+      "farbe2": "#B05CFF"
+    },
+    "hose": {
+      "stil": "lang",
+      "farbe": "#1B1424"
+    },
+    "schuhe": {
+      "farbe": "#1B1424",
+      "sohle": "#B05CFF"
+    },
+    "waffe": {
+      "stil": "stab",
+      "farbe": "#B05CFF",
+      "farbe2": "#2A2140"
+    },
+    "mund": "neutral"
+  },
+  "platzhalter": true
+}

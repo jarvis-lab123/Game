@@ -1,4 +1,5 @@
 ## Ein Kämpfer in der Arena – vom Spieler oder von der KI gesteuert.
+## Fähigkeiten: Angriff (3 Munition) · Super (lädt durch Treffer) · Gadget (3x pro Match) · Passiv (immer an)
 class_name Kaempfer
 extends CharacterBody3D
 
@@ -7,11 +8,14 @@ signal ausgeschaltet(opfer: Kaempfer, taeter: Kaempfer)
 const MAX_MUNITION := 3
 const TEMPO_BASIS := 5.0
 const REGEN_WARTEZEIT := 3.0
+const SPAWNSCHUTZ := 2.0
+const STUFEN_BONUS := 0.06   # +6 % Leben und Schaden pro Stufe über 1
 
 var daten: Dictionary
 var team := 0
 var ist_spieler := false
 var arena: Node3D
+var stufe := 1
 
 var max_leben := 3600.0
 var leben := 3600.0
@@ -19,21 +23,30 @@ var munition := 3.0
 var super_ladung := 0.0
 var tot := false
 var im_busch := false
-var sichtbar_fuer_gegner := true
 var ko_zaehler := 0
+var schaden_gesamt := 0.0
+
+var super_info: Dictionary = {}
+var gadget_info: Dictionary = {}
+var passiv_info: Dictionary = {}
+var gadget_ladungen := 0
+var _gadget_bereit_ab := 0.0
 
 var bewegung := Vector3.ZERO      # gewünschte Richtung (Länge 0..1), von Spieler/KI gesetzt
 var blick := Vector3(0, 0, 1)
 var _blick_ziel_zeit := 0.0
 var _letzter_schaden := -99.0
 var _letzter_angriff := -99.0
-var _schild_bis := 0.0
 var _sprint_bis := 0.0
 var _sprint_richtung := Vector3.ZERO
+var _sprint_schaden := 0.0
 var _sprint_getroffen: Array = []
 var _rueckstoss := Vector3.ZERO
+var _zug := Vector3.ZERO
+var _springt := false
 var _blitz := 0.0
 var _quetsch := 0.0
+var _effekte := {}   # name -> [bis, wert]
 
 var modell: Node3D
 var _figur: Node3D
@@ -41,7 +54,7 @@ var _anim: AnimationPlayer
 var _baum: AnimationTree
 var _mats: Array = []
 var _ring: MeshInstance3D
-var _schild_kugel: MeshInstance3D
+var _blase: MeshInstance3D
 
 # KI
 var ki := false
@@ -54,14 +67,21 @@ var _ki_schuss_pause := 0.0
 var spawn_punkt := Vector3.ZERO
 
 
-func einrichten(d: Dictionary, t: int, spieler: bool, a: Node3D) -> void:
+func einrichten(d: Dictionary, t: int, spieler: bool, a: Node3D, st := 1, gadget_index := 0, passiv_index := 0) -> void:
 	daten = d
 	team = t
 	ist_spieler = spieler
 	ki = not spieler
 	arena = a
-	max_leben = float(d["werte"]["leben"])
+	stufe = maxi(st, 1)
+	max_leben = float(d["werte"]["leben"]) * (1.0 + STUFEN_BONUS * (stufe - 1))
 	leben = max_leben
+	super_info = Faehigkeiten.voll("super", d["super"])
+	var gs := Faehigkeiten.liste(d, "gadget")
+	var ps := Faehigkeiten.liste(d, "passiv")
+	gadget_info = gs[clampi(gadget_index, 0, gs.size() - 1)] if gs.size() > 0 else {}
+	passiv_info = ps[clampi(passiv_index, 0, ps.size() - 1)] if ps.size() > 0 else {}
+	gadget_ladungen = Faehigkeiten.GADGET_LADUNGEN if not gadget_info.is_empty() else 0
 	collision_layer = 2
 	collision_mask = 1 | 4
 	var form := CollisionShape3D.new()
@@ -74,6 +94,7 @@ func einrichten(d: Dictionary, t: int, spieler: bool, a: Node3D) -> void:
 	motion_mode = CharacterBody3D.MOTION_MODE_FLOATING
 	_modell_laden()
 	_team_ring()
+	effekt_setzen("spawnschutz", SPAWNSCHUTZ, 1.0)
 
 
 func _modell_laden() -> void:
@@ -244,6 +265,54 @@ func zeit() -> float:
 	return Time.get_ticks_msec() / 1000.0
 
 
+
+# ---------------------------------------------------------------- Statuseffekte & Passiv
+func effekt_setzen(name: String, dauer: float, wert := 1.0) -> void:
+	var bis := zeit() + dauer
+	if _effekte.has(name) and _effekte[name][0] > bis and _effekte[name][1] == wert:
+		return
+	_effekte[name] = [bis, wert]
+
+
+func effekt(name: String, standard := 0.0) -> float:
+	if _effekte.has(name) and _effekte[name][0] > zeit():
+		return _effekte[name][1]
+	return standard
+
+
+func hat_effekt(name: String) -> bool:
+	return _effekte.has(name) and _effekte[name][0] > zeit()
+
+
+func passiv(typ: String) -> float:
+	## Wert ("anteil") der Passiv-Fähigkeit, falls dieser Kämpfer sie hat, sonst 0
+	if passiv_info.get("typ", "") == typ:
+		return float(passiv_info.get("anteil", 1.0))
+	return 0.0
+
+
+func schadens_faktor() -> float:
+	var f := 1.0 + STUFEN_BONUS * (stufe - 1)
+	if hat_effekt("wut"):
+		f *= 1.3
+	if passiv("letzte_kraft") > 0.0 and leben < max_leben * float(passiv_info.get("grenze", 0.4)):
+		f *= 1.0 + passiv("letzte_kraft")
+	return f
+
+
+func tempo() -> float:
+	var t := TEMPO_BASIS * float(daten["werte"]["tempo"]) * (1.0 + passiv("flink"))
+	t *= 1.0 + effekt("turbo")
+	if hat_effekt("wut"):
+		t *= 1.4
+	t *= effekt("langsam", 1.0)
+	return t
+
+
+func ist_unsichtbar() -> bool:
+	return hat_effekt("unsichtbar")
+
+
 # ---------------------------------------------------------------- Ablauf
 func _physics_process(delta: float) -> void:
 	if tot or arena == null:
@@ -252,37 +321,42 @@ func _physics_process(delta: float) -> void:
 	if ki:
 		_ki_denken(delta)
 	# Munition laden
-	var nachladen := float(daten["angriff"]["nachladen"])
+	var nachladen := float(daten["angriff"]["nachladen"]) / (1.0 + passiv("schnelllader"))
+	if hat_effekt("wut"):
+		nachladen *= 0.5
 	munition = minf(MAX_MUNITION, munition + delta / maxf(nachladen, 0.2))
 	# Regeneration
-	if t - _letzter_schaden > REGEN_WARTEZEIT and t - _letzter_angriff > REGEN_WARTEZEIT and leben < max_leben:
-		leben = minf(max_leben, leben + max_leben * 0.13 * delta)
+	var warte := REGEN_WARTEZEIT
+	var rate := 0.13
+	if passiv_info.get("typ", "") == "schnelle_heilung":
+		warte = 1.5
+		rate = 0.26
+	if t - _letzter_schaden > warte and t - _letzter_angriff > warte and leben < max_leben:
+		leben = minf(max_leben, leben + max_leben * rate * delta)
 	# Bewegung
-	var tempo := TEMPO_BASIS * float(daten["werte"]["tempo"])
-	if t < _schild_bis:
-		tempo *= 1.15
-	var v := bewegung.limit_length(1.0) * tempo
-	if t < _sprint_bis:
-		v = _sprint_richtung * 17.0
-		_sprint_treffer()
-	v += _rueckstoss
-	_rueckstoss = _rueckstoss.move_toward(Vector3.ZERO, 30.0 * delta)
-	velocity = Vector3(v.x, 0, v.z)
-	move_and_slide()
-	position.y = 0.0
+	if not _springt:
+		var v := bewegung.limit_length(1.0) * tempo()
+		if t < _sprint_bis:
+			v = _sprint_richtung * 17.0
+			_sprint_treffer()
+		v += _rueckstoss + _zug
+		_rueckstoss = _rueckstoss.move_toward(Vector3.ZERO, 30.0 * delta)
+		_zug = Vector3.ZERO
+		velocity = Vector3(v.x, 0, v.z)
+		move_and_slide()
+		position.y = 0.0
 	# Blickrichtung
 	var richtung := blick
 	if t > _blick_ziel_zeit and bewegung.length() > 0.1:
 		richtung = bewegung.normalized()
 		blick = richtung
-	var ziel_winkel := atan2(richtung.x, richtung.z)
-	modell.rotation.y = lerp_angle(modell.rotation.y, ziel_winkel, minf(1.0, 16.0 * delta))
+	modell.rotation.y = lerp_angle(modell.rotation.y, atan2(richtung.x, richtung.z), minf(1.0, 16.0 * delta))
 	# Animation
 	if _baum:
-		var lauf := clampf(velocity.length() / tempo, 0.0, 1.0)
+		var lauf := clampf(velocity.length() / maxf(tempo(), 0.1), 0.0, 1.0)
 		var alt: float = _baum.get("parameters/bewegung/blend_amount")
 		_baum.set("parameters/bewegung/blend_amount", lerpf(alt, lauf, minf(1.0, 12.0 * delta)))
-	# Comic-Effekte: Blitz und Quetschen
+	# Comic-Effekte: Blitz, Quetschen, Spawnschutz-Blinken, Tarnung
 	if _blitz > 0.0:
 		_blitz = maxf(0.0, _blitz - delta * 6.0)
 		for m in _mats:
@@ -290,14 +364,16 @@ func _physics_process(delta: float) -> void:
 	_quetsch = maxf(0.0, _quetsch - delta * 5.0)
 	var q := sin(_quetsch * PI) * 0.18
 	modell.scale = Vector3(1.0 + q, 1.0 - q, 1.0 + q)
-	if _schild_kugel:
-		_schild_kugel.visible = t < _schild_bis
-	# Busch
-	var war_im_busch := im_busch
+	if _blase:
+		_blase.visible = hat_effekt("schild") or hat_effekt("blase") or hat_effekt("wut")
 	im_busch = arena.ist_busch(global_position)
-	if im_busch != war_im_busch and ist_spieler:
-		for m in _mats:
-			(m as ShaderMaterial).set_shader_parameter("leuchten", 0.25 if im_busch else 0.0)
+	var glimmen := 0.0
+	if ist_spieler and (im_busch or ist_unsichtbar()):
+		glimmen = 0.3
+	if hat_effekt("spawnschutz"):
+		glimmen = 0.4 if int(t * 8.0) % 2 == 0 else 0.0
+	for m in _mats:
+		(m as ShaderMaterial).set_shader_parameter("leuchten", glimmen)
 
 
 func zielen_auf(richtung: Vector3) -> void:
@@ -307,13 +383,68 @@ func zielen_auf(richtung: Vector3) -> void:
 		_blick_ziel_zeit = zeit() + 0.45
 
 
+func zug(kraft: Vector3) -> void:
+	_zug += kraft
+
+
+func springen_zu(ziel: Vector3, dauer: float, bei_landung: Callable = Callable(), nur_frei := false) -> void:
+	## Sprung im Bogen (über Wände). nur_frei = am Hindernis vorher stoppen (Gadget-Sprung)
+	if tot or _springt:
+		return
+	ziel.y = 0
+	if nur_frei:
+		var q := PhysicsRayQueryParameters3D.create(global_position + Vector3(0, 0.8, 0), ziel + Vector3(0, 0.8, 0), 1 | 4)
+		var hit := get_world_3d().direct_space_state.intersect_ray(q)
+		if hit:
+			var p: Vector3 = hit.position
+			ziel = Vector3(p.x, 0, p.z) - (ziel - global_position).normalized() * 0.5
+	else:
+		ziel = arena.freier_punkt(ziel)
+	_springt = true
+	zielen_auf(ziel - global_position)
+	var start := global_position
+	var tw := create_tween()
+	tw.tween_method(func(f: float):
+		var p := start.lerp(ziel, f)
+		p.y = sin(f * PI) * (2.5 if not nur_frei else 0.8)
+		global_position = p, 0.0, 1.0, dauer)
+	tw.tween_callback(func():
+		global_position = Vector3(ziel.x, 0, ziel.z)
+		_springt = false
+		_quetsch = 1.0
+		Effekte.ring(arena, global_position, 1.4, Color.WHITE, 0.25)
+		if bei_landung.is_valid():
+			bei_landung.call())
+
+
+func sprint_starten(richtung: Vector3, weite: float, schaden: float) -> void:
+	_sprint_richtung = richtung
+	_sprint_bis = zeit() + weite / 17.0
+	_sprint_schaden = schaden
+	_sprint_getroffen.clear()
+
+
+func blase_zeigen(farbe: Color, _dauer: float, alpha := 0.25) -> void:
+	if _blase == null:
+		_blase = MeshInstance3D.new()
+		var k := SphereMesh.new()
+		k.radius = 1.1
+		k.height = 2.2
+		_blase.mesh = k
+		_blase.position.y = 0.9
+		add_child(_blase)
+	var c := farbe
+	c.a = alpha
+	_blase.material_override = Toon.unschattiert(c, true)
+
+
 # ---------------------------------------------------------------- Kampf
 func reichweite() -> float:
 	return float(daten["angriff"]["reichweite"])
 
 
 func kann_angreifen() -> bool:
-	return not tot and munition >= 1.0
+	return not tot and munition >= 1.0 and not _springt
 
 
 func angreifen(richtung: Vector3, ziel_punkt := Vector3.INF) -> void:
@@ -325,12 +456,16 @@ func angreifen(richtung: Vector3, ziel_punkt := Vector3.INF) -> void:
 	richtung = richtung.normalized()
 	munition -= 1.0
 	_letzter_angriff = zeit()
+	_effekte.erase("spawnschutz")
+	_tarnung_beenden()
 	zielen_auf(richtung)
 	if _baum and _anim.has_animation("Attack"):
 		_baum.set("parameters/angriff/request", AnimationNodeOneShot.ONE_SHOT_REQUEST_FIRE)
 	var a: Dictionary = daten["angriff"]
 	var farbe := Color.html(a["farbe"])
 	var start := global_position + Vector3(0, 1.0, 0) + richtung * 0.5
+	var schaden := float(a["schaden"]) * schadens_faktor() * effekt("hinterhalt", 1.0)
+	_effekte.erase("hinterhalt")
 	match a["typ"]:
 		"schuss", "schrot":
 			var n := int(a["projektile"])
@@ -342,7 +477,7 @@ func angreifen(richtung: Vector3, ziel_punkt := Vector3.INF) -> void:
 				if a["typ"] == "schrot":
 					w += randf_range(-0.04, 0.04)
 				arena.projektil(self, start, richtung.rotated(Vector3.UP, w), float(a["projektil_tempo"]),
-					reichweite(), float(a["schaden"]), farbe, 0.22 if a["typ"] == "schuss" else 0.16)
+					reichweite(), schaden, farbe, 0.22 if a["typ"] == "schuss" else 0.16)
 			Arena.ton("schuss")
 		"wurf":
 			var ziel := ziel_punkt
@@ -352,7 +487,7 @@ func angreifen(richtung: Vector3, ziel_punkt := Vector3.INF) -> void:
 			weg.y = 0
 			if weg.length() > reichweite():
 				ziel = global_position + weg.normalized() * reichweite()
-			arena.wurf(self, start, ziel, float(a["schaden"]), float(a["radius"]), farbe, false)
+			arena.wurf(self, start, ziel, schaden, float(a["radius"]), farbe, false)
 			Arena.ton("wurf")
 		"nahkampf":
 			await get_tree().create_timer(0.12).timeout
@@ -363,12 +498,17 @@ func angreifen(richtung: Vector3, ziel_punkt := Vector3.INF) -> void:
 				var d: Vector3 = k.global_position - global_position
 				d.y = 0
 				if d.length() < reichweite() and d.normalized().dot(richtung) > 0.35:
-					k.schaden_nehmen(float(a["schaden"]), self, richtung * 6.0)
+					k.schaden_nehmen(schaden, self, richtung * 6.0)
 			Arena.ton("schlag")
 
 
+func _tarnung_beenden() -> void:
+	if hat_effekt("unsichtbar"):
+		_effekte.erase("unsichtbar")
+
+
 func super_bereit() -> bool:
-	return not tot and super_ladung >= 1.0
+	return not tot and super_ladung >= 1.0 and not _springt and not super_info.is_empty()
 
 
 func super_ausloesen(richtung: Vector3, ziel_punkt := Vector3.INF) -> void:
@@ -381,49 +521,32 @@ func super_ausloesen(richtung: Vector3, ziel_punkt := Vector3.INF) -> void:
 	richtung = richtung.normalized()
 	zielen_auf(richtung)
 	_letzter_angriff = zeit()
+	_effekte.erase("spawnschutz")
 	if _baum and _anim.has_animation("Super"):
 		_baum.set("parameters/super/request", AnimationNodeOneShot.ONE_SHOT_REQUEST_FIRE)
-	var s: Dictionary = daten["super"]
-	var farbe := Color.html(s["farbe"])
-	var schaden := float(s["schaden"])
 	Arena.ton("super")
-	Effekte.super_blitz(arena, global_position, farbe)
-	match s["typ"]:
-		"sprint":
-			_sprint_richtung = richtung
-			_sprint_bis = zeit() + float(s.get("reichweite", 7.0)) / 17.0
-			_sprint_getroffen.clear()
-		"salve":
-			for i in 16:
-				var r := richtung.rotated(Vector3.UP, TAU * i / 16.0)
-				arena.projektil(self, global_position + Vector3(0, 1.0, 0) + r * 0.5, r, 15.0,
-					float(s.get("reichweite", 7.0)), schaden / 4.0, farbe, 0.28)
-		"bombe":
-			var ziel := ziel_punkt
-			var rw := float(s.get("reichweite", 8.0))
-			if ziel == Vector3.INF:
-				ziel = global_position + richtung * rw
-			var weg := ziel - global_position
-			weg.y = 0
-			if weg.length() > rw:
-				ziel = global_position + weg.normalized() * rw
-			arena.wurf(self, global_position + Vector3(0, 1.4, 0), ziel, schaden, 2.6, farbe, true)
-		"heilzone":
-			arena.heilzone(self, global_position, schaden, farbe)
-		"schild":
-			_schild_bis = zeit() + 4.0
-			leben = minf(max_leben, leben + max_leben * 0.25)
-			if _schild_kugel == null:
-				_schild_kugel = MeshInstance3D.new()
-				var k := SphereMesh.new()
-				k.radius = 1.1
-				k.height = 2.2
-				_schild_kugel.mesh = k
-				_schild_kugel.position.y = 0.9
-				var c := farbe
-				c.a = 0.25
-				_schild_kugel.material_override = Toon.unschattiert(c, true)
-				add_child(_schild_kugel)
+	Effekte.super_blitz(arena, global_position, Color.html(super_info.get("farbe", "#FF4D6D")))
+	Faehigkeiten.super_ausfuehren(self, super_info, richtung, ziel_punkt)
+
+
+func gadget_bereit() -> bool:
+	return not tot and gadget_ladungen > 0 and zeit() >= _gadget_bereit_ab and not _springt
+
+
+func gadget_abklingen() -> float:
+	## 0 = bereit, 1 = gerade benutzt
+	return clampf((_gadget_bereit_ab - zeit()) / Faehigkeiten.GADGET_ABKLINGZEIT, 0.0, 1.0)
+
+
+func gadget_ausloesen(richtung: Vector3) -> void:
+	if not gadget_bereit():
+		return
+	gadget_ladungen -= 1
+	_gadget_bereit_ab = zeit() + Faehigkeiten.GADGET_ABKLINGZEIT
+	richtung.y = 0
+	if richtung.length() < 0.01:
+		richtung = blick
+	Faehigkeiten.gadget_ausfuehren(self, gadget_info, richtung.normalized())
 
 
 func _sprint_treffer() -> void:
@@ -432,29 +555,35 @@ func _sprint_treffer() -> void:
 			continue
 		if k.global_position.distance_to(global_position) < 1.3:
 			_sprint_getroffen.append(k)
-			k.schaden_nehmen(float(daten["super"]["schaden"]), self, _sprint_richtung * 14.0)
-	# an Wänden stoppen
+			k.schaden_nehmen(_sprint_schaden, self, _sprint_richtung * 14.0)
 	if get_slide_collision_count() > 0:
 		_sprint_bis = 0.0
 
 
 func super_laden(menge: float) -> void:
-	super_ladung = minf(1.0, super_ladung + menge)
+	super_ladung = minf(1.0, super_ladung + menge * (1.0 + passiv("superlader")))
 
 
 func schaden_nehmen(menge: float, quelle: Kaempfer, stoss := Vector3.ZERO) -> void:
-	if tot:
+	if tot or hat_effekt("spawnschutz"):
 		return
-	if zeit() < _schild_bis:
-		menge *= 0.4
+	menge *= 1.0 - effekt("schild")
+	menge *= 1.0 - effekt("blase")
+	menge *= 1.0 - passiv("dicke_haut")
 	leben -= menge
 	_letzter_schaden = zeit()
 	_blitz = 1.0
 	_quetsch = 1.0
-	_rueckstoss += stoss
+	_rueckstoss += stoss * (0.2 if hat_effekt("blase") else 1.0)
+	_tarnung_beenden()
 	Effekte.zahl(arena, global_position + Vector3(0, 2.1, 0), int(menge), quelle != null and quelle.ist_spieler)
-	if quelle and quelle != self:
-		quelle.super_laden(float(quelle.daten["super"]["ladung_pro_treffer"]))
+	if quelle and quelle != self and is_instance_valid(quelle):
+		quelle.schaden_gesamt += menge
+		quelle.super_laden(float(quelle.super_info.get("ladung_pro_treffer", 0.12)))
+		if quelle.passiv("vampir") > 0.0:
+			quelle.heilen(menge * quelle.passiv("vampir"))
+		if passiv("dornen") > 0.0 and not quelle.tot:
+			quelle.leben = maxf(1.0, quelle.leben - menge * passiv("dornen"))
 	if _baum and _anim.has_animation("Hit") and randf() < 0.5:
 		_baum.set("parameters/treffer/request", AnimationNodeOneShot.ONE_SHOT_REQUEST_FIRE)
 	if leben <= 0.0:
@@ -471,6 +600,7 @@ func heilen(menge: float) -> void:
 func _ausschalten(taeter: Kaempfer) -> void:
 	tot = true
 	_sprint_bis = 0.0
+	_effekte.clear()
 	Effekte.puff(arena, global_position + Vector3(0, 0.8, 0), Color("#FFFFFF"))
 	Arena.ton("ko")
 	visible = false
@@ -487,7 +617,9 @@ func wiederbeleben(punkt: Vector3) -> void:
 	visible = true
 	collision_layer = 2
 	_rueckstoss = Vector3.ZERO
+	_springt = false
 	_ki_pfad.clear()
+	effekt_setzen("spawnschutz", SPAWNSCHUTZ, 1.0)
 	set_physics_process(true)
 	Effekte.puff(arena, punkt + Vector3(0, 0.5, 0), Color("#FFF3B0"))
 
@@ -534,8 +666,31 @@ func _ki_denken(delta: float) -> void:
 			vorhalt = vorhalt.rotated(Vector3.UP, randf_range(-0.12, 0.12))
 			angreifen(vorhalt, _ki_ziel.global_position + _ki_ziel.velocity * 0.4)
 			_ki_schuss_pause = randf_range(0.45, 0.9)
-		if super_bereit() and d < float(daten["super"].get("reichweite", 7.0)) * 0.9 and sicht:
+		if super_bereit() and d < float(super_info.get("reichweite", 7.0)) * 0.9 and sicht:
 			super_ausloesen(zu, _ki_ziel.global_position)
+		if gadget_bereit() and _ki_gadget_sinnvoll(d):
+			gadget_ausloesen(zu if gadget_info.get("typ") != "sprung" else -zu if leben < max_leben * 0.35 else zu)
+	elif gadget_bereit() and gadget_info.get("typ") == "heiltrank" and leben < max_leben * 0.4:
+		gadget_ausloesen(blick)
+
+
+func _ki_gadget_sinnvoll(d: float) -> bool:
+	match gadget_info.get("typ", ""):
+		"heiltrank":
+			return leben < max_leben * 0.45
+		"stosswelle", "frost":
+			return d < 3.0
+		"schutzblase":
+			return leben < max_leben * 0.5 and zeit() - _letzter_schaden < 0.3
+		"sprung":
+			return leben < max_leben * 0.35 or d > reichweite() * 1.2
+		"mine":
+			return d < 4.0
+		"turbo":
+			return leben < max_leben * 0.35
+		"munition":
+			return munition < 1.0
+	return false
 
 
 func _ki_naechster_gegner() -> Kaempfer:

@@ -2,7 +2,10 @@
   "name": "Name",
   "titel": "Spitzname oder kurzer Titel",
   "beschreibung": "Ein, zwei Sätze, wer das ist und wie er/sie kämpft.",
-  "werte": { "leben": 3600, "tempo": 1.0 },
+  "werte": {
+    "leben": 3600,
+    "tempo": 1.0
+  },
   "angriff": {
     "typ": "schuss",
     "name": "Name des Angriffs",
@@ -17,17 +20,53 @@
   },
   "super": {
     "typ": "sprint",
-    "name": "Name des Supers",
-    "schaden": 1000,
-    "reichweite": 7.0,
-    "ladung_pro_treffer": 0.12,
+    "name": "Name des Supers (optional)",
     "farbe": "#FF4D6D"
   },
   "modell_hoehe": 1.75,
-  "meshy": {
-    "groesse_m": 1.75,
-    "kleidung": "z. B. rotes Hoodie, schwarze Jogginghose, weiße Sneaker, Cap nach hinten",
-    "stil_zusatz": "",
-    "animationen": {}
+  "seltenheit": "gewoehnlich",
+  "gadgets": [
+    {
+      "typ": "heiltrank"
+    },
+    {
+      "typ": "sprung"
+    }
+  ],
+  "passive": [
+    {
+      "typ": "vampir"
+    },
+    {
+      "typ": "flink"
+    }
+  ],
+  "aussehen": {
+    "hautfarbe": "#F2C29B",
+    "haare": {
+      "stil": "kurz",
+      "farbe": "#3B2414"
+    },
+    "augen": {
+      "farbe": "#5B3A1E"
+    },
+    "oberteil": {
+      "stil": "hoodie",
+      "farbe": "#3A7BD5",
+      "farbe2": "#FFFFFF"
+    },
+    "hose": {
+      "stil": "lang",
+      "farbe": "#2E3A59"
+    },
+    "schuhe": {
+      "farbe": "#FFFFFF",
+      "sohle": "#E04848"
+    },
+    "waffe": {
+      "stil": "blaster",
+      "farbe": "#FFB703",
+      "farbe2": "#333333"
+    }
   }
 }

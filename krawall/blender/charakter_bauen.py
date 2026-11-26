@@ -654,8 +654,15 @@ class Figur:
                    dicke=0.035, versatz=weich_versatz(0.035))
 
         if stil == "afro":
-            ellipsoid("afro", km + Vector((0, 0.03, kr.z * 0.30)), (kr.x * 1.4, kr.y * 1.4, kr.z * 1.15), hm, "head",
-                      verformen=lambda v: v * (1 + 0.04 * math.sin(v.x * 9) * math.sin(v.y * 9) * math.sin(v.z * 9)))
+            # Afro: große Wolke oben/hinten, vorne über der Stirn abgeflacht, damit das Gesicht frei bleibt
+            def afro_form(v):
+                v = v * (1 + 0.05 * math.sin(v.x * 9) * math.sin(v.y * 9) * math.sin(v.z * 9))
+                if v.y < 0:  # vorne
+                    v.y *= 0.55
+                    v.z = v.z * 0.9 + 0.12
+                return v
+            ellipsoid("afro", km + Vector((0, kr.y * 0.32, kr.z * 0.42)), (kr.x * 1.38, kr.y * 1.3, kr.z * 1.05), hm, "head",
+                      verformen=afro_form)
             return
 
         if stil == "locken":

@@ -24,5 +24,5 @@ pfad = os.path.join(ziel, "charakter.json")
 d = json.load(open(pfad, encoding="utf-8"))
 d["name"] = sys.argv[2] if len(sys.argv) > 2 else cid.capitalize()
 json.dump(d, open(pfad, "w", encoding="utf-8"), indent=2, ensure_ascii=False)
-print(f"Angelegt: {ziel}\n→ Fotos nach {os.path.join(ziel, 'fotos')} legen, charakter.json ausfüllen,\n"
-      f"→ dann: python3 werkzeuge/foto_zu_charakter.py {cid}")
+print(f"Angelegt: {ziel}\n→ charakter.json ausfüllen (Aussehen, Fähigkeiten, Seltenheit),\n"
+      f"→ dann Modell bauen: python3 blender/charakter_bauen.py spiel/charaktere/{cid}/charakter.json")
