@@ -380,7 +380,18 @@ func wurf(quelle: Kaempfer, start: Vector3, ziel: Vector3, schaden: float, radiu
 func explosion(quelle: Kaempfer, team: int, pos: Vector3, radius: float, schaden: float, farbe: Color, zerstoert: bool,
 		effekt := {}) -> void:
 	Effekte.explosion(self, pos, radius, farbe)
-	if effekt.has("dauer"):
+	if effekt.has("zone"):
+		var zd: Dictionary = effekt["zone"]
+		var z := Faehigkeiten.Zone.new()
+		z.art = str(zd.get("art", "feuer"))
+		z.besitzer = quelle
+		z.radius = float(zd.get("radius", 2.0))
+		z.dauer = float(zd.get("dauer", 3.0))
+		z.schaden_gesamt = float(zd.get("schaden", 600)) * (quelle.schadens_faktor() if is_instance_valid(quelle) else 1.0)
+		z.farbe = Color("#FF7A1A") if z.art == "feuer" else Color("#7CFF5B")
+		add_child(z)
+		z.global_position = Vector3(pos.x, 0, pos.z)
+	elif effekt.has("dauer"):
 		Effekte.pfuetze(self, pos, radius, Color("#C8D96F"), float(effekt["dauer"]) + 1.0)
 		for k in gegner_von(team):
 			if Vector2(k.global_position.x - pos.x, k.global_position.z - pos.z).length() < radius + 0.4:

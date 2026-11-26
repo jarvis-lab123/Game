@@ -547,7 +547,7 @@ func angreifen(richtung: Vector3, ziel_punkt := Vector3.INF) -> void:
 				arena.projektil(self, start, richtung.rotated(Vector3.UP, w), float(a["projektil_tempo"]),
 					reichweite(), schaden, farbe, 0.22 if a["typ"] == "schuss" else 0.16,
 					str(texte[randi() % texte.size()]) if texte.size() > 0 else "",
-					str(a.get("geschoss_modell", "")), a.get("verlangsamt", {}))
+					str(a.get("geschoss_modell", "")), a.get("verlangsamt", a.get("aufprall", {})))
 			Arena.ton("schuss")
 		"wurf":
 			var ziel := ziel_punkt
@@ -558,7 +558,7 @@ func angreifen(richtung: Vector3, ziel_punkt := Vector3.INF) -> void:
 			if weg.length() > reichweite():
 				ziel = global_position + weg.normalized() * reichweite()
 			arena.wurf(self, start, ziel, schaden, float(a["radius"]), farbe, false,
-				str(a.get("geschoss_modell", "")), a.get("verlangsamt", {}))
+				str(a.get("geschoss_modell", "")), a.get("verlangsamt", a.get("aufprall", {})))
 			Arena.ton("wurf")
 		"nahkampf":
 			await get_tree().create_timer(0.12).timeout

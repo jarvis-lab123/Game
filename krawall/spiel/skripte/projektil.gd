@@ -167,6 +167,45 @@ func _modell_bauen(art: String) -> Node3D:
 			var blitz := BoxMesh.new()
 			blitz.size = Vector3(0.1, 0.06, 0.06)
 			_teil(form, blitz, Color("#FFFFFF"), Vector3(0.1, 0.15, 0))
+		"kolben":
+			# Erlenmeyerkolben mit grüner Flüssigkeit
+			var glas := CylinderMesh.new()
+			glas.top_radius = 0.06
+			glas.bottom_radius = 0.2
+			glas.height = 0.3
+			_teil(form, glas, Color("#D6F4FF"), Vector3.ZERO)
+			var fl := CylinderMesh.new()
+			fl.top_radius = 0.12
+			fl.bottom_radius = 0.18
+			fl.height = 0.14
+			var f := _teil(form, fl, Color("#7CFF5B"), Vector3(0, -0.07, 0))
+			f.material_override = Toon.farbig(Color("#7CFF5B"), 0.0, 0.8)
+			var hals := CylinderMesh.new()
+			hals.top_radius = 0.06
+			hals.bottom_radius = 0.06
+			hals.height = 0.16
+			_teil(form, hals, Color("#D6F4FF"), Vector3(0, 0.22, 0))
+		"molotow":
+			# große Flasche mit brennendem Lappen
+			var fl2 := CylinderMesh.new()
+			fl2.top_radius = 0.22
+			fl2.bottom_radius = 0.24
+			fl2.height = 0.6
+			_teil(form, fl2, Color("#3A7D44"), Vector3.ZERO)
+			var hals2 := CylinderMesh.new()
+			hals2.top_radius = 0.08
+			hals2.bottom_radius = 0.12
+			hals2.height = 0.3
+			_teil(form, hals2, Color("#3A7D44"), Vector3(0, 0.44, 0))
+			var lappen := _teil(form, _kugel(0.12), Color("#E9D8A6"), Vector3(0, 0.62, 0))
+			lappen.scale = Vector3(1, 1.4, 1)
+			for i in 3:
+				var fl3 := CylinderMesh.new()
+				fl3.top_radius = 0.0
+				fl3.bottom_radius = 0.12 - i * 0.02
+				fl3.height = 0.35 + i * 0.1
+				var flamme := _teil(form, fl3, Color("#FFB703") if i == 1 else Color("#FF5A1F"), Vector3(0.04 * (i - 1), 0.85 + i * 0.05, 0))
+				flamme.material_override = Toon.farbig(Color("#FFB703") if i == 1 else Color("#FF5A1F"), 0.0, 1.4)
 		_:
 			_teil(form, _kugel(radius), farbe, Vector3.ZERO)
 	return form

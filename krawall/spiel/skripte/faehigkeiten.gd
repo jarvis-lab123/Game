@@ -30,6 +30,8 @@ const SUPERS := {
 		"dauer": 4.0},
 	"schweigen": {"name": "Silence", "beschreibung": "Alle Gegner in der Nähe verstummen: Wer jetzt angreift, ist sofort K.o.",
 		"dauer": 4.0, "reichweite": 14.0},
+	"brandbombe": {"name": "Molotow-Cocktail", "beschreibung": "Wirft eine große Brandflasche: Explosion und ein Feuerfeld, das mehrere Sekunden brennt.",
+		"schaden": 700, "reichweite": 9.0, "radius": 2.4, "feuer_schaden": 1600, "feuer_dauer": 4.5, "feuer_radius": 3.2},
 	"beschwoeren": {"name": "Verstärkung", "beschreibung": "Ein Begleiter erscheint und kämpft eine Weile mit.",
 		"begleiter": "", "dauer": 10.0},
 }
@@ -162,6 +164,10 @@ static func super_ausfuehren(k: Kaempfer, s: Dictionary, richtung: Vector3, ziel
 			var d := float(s.get("dauer", 5.0))
 			k.effekt_setzen("wut", d, 1.0)
 			k.blase_zeigen(Color("#FF3B30"), d, 0.15)
+		"brandbombe":
+			arena.wurf(k, k.global_position + Vector3(0, 1.4, 0), ziel, schaden, float(s.get("radius", 2.4)), farbe, false,
+				"molotow", {"zone": {"art": "feuer", "radius": float(s.get("feuer_radius", 3.2)),
+				"dauer": float(s.get("feuer_dauer", 4.5)), "schaden": float(s.get("feuer_schaden", 1600))}})
 		"schweigen":
 			var d := float(s.get("dauer", 4.0))
 			Effekte.ring(arena, k.global_position, float(s.get("reichweite", 14.0)), farbe, 0.6)
@@ -402,12 +408,47 @@ class Zone extends Node3D:
 				r.position.y = 0.4 + i * 0.6
 				r.material_override = Toon.unschattiert(Color(1, 1, 1, 0.6), true)
 				add_child(r)
+		if art == "feuer" or art == "gift":
+			# Flammen bzw. Säureblasen, die flackern
+			for i in (14 if art == "feuer" else 9):
+				var w := randf() * TAU
+				var rr := sqrt(randf()) * radius * 0.85
+				var f := MeshInstance3D.new()
+				if art == "feuer":
+					var kg := CylinderMesh.new()
+					kg.top_radius = 0.0
+					kg.bottom_radius = randf_range(0.18, 0.32)
+					kg.height = randf_range(0.6, 1.2)
+					f.mesh = kg
+					f.material_override = Toon.farbig(Color("#FFB703") if i % 3 == 0 else Color("#FF5A1F"), 0.0, 1.4)
+					f.position = Vector3(cos(w) * rr, kg.height / 2.0, sin(w) * rr)
+				else:
+					var kb := SphereMesh.new()
+					kb.radius = randf_range(0.08, 0.16)
+					kb.height = kb.radius * 2.0
+					f.mesh = kb
+					f.material_override = Toon.farbig(Color("#B6FF7A"), 0.0, 0.9)
+					f.position = Vector3(cos(w) * rr, 0.08, sin(w) * rr)
+				f.set_meta("basis", f.position)
+				f.set_meta("phase", randf() * TAU)
+				f.add_to_group("zonen_deko")
+				add_child(f)
 		Effekte.ring(besitzer.arena, global_position, radius, farbe)
 
 	func _physics_process(delta: float) -> void:
 		_t += delta
 		_tick -= delta
 		rotation.y += delta * (9.0 if art == "wirbel" else 0.3)
+		if art == "feuer" or art == "gift":
+			for f in get_children():
+				if f.has_meta("phase"):
+					var ph: float = f.get_meta("phase") + _t * (11.0 if art == "feuer" else 4.0)
+					if art == "feuer":
+						f.scale = Vector3(1, 0.75 + 0.35 * sin(ph), 1)
+					else:
+						f.position = f.get_meta("basis") + Vector3(0, fmod(ph * 0.08, 0.5), 0)
+			if _t > dauer - 0.5:
+				scale = Vector3.ONE * maxf(0.01, (dauer - _t) * 2.0)
 		if _t > dauer or besitzer == null or not is_instance_valid(besitzer):
 			queue_free()
 			return

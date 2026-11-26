@@ -525,6 +525,28 @@ class Figur:
                   normale=(0, 0.15, 1), skal=(1.12, 1.0))
             torus("kragen2", Vector((0, 0.01, self.hals_z + 0.035)), 0.095 * bau / 0.82 * 0.82, 0.03, ober, "neck",
                   normale=(0, 0.15, 1), skal=(1.12, 1.0))
+        elif stil == "hemd":
+            # Hemd mit Kragen, Knopfleiste und Längsstreifen
+            streifen = material("hemdstreifen", a["oberteil"]["farbe2"])
+            for sx in (1, -1):
+                kragen_a = Vector((sx * 0.02, self.rumpf_y(self.hals_z - 0.05) - 0.01, self.hals_z - 0.02))
+                kragen_b = Vector((sx * 0.09 * bau / 0.82, self.rumpf_y(self.hals_z - 0.09) + 0.005, self.hals_z - 0.1))
+                rohr("kragenspitze", [kragen_a + Vector((sx * 0.03, 0.02, 0.02)), kragen_a, kragen_a + (kragen_b - kragen_a) * 0.6],
+                     [0.012, 0.016, 0.008], ober, "chest", abflachen=0.4)
+            torus("kragen", Vector((0, 0.0, self.hals_z - 0.02)), 0.085 * bau, 0.025, ober, "chest", normale=(0, 0.1, 1))
+            for i in range(5):
+                zk = self.hals_z - 0.12 - i * (self.hals_z - self.huefte_z - 0.18) / 4
+                ellipsoid("knopf", Vector((0, self.rumpf_y(zk) - 0.004, zk)), (0.012, 0.006, 0.012), streifen, "chest" if i < 3 else "spine",
+                          segs=10, ringe=6)
+            for j in range(-3, 4):
+                if j == 0:
+                    continue
+                x = j * 0.045 * bau / 0.82
+                pkt = []
+                for t in range(6):
+                    zz = self.huefte_z + 0.1 + t * (self.hals_z - self.huefte_z - 0.2) / 5
+                    pkt.append(Vector((x, self.rumpf_y(zz) * (1 - (x / (0.25 * bau)) ** 2 * 0.5) - 0.002 - 0.028 * (t / 5) ** 1.5, zz)))
+                rohr("streifen", pkt, 0.006, streifen, "chest" if j % 2 else "spine", abflachen=0.4, glatt_teilen=0)
         elif stil == "pulli":
             torus("kragen", Vector((0, 0.0, self.hals_z - 0.035)), 0.085 * bau, 0.03, m["oberteil2"], "chest",
                   normale=(0, 0.1, 1))
@@ -591,7 +613,7 @@ class Figur:
                        schuh_m + Vector((0.035, -0.07 + k * 0.04, 0.07 - k * 0.01)), 0.012, m["oberteil2"], f"foot.{seite}")
 
         # Arme
-        lang = stil in ("hoodie", "jacke", "pulli", "heizjacke")
+        lang = stil in ("hoodie", "jacke", "pulli", "heizjacke", "hemd")
         for seite, sx in (("L", 1), ("R", -1)):
             s = Vector((sx * self.schulter.x, 0, self.schulter.z))
             ell = s + Vector((sx * self.arm_ell.x, self.arm_ell.y, self.arm_ell.z))
@@ -846,6 +868,18 @@ class Figur:
         if stil == "buzz":
             schale("haare", km, (kr.x * 1.01, kr.y * 1.01, kr.z * 1.01), hm, "head",
                    haarlinie(math.radians(62), math.radians(92), math.radians(118), math.radians(12)), dicke=0.012)
+            return
+
+        if stil == "geheimratsecken":
+            # kurzes Haar, hohe Stirn, an den Schläfen tief zurückweichend
+            basis = haarlinie(math.radians(24), math.radians(82), math.radians(112), math.radians(14))
+
+            def linie(phi):
+                d = abs(math.atan2(math.sin(phi), math.cos(phi)))
+                ecke = math.radians(26) * math.exp(-((d - math.radians(42)) / math.radians(16)) ** 2)
+                return max(math.radians(10), basis(phi) - ecke)
+            schale("haare", km, (kr.x * 1.01, kr.y * 1.01, kr.z * 1.01), hm, "head", linie, dicke=0.016,
+                   versatz=lambda phi, a_: 0.015 * math.sin(min(a_ / math.radians(50), 1.0) * math.pi))
             return
 
         if stil == "pixie":
@@ -1121,6 +1155,10 @@ class Figur:
             ellipsoid("kristall", hm + Vector((0, 0, 0.52)), (0.06, 0.06, 0.09), material("kristall", w["farbe"], leuchten=True), k)
         elif w["stil"] == "buch":
             rundbox("buch", hm + Vector((0, -0.08, 0.02)), (0.05, 0.16, 0.2), m1, k, rundung=0.2)
+        elif w["stil"] == "kolben":
+            kapsel("kolbenhals", hm + Vector((0, -0.07, 0.06)), hm + Vector((0, -0.07, 0.14)), 0.02, material("glas_kolben", "#D6F4FF", glanz=True), k)
+            ellipsoid("kolbenbauch", hm + Vector((0, -0.07, 0.02)), (0.06, 0.06, 0.05), material("glas_kolben", "#D6F4FF", glanz=True), k)
+            ellipsoid("chemikalie", hm + Vector((0, -0.07, 0.005)), (0.052, 0.052, 0.03), material("chemikalie", "#7CFF5B", leuchten=True), k)
         elif w["stil"] == "schnecke":
             ellipsoid("schneckenhaus", hm + Vector((0, -0.09, 0.05)), (0.05, 0.06, 0.06), m1, k)
             torus("spirale", hm + Vector((0, -0.09, 0.05)), 0.03, 0.009, m2, k, normale=(1, 0, 0))

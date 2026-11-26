@@ -27,7 +27,7 @@ Fotos in `fotos/` bleiben lokal und kommen nicht ins Git-Repo.
 
 **Supers:** `sprint` (Rempler) · `salve` (Kugelring) · `bombe` (Riesenwurf, zerstört Kisten) · `heilzone` ·
 `schild` (weniger Schaden) · `teleport` (Sprung über Wände mit Landeschaden) · `geschuetz` (Turm, der selbst schießt) ·
-`wirbel` (zieht Gegner zusammen) · `wut` (schneller, stärker, schneller nachladen) · `eisfeld` (verlangsamt) ·
+`wirbel` (zieht Gegner zusammen) · `brandbombe` (Molotow mit Feuerfeld) · `schweigen` (Silence) · `beschwoeren` (Begleiter) · `wut` (schneller, stärker, schneller nachladen) · `eisfeld` (verlangsamt) ·
 `unsichtbar` (Tarnung, nächster Angriff +50 %)
 
 **Gadgets:** `heiltrank` · `stosswelle` · `sprung` · `schutzblase` · `mine` · `turbo` · `munition` · `frost`
@@ -41,6 +41,7 @@ Neue Fähigkeiten, die es noch nicht gibt, baut Claude in `spiel/skripte/faehigk
 | Feld | Wirkung |
 |---|---|
 | `angriff.geschoss_text` | Liste von Texten: Geschosse fliegen als Schriftzug (z. B. Formeln `["x²", "π"]`) |
+| `angriff.aufprall` | bei `wurf`: z. B. `{"zone": {"art": "gift", "radius": 1.3, "dauer": 2, "schaden": 300}}` (art: gift oder feuer) |
 | `super.ruf` | Großer Schriftzug über dem Kopf beim Auslösen (z. B. `"PAPI TAG"`) |
 | `super.bleibt_beim_angriff` | bei `unsichtbar`: Tarnung endet nicht beim Angreifen oder Getroffenwerden |
 | `super.bonus` | bei `unsichtbar`: Schadensfaktor des nächsten Angriffs (1.0 = kein Bonus) |

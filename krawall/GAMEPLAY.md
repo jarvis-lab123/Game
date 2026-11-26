@@ -104,6 +104,7 @@ angreifend (rot).
 |---|---|---|---|---|
 | **Herr Mouscho** (echt) | Klassenzimmer, Lehrerzimmer | Formelwurf (fliegende Formeln) | **„Papi Tag“**: 5 s unsichtbar, greift dabei weiter an | trägt seine Heizjacke |
 | **Frau Rahn** (echt) | Klassen, Lehrerzimmer, Bibliothek | Schneckenwurf (Bogen, Schleim verlangsamt) | **Herr Lascha** erscheint und wirft Kameras (10 s, schwach) | **BURN OUT**: nach 12 s Dauerkampf 5 s reglos, schwankender Gang |
+| **Herr Weber** (echt) | Chemieraum, Klassen | Chemikalien (Kolben im Bogen, grüne Säurepfütze) | **MOLOTOW!**: große Brandflasche, Explosion + Feuerfeld (4,5 s) | runde Brille, Geheimratsecken |
 | **Frau Gerometta** (echt) | Klassenzimmer | Vokabelwurf (fliegende französische Wörter) | **SILENCE !**: 4 s „PSST! NICHT ANGREIFEN!“ – wer angreift, ist sofort K.o. | **ANGRY MODE**: nach 10 s Dauerkampf 6 s doppelter Schaden |
 
 Eigene Lehrer kommen nach `spiel/lehrer/<id>/charakter.json` (Format wie bei Kämpfern, zusätzlich
