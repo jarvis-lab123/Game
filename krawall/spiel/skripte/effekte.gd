@@ -130,7 +130,8 @@ static func ruf(kaempfer: Node3D, text: String, farbe: Color) -> void:
 	l.render_priority = 20
 	l.outline_render_priority = 19
 	kaempfer.add_child(l)
-	l.position = Vector3(0, 3.0, 0)
+	var h: float = kaempfer.kopf_hoehe() + 0.8 if kaempfer.has_method("kopf_hoehe") else 3.0
+	l.position = Vector3(0, h, 0)
 	l.scale = Vector3.ONE * 0.1
 	var tw := l.create_tween()
 	tw.tween_property(l, "scale", Vector3.ONE * 1.25, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
@@ -142,7 +143,7 @@ static func ruf(kaempfer: Node3D, text: String, farbe: Color) -> void:
 	tw.set_parallel(true)
 	tw.tween_property(l, "modulate:a", 0.0, 0.35)
 	tw.tween_property(l, "outline_modulate:a", 0.0, 0.35)
-	tw.tween_property(l, "position:y", 3.6, 0.35)
+	tw.tween_property(l, "position:y", h + 0.6, 0.35)
 	tw.chain().tween_callback(l.queue_free)
 
 

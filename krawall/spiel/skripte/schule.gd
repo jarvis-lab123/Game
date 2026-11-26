@@ -472,7 +472,11 @@ func aktivitaet_waehlen(l: Lehrer) -> Dictionary:
 			auswahl = leer
 	if auswahl.is_empty():
 		return {"pos": raum_mitte(l.heimraum), "blick": Vector3.ZERO, "anim": "", "min": 3, "max": 6, "raum": l.heimraum}
-	auswahl.sort_custom(func(a, b): return a["pos"].distance_to(l.global_position) + randf() * 12.0 < b["pos"].distance_to(l.global_position) + randf() * 12.0)
+	# nahe Plätze bevorzugen, mit etwas Zufall (Schlüssel einmal pro Platz würfeln, damit die Sortierung stabil bleibt)
+	var schluessel := {}
+	for p_ in auswahl:
+		schluessel[p_] = p_["pos"].distance_to(l.global_position) + randf() * 12.0
+	auswahl.sort_custom(func(a, b): return schluessel[a] < schluessel[b])
 	var p: Dictionary = auswahl[mini(randi() % 3, auswahl.size() - 1)]
 	p["belegt"] = l
 	return p

@@ -260,6 +260,34 @@ func _boss_zeichnen() -> void:
 	_boss.draw_string(SCHRIFT, r.position + Vector2((b - zb.x) / 2, 23), zahl, HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color.WHITE)
 
 
+## "Silence": große Warnung mit Countdown – jetzt nicht angreifen!
+func stille_warnung(dauer: float) -> void:
+	var l := _label("", 64, Color("#FFFFFF"), 16)
+	l.set_anchors_preset(Control.PRESET_CENTER)
+	l.position = Vector2(-500, -170)
+	l.size = Vector2(1000, 200)
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	add_child(l)
+	var hinter := ColorRect.new()
+	hinter.color = Color(0.25, 0.05, 0.35, 0.28)
+	hinter.set_anchors_preset(Control.PRESET_FULL_RECT)
+	hinter.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(hinter)
+	move_child(hinter, 0)
+	var ende := Time.get_ticks_msec() / 1000.0 + dauer
+	while Time.get_ticks_msec() / 1000.0 < ende and is_instance_valid(l) and not (arena and arena.vorbei):
+		var rest := ende - Time.get_ticks_msec() / 1000.0
+		l.text = "PSST! NICHT ANGREIFEN!\n%.1f" % rest
+		l.scale = Vector2.ONE * (1.0 + 0.04 * sin(Time.get_ticks_msec() / 80.0))
+		l.pivot_offset = l.size / 2
+		await get_tree().process_frame
+	if is_instance_valid(l):
+		l.queue_free()
+	if is_instance_valid(hinter):
+		hinter.queue_free()
+
+
 ## Roter Bildschirmrand, wenn der Spieler getroffen wird (stärker bei viel Schaden)
 func treffer_blitz(anteil: float) -> void:
 	if _treffer_rand == null:
@@ -414,7 +442,7 @@ func _leisten_zeichnen() -> void:
 		var kk: Kaempfer = k
 		if kk.tot or not kk.modell.visible:
 			continue
-		var welt := kk.global_position + Vector3(0, 2.25, 0)
+		var welt := kk.global_position + Vector3(0, kk.kopf_hoehe(), 0)
 		if cam.is_position_behind(welt):
 			continue
 		var p := cam.unproject_position(welt)

@@ -19,6 +19,8 @@ var heimraum := ""               # eigener Raum (pro Raum nur ein Lehrer)
 var wut_text := "JETZT REICHT'S!"
 var _wutphase := false
 var _ausweichen_ab := 0.0
+var zorn: Dictionary = {}        # {"nach": s Dauerkampf, "dauer": s, "faktor": 2.0, "text": "ANGRY MODE!"}
+var _zornzeit := 0.0
 var burnout: Dictionary = {}     # {"nach": s Dauerkampf, "dauer": s reglos, "text": "BURN OUT"}
 var _kampfzeit := 0.0
 var _dampf_timer := 0.0
@@ -40,6 +42,7 @@ func lehrer_einrichten(info: Dictionary) -> void:
 	raum_wahl = info.get("raeume", [])
 	beute_heilung = float(info.get("beute_heilung", 0.0))
 	burnout = info.get("burnout", {})
+	zorn = info.get("zorn", {})
 	wut_text = str(info.get("wut_text", wut_text))
 	_blase_label = Label3D.new()
 	_blase_label.font = Effekte.SCHRIFT
@@ -49,7 +52,7 @@ func lehrer_einrichten(info: Dictionary) -> void:
 	_blase_label.pixel_size = 0.006
 	_blase_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	_blase_label.no_depth_test = true
-	_blase_label.position.y = 2.75
+	_blase_label.position.y = kopf_hoehe() + 0.3
 	add_child(_blase_label)
 
 
@@ -92,6 +95,7 @@ func _ki_denken(delta: float) -> void:
 				_zu("angriff" if arena.angriff_anmelden(self) else "warten")
 		"angriff":
 			_wut_pruefen()
+			_zorn_pruefen(delta)
 			if sp.tot:
 				_zu("suchen")
 				return
@@ -221,6 +225,22 @@ func schaden_nehmen(menge: float, quelle: Kaempfer, stoss := Vector3.ZERO) -> vo
 		if zustand == "suchen":
 			entdecken()
 	super.schaden_nehmen(menge, quelle, stoss)
+
+
+## Angry-Modus (z. B. Frau Gerometta): nach Dauerkampf einige Sekunden doppelter Schaden
+func _zorn_pruefen(delta: float) -> void:
+	if zorn.is_empty() or hat_effekt("zorn"):
+		return
+	_zornzeit += delta
+	if _zornzeit >= float(zorn.get("nach", 10.0)):
+		_zornzeit = 0.0
+		var dauer := float(zorn.get("dauer", 6.0))
+		effekt_setzen("zorn", dauer, float(zorn.get("faktor", 2.0)))
+		blase_zeigen(Color("#FF1E3C"), dauer, 0.22)
+		Effekte.ruf(self, str(zorn.get("text", "ANGRY MODE!")), Color("#FF1E3C"))
+		Effekte.ring(arena, global_position, 3.0 * groesse_faktor() * 0.6, Color("#FF1E3C"))
+		arena.wackeln(0.3)
+		Arena.ton("super")
 
 
 ## Wutphase: einmal bei halbem Leben – Ruf, schneller und häufiger angreifen

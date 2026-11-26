@@ -28,6 +28,8 @@ const SUPERS := {
 		"schaden": 600, "reichweite": 8.0, "radius": 3.2, "dauer": 4.0},
 	"unsichtbar": {"name": "Tarnkappe", "beschreibung": "Wird unsichtbar. Der nächste Angriff macht 50 % mehr Schaden.",
 		"dauer": 4.0},
+	"schweigen": {"name": "Silence", "beschreibung": "Alle Gegner in der Nähe verstummen: Wer jetzt angreift, ist sofort K.o.",
+		"dauer": 4.0, "reichweite": 14.0},
 	"beschwoeren": {"name": "Verstärkung", "beschreibung": "Ein Begleiter erscheint und kämpft eine Weile mit.",
 		"begleiter": "", "dauer": 10.0},
 }
@@ -160,6 +162,15 @@ static func super_ausfuehren(k: Kaempfer, s: Dictionary, richtung: Vector3, ziel
 			var d := float(s.get("dauer", 5.0))
 			k.effekt_setzen("wut", d, 1.0)
 			k.blase_zeigen(Color("#FF3B30"), d, 0.15)
+		"schweigen":
+			var d := float(s.get("dauer", 4.0))
+			Effekte.ring(arena, k.global_position, float(s.get("reichweite", 14.0)), farbe, 0.6)
+			for g in arena.gegner_von(k.team):
+				if g.global_position.distance_to(k.global_position) <= float(s.get("reichweite", 14.0)):
+					g.effekt_setzen("verstummt", d, 1.0)
+					g.verstummt_von = k
+					if g.ist_spieler and arena.hud and arena.hud.has_method("stille_warnung"):
+						arena.hud.stille_warnung(d)
 		"beschwoeren":
 			begleiter_rufen(k, str(s.get("begleiter", "")), float(s.get("dauer", 10.0)), richtung)
 		"unsichtbar":

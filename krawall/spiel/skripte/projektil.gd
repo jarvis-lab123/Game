@@ -97,7 +97,7 @@ func _physics_process(delta: float) -> void:
 		var p: Vector3 = k.global_position + Vector3(0, 1.0, 0)
 		var naechster := Geometry3D.get_closest_point_to_segment(p, von, nach)
 		var d := Vector2(naechster.x - p.x, naechster.z - p.z).length()
-		if d < radius + 0.45:
+		if d < radius + k.trefferradius():
 			k.schaden_nehmen(schaden, quelle, richtung * 2.0)
 			if effekt.has("dauer"):
 				k.effekt_setzen("langsam", float(effekt["dauer"]), float(effekt.get("faktor", 0.6)))

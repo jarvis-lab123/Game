@@ -94,10 +94,11 @@ func einrichten(d: Dictionary, t: int, spieler: bool, a: Node3D, st := 1, gadget
 	collision_mask = 1 | 4
 	var form := CollisionShape3D.new()
 	var kapsel := CapsuleShape3D.new()
-	kapsel.radius = 0.42
-	kapsel.height = 1.7
+	var gf := groesse_faktor()
+	kapsel.radius = 0.42 * minf(gf, 1.5)          # Riesen bleiben schmal genug für Türen
+	kapsel.height = maxf(1.7 * gf, kapsel.radius * 2.0 + 0.1)
 	form.shape = kapsel
-	form.position.y = 0.85
+	form.position.y = kapsel.height / 2.0
 	add_child(form)
 	motion_mode = CharacterBody3D.MOTION_MODE_FLOATING
 	_modell_laden()
@@ -291,6 +292,19 @@ func _team_ring() -> void:
 	add_child(_ring)
 
 
+## 1.0 = normale Größe (1,75 m). Frau Gerometta z. B. 3.0
+func groesse_faktor() -> float:
+	return float(daten.get("modell_hoehe", 1.75)) / 1.75
+
+
+func kopf_hoehe() -> float:
+	return float(daten.get("modell_hoehe", 1.75)) + 0.45
+
+
+func trefferradius() -> float:
+	return 0.45 * minf(groesse_faktor(), 1.6)
+
+
 func zeit() -> float:
 	return Time.get_ticks_msec() / 1000.0
 
@@ -322,7 +336,7 @@ func passiv(typ: String) -> float:
 
 
 func schadens_faktor() -> float:
-	var f := (1.0 + STUFEN_BONUS * (stufe - 1)) * schadens_multiplikator
+	var f := (1.0 + STUFEN_BONUS * (stufe - 1)) * schadens_multiplikator * effekt("zorn", 1.0)
 	if hat_effekt("wut"):
 		f *= 1.3
 	if passiv("letzte_kraft") > 0.0 and leben < max_leben * float(passiv_info.get("grenze", 0.4)):
@@ -399,7 +413,7 @@ func _physics_process(delta: float) -> void:
 	var q := sin(_quetsch * PI) * 0.18
 	modell.scale = Vector3(1.0 + q, 1.0 - q, 1.0 + q)
 	if _blase:
-		_blase.visible = hat_effekt("schild") or hat_effekt("blase") or hat_effekt("wut") or hat_effekt("wut_glut")
+		_blase.visible = hat_effekt("schild") or hat_effekt("blase") or hat_effekt("wut") or hat_effekt("wut_glut") or hat_effekt("zorn")
 	im_busch = arena.ist_busch(global_position)
 	var glimmen := 0.0
 	if ist_spieler and (im_busch or ist_unsichtbar()):
@@ -496,6 +510,8 @@ func kann_angreifen() -> bool:
 
 
 func angreifen(richtung: Vector3, ziel_punkt := Vector3.INF) -> void:
+	if _regelbruch_pruefen():
+		return
 	if not kann_angreifen():
 		return
 	richtung.y = 0
@@ -615,6 +631,21 @@ func _angriff_ankuendigen(richtung: Vector3, ziel: Vector3) -> void:
 		angreifen(richtung, ziel)
 
 
+## "Silence": Wer verstummt ist und trotzdem angreift, ist sofort K.o.
+var verstummt_von: Kaempfer = null
+
+
+func _regelbruch_pruefen() -> bool:
+	if tot or not hat_effekt("verstummt"):
+		return false
+	Effekte.ruf(self, "ZU LAUT!", Color("#FF4757"))
+	Arena.ton("ko")
+	leben = 0.0
+	_effekte.erase("spawnschutz")
+	_ausschalten(verstummt_von if is_instance_valid(verstummt_von) else null)
+	return true
+
+
 func _tarnung_beenden() -> void:
 	if super_info.get("bleibt_beim_angriff", false):
 		return
@@ -627,6 +658,8 @@ func super_bereit() -> bool:
 
 
 func super_ausloesen(richtung: Vector3, ziel_punkt := Vector3.INF) -> void:
+	if _regelbruch_pruefen():
+		return
 	if not super_bereit():
 		return
 	super_ladung = 0.0
@@ -660,6 +693,8 @@ func gadget_abklingen() -> float:
 
 
 func gadget_ausloesen(richtung: Vector3) -> void:
+	if _regelbruch_pruefen():
+		return
 	if not gadget_bereit():
 		return
 	gadget_ladungen -= 1
@@ -699,7 +734,7 @@ func schaden_nehmen(menge: float, quelle: Kaempfer, stoss := Vector3.ZERO) -> vo
 	_quetsch = 1.0
 	_rueckstoss += stoss * (0.2 if hat_effekt("blase") else 1.0)
 	_tarnung_beenden()
-	Effekte.zahl(arena, global_position + Vector3(0, 2.1, 0), int(menge), quelle != null and quelle.ist_spieler)
+	Effekte.zahl(arena, global_position + Vector3(0, kopf_hoehe() - 0.2, 0), int(menge), quelle != null and quelle.ist_spieler)
 	if quelle and quelle != self and is_instance_valid(quelle):
 		quelle.schaden_gesamt += menge
 		quelle.super_laden(float(quelle.super_info.get("ladung_pro_treffer", 0.12)))

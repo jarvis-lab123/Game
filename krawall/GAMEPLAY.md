@@ -104,6 +104,7 @@ angreifend (rot).
 |---|---|---|---|---|
 | **Herr Mouscho** (echt) | Klassenzimmer, Lehrerzimmer | Formelwurf (fliegende Formeln) | **„Papi Tag“**: 5 s unsichtbar, greift dabei weiter an | trägt seine Heizjacke |
 | **Frau Rahn** (echt) | Klassen, Lehrerzimmer, Bibliothek | Schneckenwurf (Bogen, Schleim verlangsamt) | **Herr Lascha** erscheint und wirft Kameras (10 s, schwach) | **BURN OUT**: nach 12 s Dauerkampf 5 s reglos, schwankender Gang |
+| **Frau Gerometta** (echt) | Klassenzimmer | Vokabelwurf (fliegende französische Wörter) | **SILENCE !**: 4 s „PSST! NICHT ANGREIFEN!“ – wer angreift, ist sofort K.o. | **Riesin** (3× so groß), **ANGRY MODE**: nach 10 s Dauerkampf 6 s doppelter Schaden |
 | Frau Leise | Bibliothek | Buchwurf | „Psst!“ (Eisfeld) | sieht weit |
 | Hausmeister Schraube | Gang, Halle | Schraubenschlüssel | Wischmopp-Sprint | viel Leben, Beute |
 | Frau Kelle | Mensa | Suppenkelle (Wurf) | Großer Topf (Bombe) | Beute |
