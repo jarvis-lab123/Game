@@ -338,8 +338,9 @@ func vorruecken_punkt(team: int) -> Vector3:
 
 # ---------------------------------------------------------------- Angriffe
 func projektil(quelle: Kaempfer, start: Vector3, richtung: Vector3, tempo: float, weite: float, schaden: float,
-		farbe: Color, radius: float) -> void:
+		farbe: Color, radius: float, text := "") -> void:
 	var p := Projektil.new()
+	p.text = text
 	p.quelle = quelle
 	p.arena = self
 	p.team = quelle.team

@@ -11,6 +11,7 @@ var rest := 8.0
 var schaden := 400.0
 var farbe := Color.YELLOW
 var radius := 0.22
+var text := ""                   # z. B. eine Formel: wird statt der Kugel als fliegender Schriftzug gezeigt
 
 # Wurf
 var ist_wurf := false
@@ -23,6 +24,22 @@ var zerstoert_waende := false
 
 
 func _ready() -> void:
+	if text != "":
+		var l := Label3D.new()
+		l.text = text
+		l.font = Effekte.SCHRIFT
+		l.font_size = 110
+		l.pixel_size = 0.0075
+		l.outline_size = 22
+		l.modulate = farbe
+		l.outline_modulate = Color("#1B1424")
+		l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		l.no_depth_test = false
+		add_child(l)
+		var tw := l.create_tween().set_loops()
+		tw.tween_property(l, "scale", Vector3.ONE * 1.15, 0.12)
+		tw.tween_property(l, "scale", Vector3.ONE * 0.9, 0.12)
+		return
 	var m := MeshInstance3D.new()
 	var s := SphereMesh.new()
 	s.radius = radius
@@ -35,7 +52,8 @@ func _ready() -> void:
 	add_child(m)
 	if not ist_wurf:
 		m.scale = Vector3(1, 1, 1.6)
-		look_at(global_position + richtung, Vector3.UP)
+		if richtung.length() > 0.01:
+			look_at(global_position + richtung, Vector3.UP)
 	else:
 		m.scale = Vector3.ONE * 1.5
 

@@ -35,3 +35,24 @@ Fotos in `fotos/` bleiben lokal und kommen nicht ins Git-Repo.
 **Passive:** `vampir` · `dicke_haut` · `flink` · `schnelllader` · `letzte_kraft` · `schnelle_heilung` · `superlader` · `dornen`
 
 Neue Fähigkeiten, die es noch nicht gibt, baut Claude in `spiel/skripte/faehigkeiten.gd` dazu.
+
+## Extras für Angriff und Super
+
+| Feld | Wirkung |
+|---|---|
+| `angriff.geschoss_text` | Liste von Texten: Geschosse fliegen als Schriftzug (z. B. Formeln `["x²", "π"]`) |
+| `super.ruf` | Großer Schriftzug über dem Kopf beim Auslösen (z. B. `"PAPI TAG"`) |
+| `super.bleibt_beim_angriff` | bei `unsichtbar`: Tarnung endet nicht beim Angreifen oder Getroffenwerden |
+| `super.bonus` | bei `unsichtbar`: Schadensfaktor des nächsten Angriffs (1.0 = kein Bonus) |
+
+## Aussehen (Auswahl, für den Blender-Modellierer)
+
+- `proportionen`: `comic` (erwachsen) · `chibi`
+- `kopfform`: `rund` · `oval` · `schmal` (länglich, schmaler Kiefer) · `eckig` · `breit`
+- `augen.form`: `rund` · `mandel` · `lachend` · `muede`
+- `nase`: `klein` · `knubbel` · `spitz` · `breit` · `lang`
+- `mund`: `laecheln` · `grinsen` · `lachen` (breites D-Lachen mit Zähnen) · `neutral` · `frech`
+- `haare.stil`: `glatze` · `buzz` · `buerste` · `kurz` · `stachel` · `locken` · `afro` · `lang` · `zopf` · `dutt` · `seitenscheitel` · `iro`
+- `oberteil.stil`: `tshirt` · `hoodie` · `jacke` · `heizjacke` (Steppjacke mit glühenden Heizzonen) · `pulli` · `tanktop`
+- `armbaender`: Liste `{"seite": "L"|"R", "farbe": "#…", "dicke": 0.01}`
+- `waffe.stil`: `keine` · `blaster` · `ball` · `hammer` · `stab` · `buch` · `kreide`

@@ -37,9 +37,9 @@ func laden() -> void:
 	var echte := alle.filter(func(c): return not c.get("platzhalter", false) and c["modell"] != "")
 	charaktere = echte if echte.size() > 0 else alle
 	charaktere.sort_custom(func(a, b): return str(a["name"]) < str(b["name"]))
-	var echte_lehrer := lehrer.filter(func(c): return not c.get("platzhalter", false) and c["modell"] != "")
-	if echte_lehrer.size() > 0:
-		lehrer = echte_lehrer
+	# Lehrer: echte und Platzhalter zusammen (die Schule soll voll sein). Platzhalter-Ordner einfach löschen,
+	# wenn genug echte Lehrer da sind.
+	lehrer = lehrer.filter(func(c): return c["modell"] != "")
 
 
 func _ordner_laden(ordner: String) -> Array:

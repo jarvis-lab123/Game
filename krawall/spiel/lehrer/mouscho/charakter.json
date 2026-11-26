@@ -1,0 +1,115 @@
+{
+  "name": "Herr Mouscho",
+  "titel": "Mathelehrer",
+  "beschreibung": "Mathelehrer in seiner selbstbeheizten Jacke. Wirft mit Formeln. Ulti „Papi Tag“: 5 Sekunden unsichtbar – und greift trotzdem an.",
+  "werte": {
+    "leben": 3400,
+    "tempo": 1.0
+  },
+  "angriff": {
+    "typ": "schuss",
+    "name": "Formelwurf",
+    "schaden": 450,
+    "projektile": 2,
+    "streuung": 10,
+    "reichweite": 8.5,
+    "projektil_tempo": 15,
+    "nachladen": 1.4,
+    "farbe": "#F4F1EA",
+    "geschoss_text": [
+      "x²",
+      "π",
+      "a²+b²",
+      "√2",
+      "∑",
+      "∞",
+      "f(x)",
+      "E=mc²",
+      "÷",
+      "y=mx+b",
+      "sin α"
+    ]
+  },
+  "super": {
+    "typ": "unsichtbar",
+    "name": "Papi Tag",
+    "ruf": "PAPI TAG",
+    "dauer": 5.0,
+    "bleibt_beim_angriff": true,
+    "bonus": 1.0,
+    "ladung_pro_treffer": 0.14,
+    "reichweite": 9.0,
+    "farbe": "#B05CFF"
+  },
+  "lehrer": {
+    "anzahl": 1,
+    "raeume": [
+      "klasse",
+      "lehrerzimmer"
+    ],
+    "sicht": 9.5,
+    "sichtwinkel": 115
+  },
+  "aussehen": {
+    "proportionen": "comic",
+    "hautfarbe": "#F0C4A6",
+    "koerperbau": "normal",
+    "groesse": 1.03,
+    "kopfform": "schmal",
+    "kopfgroesse": 1.0,
+    "wangenroete": true,
+    "augen": {
+      "farbe": "#6F8291",
+      "groesse": 1.0,
+      "abstand": 1.0,
+      "form": "lachend"
+    },
+    "augenbrauen": {
+      "dicke": 0.95,
+      "winkel": -4,
+      "farbe": "#7A5A3C"
+    },
+    "nase": "lang",
+    "mund": "lachen",
+    "ohren": 1.05,
+    "haare": {
+      "stil": "buerste",
+      "farbe": "#6E4C2F"
+    },
+    "bart": {
+      "stil": "keiner"
+    },
+    "oberteil": {
+      "stil": "heizjacke",
+      "farbe": "#3A3F4A",
+      "farbe2": "#1F1F24",
+      "heizfarbe": "#FF7A1A"
+    },
+    "hose": {
+      "stil": "lang",
+      "farbe": "#3B4A6B"
+    },
+    "schuhe": {
+      "farbe": "#F4F1EA",
+      "sohle": "#2A2140"
+    },
+    "armbaender": [
+      {
+        "seite": "R",
+        "farbe": "#5A3A22",
+        "dicke": 0.012
+      },
+      {
+        "seite": "L",
+        "farbe": "#3FB8A0",
+        "dicke": 0.006
+      }
+    ],
+    "waffe": {
+      "stil": "kreide",
+      "farbe": "#F4F1EA",
+      "farbe2": "#F4F1EA"
+    },
+    "wangenfarbe": "#F2A090"
+  }
+}

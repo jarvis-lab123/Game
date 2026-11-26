@@ -87,10 +87,10 @@ Bibliothek, Hauptgang, Eingangshalle, Mensa, Lehrerzimmer und Sekretariat.
 Rechts oben: du (grün), Lehrer in der Nähe (weiß), misstrauisch (gelb), wartend oder suchend (orange),
 angreifend (rot).
 
-### Die Lehrer (Platzhalter)
+### Die Lehrer
 | Lehrer | Revier | Angriff | Super | Besonderes |
 |---|---|---|---|---|
-| Herr Kreide (2×) | Klassenzimmer | Kreidewurf | Formelregen (Salve) | – |
+| **Herr Mouscho** (echt) | Klassenzimmer, Lehrerzimmer | Formelwurf (fliegende Formeln) | **„Papi Tag“**: 5 s unsichtbar, greift dabei weiter an | trägt seine Heizjacke |
 | Frau Leise | Bibliothek | Buchwurf | „Psst!“ (Eisfeld) | sieht weit |
 | Hausmeister Schraube | Gang, Halle | Schraubenschlüssel | Wischmopp-Sprint | viel Leben, Beute |
 | Frau Kelle | Mensa | Suppenkelle (Wurf) | Großer Topf (Bombe) | Beute |

@@ -606,6 +606,14 @@ func _process(delta: float) -> void:
 		restzeit = Time.get_ticks_msec() / 1000.0 - _start_zeit   # hier: gespielte Zeit
 	_spieler_steuern()
 	_kamera_folgen(delta)
+	if spieler:
+		for l in lehrer_liste:
+			if l.tot:
+				continue
+			var sichtbar := sichtbar_fuer(l, spieler)
+			l.modell.visible = sichtbar
+			l._ring.visible = sichtbar
+			l._blase_label.visible = sichtbar
 	if spieler and not spieler.tot:
 		var r := raum_bei(spieler.global_position)
 		var name: String = r.get("name", "")

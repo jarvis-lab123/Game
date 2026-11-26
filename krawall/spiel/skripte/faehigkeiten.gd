@@ -158,7 +158,10 @@ static func super_ausfuehren(k: Kaempfer, s: Dictionary, richtung: Vector3, ziel
 			k.blase_zeigen(Color("#FF3B30"), d, 0.15)
 		"unsichtbar":
 			k.effekt_setzen("unsichtbar", float(s.get("dauer", 4.0)), 1.0)
-			k.effekt_setzen("hinterhalt", float(s.get("dauer", 4.0)) + 1.0, 1.5)
+			var bonus := float(s.get("bonus", 1.5))
+			if bonus > 1.0:
+				k.effekt_setzen("hinterhalt", float(s.get("dauer", 4.0)) + 1.0, bonus)
+			Effekte.puff(arena, k.global_position + Vector3(0, 1, 0), Color(farbe.r, farbe.g, farbe.b))
 
 
 # ---------------------------------------------------------------- Gadgets

@@ -326,7 +326,7 @@ class Figur:
         g = a["groesse"]
         self.g = g
         kg = a["kopfgroesse"]
-        form = {"rund": (0.37, 0.34, 0.35), "oval": (0.34, 0.33, 0.38),
+        form = {"rund": (0.37, 0.34, 0.35), "oval": (0.34, 0.33, 0.38), "schmal": (0.315, 0.335, 0.40),
                 "eckig": (0.37, 0.34, 0.35), "breit": (0.40, 0.35, 0.34)}[a["kopfform"]]
         self.fuss_z = 0.0
         if self.comic:
@@ -365,7 +365,7 @@ class Figur:
         self.m = {
             "haut": material("haut", a["hautfarbe"], rau=0.55),
             "haut_dunkel": material("haut_dunkel", abdunkeln(a["hautfarbe"], 0.82), rau=0.6),
-            "wange": material("wange", "#F0857A", rau=0.7),
+            "wange": material("wange", a.get("wangenfarbe", "#F0857A"), rau=0.7),
             "weiss": material("augenweiss", "#FFFFFF", rau=0.3),
             "iris": material("iris", a["augen"]["farbe"], glanz=True),
             "pupille": material("pupille", "#111111", glanz=True),
@@ -402,13 +402,40 @@ class Figur:
         return -(ry * (1 - t ** (2 / 0.82)) ** (0.82 / 2))
 
     # --- Hilfen am Kopf
+    def kopf_verformung(self, v):
+        """Form des Kopfes auf der Einheitskugel (wird für Kopf UND Gesichtsteile benutzt)."""
+        form = self.a["kopfform"]
+        if form == "eckig":
+            return Vector((math.copysign(abs(v.x) ** 0.8, v.x), v.y, math.copysign(abs(v.z) ** 0.85, v.z)))
+        if form == "schmal":
+            x, y, z = v.x, v.y, v.z
+            if z < 0:
+                x *= 1 - 0.24 * (-z) ** 1.3          # Kiefer läuft schmal zu
+                if y < 0:
+                    y *= 1 + 0.10 * (-z)              # Kinn etwas nach vorne
+            else:
+                x *= 1 + 0.03 * (1 - z)               # Wangenknochen/Schläfen
+            return Vector((x, y, z))
+        if v.z < 0:  # Standard: Wangen etwas voller, Kinn runder
+            return Vector((v.x * (1 + 0.06 * v.z), v.y, v.z * 0.98))
+        return v
+
     def kopf_punkt(self, x_rel, z_rel, raus=0.0):
-        """Punkt auf der Kopfoberfläche vorne. x_rel/z_rel in Bruchteilen des Radius."""
+        """Punkt auf der (verformten) Kopfoberfläche vorne. x_rel/z_rel in Bruchteilen des Radius."""
         rx, ry, rz = self.kopf_r
-        s = 1 - x_rel ** 2 - z_rel ** 2
-        y_rel = -math.sqrt(max(s, 0.0))
-        p = Vector((x_rel * rx, y_rel * ry, z_rel * rz))
-        n = Vector((p.x / rx ** 2, p.y / ry ** 2, p.z / rz ** 2)).normalized()
+
+        def flaeche(xr, zr):
+            s_ = 1 - xr ** 2 - zr ** 2
+            u = Vector((xr, -math.sqrt(max(s_, 0.0)), zr))
+            d = self.kopf_verformung(u)
+            return Vector((d.x * rx, d.y * ry, d.z * rz))
+        p = flaeche(x_rel, z_rel)
+        e = 0.02
+        tx = flaeche(min(x_rel + e, 0.99), z_rel) - flaeche(max(x_rel - e, -0.99), z_rel)
+        tz = flaeche(x_rel, min(z_rel + e, 0.99)) - flaeche(x_rel, max(z_rel - e, -0.99))
+        n = tz.cross(tx).normalized()
+        if n.y > 0:
+            n = -n
         return self.kopf_m + p + n * raus, n
 
     def auf_kopf(self, x_rel, z_rel, raus=0.0):
@@ -463,6 +490,39 @@ class Figur:
                     (0.11 * bau, 0.04, (self.hals_z - self.huefte_z) * 0.82), m["oberteil2"], "chest", rundung=0.45)
             torus("kragen", Vector((0, 0.0, self.hals_z - 0.03)), 0.11 * bau, 0.035 * bau, ober, "chest",
                   normale=(0, 0.1, 1), skal=(1.1, 1.0))
+        elif stil == "heizjacke":
+            # selbstbeheizte Steppjacke: offen über dem Shirt, Steppnähte, glühende Heizzonen, Akku-Knopf
+            heiz = material("heizung", a["oberteil"].get("heizfarbe", "#FF7A1A"), leuchten=True)
+            naht = material("steppnaht", abdunkeln(a["oberteil"]["farbe"], 0.72))
+            mitte_z = (self.huefte_z + self.hals_z) / 2
+            hoehe_r = (self.hals_z - self.huefte_z) * 0.84
+            rundbox("innenshirt", Vector((0, self.rumpf_y(mitte_z) + 0.012, mitte_z)), (0.12 * bau, 0.035, hoehe_r),
+                    m["oberteil2"], "chest", rundung=0.45)
+            for sx in (1, -1):
+                kapsel("reissverschluss", (sx * 0.065 * bau, self.rumpf_y(self.huefte_z + 0.08) + 0.004, self.huefte_z + 0.08),
+                       (sx * 0.065 * bau, self.rumpf_y(self.hals_z - 0.08) + 0.004, self.hals_z - 0.08), 0.008,
+                       material("zipper", "#C9D3E6", glanz=True), "chest")
+            # Steppnähte rundherum
+            for i in range(4):
+                z = self.huefte_z + 0.1 + i * (self.hals_z - self.huefte_z - 0.16) / 3.5
+                torus(f"stepp{i}", Vector((0, 0, z)), 0.205 * bau / 0.82 * (0.92 + 0.08 * i / 3), 0.012, naht,
+                      "spine" if i < 2 else "chest", normale=(0, 0, 1), skal=(1.0, 0.72))
+            # Heizzonen: Brust links/rechts und Rücken
+            for sx in (1, -1):
+                z = self.brust_z - 0.04
+                ellipsoid("heizzone", Vector((sx * 0.12 * bau, self.rumpf_y(z) + 0.004, z)), (0.05, 0.012, 0.06), heiz, "chest")
+            zb = self.brust_z - 0.08
+            ellipsoid("heizzone_ruecken", Vector((0, -self.rumpf_y(zb) - 0.004, zb)), (0.11, 0.012, 0.1), heiz, "chest")
+            # Akku-Knopf mit LED auf der linken Brust
+            zk = self.brust_z + 0.06
+            kn = Vector((0.13 * bau, self.rumpf_y(zk) - 0.004, zk))
+            ellipsoid("heizknopf", kn, (0.028, 0.012, 0.028), material("knopf_schwarz", "#15151A"), "chest", segs=16, ringe=8)
+            ellipsoid("heiz_led", kn + Vector((0, -0.008, 0.0)), (0.01, 0.006, 0.01), heiz, "chest", segs=10, ringe=6)
+            # hoher Stehkragen
+            torus("kragen", Vector((0, 0.01, self.hals_z - 0.01)), 0.1 * bau / 0.82 * 0.82, 0.035, ober, "chest",
+                  normale=(0, 0.15, 1), skal=(1.12, 1.0))
+            torus("kragen2", Vector((0, 0.01, self.hals_z + 0.035)), 0.095 * bau / 0.82 * 0.82, 0.03, ober, "neck",
+                  normale=(0, 0.15, 1), skal=(1.12, 1.0))
         elif stil == "pulli":
             torus("kragen", Vector((0, 0.0, self.hals_z - 0.035)), 0.085 * bau, 0.03, m["oberteil2"], "chest",
                   normale=(0, 0.1, 1))
@@ -519,7 +579,7 @@ class Figur:
                        schuh_m + Vector((0.035, -0.07 + k * 0.04, 0.07 - k * 0.01)), 0.012, m["oberteil2"], f"foot.{seite}")
 
         # Arme
-        lang = stil in ("hoodie", "jacke", "pulli")
+        lang = stil in ("hoodie", "jacke", "pulli", "heizjacke")
         for seite, sx in (("L", 1), ("R", -1)):
             s = Vector((sx * self.schulter.x, 0, self.schulter.z))
             ell = s + Vector((sx * self.arm_ell.x, self.arm_ell.y, self.arm_ell.z))
@@ -532,6 +592,10 @@ class Figur:
             if stil == "tshirt":
                 torus(f"aermel.{seite}", s + (ell - s) * 0.55, arm_r * 1.12, 0.02, ober, f"upper_arm.{seite}",
                       normale=(ell - s))
+            if stil == "heizjacke":
+                for t_ in (0.35, 0.7):
+                    torus(f"armstepp.{seite}", s + (ell - s) * t_, arm_r * 1.02, 0.011,
+                          material("steppnaht", abdunkeln(a["oberteil"]["farbe"], 0.72)), f"upper_arm.{seite}", normale=(ell - s))
             kapsel(f"unterarm.{seite}", hand, ell, arm_r * 0.88, ober if lang else m["haut"], f"forearm.{seite}",
                    r2=arm_r * 0.98)
             if lang:
@@ -554,20 +618,19 @@ class Figur:
                    0.026 * bau, hmat, f"hand.{seite}")
             self.hand_punkt = getattr(self, "hand_punkt", {})
             self.hand_punkt[seite] = hm
+            for ab in a.get("armbaender", []):
+                if ab.get("seite", "R") == seite:
+                    handgelenk = hand + (ell - hand) * 0.1
+                    torus(f"armband.{seite}", handgelenk, arm_r * 0.92, float(ab.get("dicke", 0.01)),
+                          material("armband_" + ab.get("farbe", "#5A3A22")[1:], ab.get("farbe", "#5A3A22")),
+                          f"forearm.{seite}", normale=(ell - hand))
 
     # ------------------------------------------------------------ Kopf
     def kopf(self):
         a, m = self.a, self.m
         km, kr = self.kopf_m, self.kopf_r
 
-        def kopfform(v):
-            if a["kopfform"] == "eckig":
-                return Vector((math.copysign(abs(v.x) ** 0.8, v.x), v.y, math.copysign(abs(v.z) ** 0.85, v.z)))
-            # Wangen etwas voller, Kinn runder
-            if v.z < 0:
-                return Vector((v.x * (1 + 0.06 * v.z), v.y, v.z * 0.98))
-            return v
-        ellipsoid("kopf", km, tuple(kr), m["haut"], "head", segs=48, ringe=32, verformen=kopfform)
+        ellipsoid("kopf", km, tuple(kr), m["haut"], "head", segs=48, ringe=32, verformen=self.kopf_verformung)
 
         # Ohren
         for sx in (1, -1):
@@ -581,19 +644,34 @@ class Figur:
         au = a["augen"]
         gr, ab = au["groesse"], au["abstand"]
         form = au["form"]
-        h_skal = {"rund": 1.0, "mandel": 0.78, "muede": 0.7}[form]
+        h_skal = {"rund": 1.0, "mandel": 0.78, "muede": 0.7, "lachend": 0.62}[form]
+        # lachende Augen: unten flach (Wange drückt hoch), oben rund
+        aug_form = (lambda v: Vector((v.x, v.y, v.z * 0.35 if v.z < 0 else v.z))) if form == "lachend" else None
         for sx in (1, -1):
             xr, zr = sx * 0.34 * ab, 0.02
             p, rot = self.auf_kopf(xr, zr, raus=-0.012)
             R = rot.to_matrix().to_4x4()
-            ellipsoid("auge", p, (0.072 * gr, 0.035, 0.088 * gr * h_skal), m["weiss"], "head", rot=R)
-            p2, rot2 = self.auf_kopf(xr * 0.97, zr - 0.02, raus=0.010)
-            ellipsoid("iris", p2, (0.05 * gr, 0.02, 0.06 * gr * min(1.0, h_skal + 0.12)), m["iris"], "head",
-                      rot=rot2.to_matrix().to_4x4())
+            ellipsoid("auge", p, (0.072 * gr, 0.035, 0.088 * gr * h_skal), m["weiss"], "head", rot=R, verformen=aug_form)
+            p2, rot2 = self.auf_kopf(xr * 0.97, zr + (0.015 if form == "lachend" else -0.02), raus=0.010)
+            ih = min(1.0, h_skal + 0.12) if form != "lachend" else h_skal * 0.95
+            ellipsoid("iris", p2, (0.05 * gr, 0.02, 0.06 * gr * ih), m["iris"], "head",
+                      rot=rot2.to_matrix().to_4x4(), verformen=aug_form)
             p3, rot3 = self.auf_kopf(xr * 0.97, zr - 0.025, raus=0.018)
             ellipsoid("pupille", p3, (0.027 * gr, 0.012, 0.033 * gr), m["pupille"], "head", rot=rot3.to_matrix().to_4x4())
             p4, rot4 = self.auf_kopf(xr * 0.97 + 0.045 * gr, zr + 0.06 * gr, raus=0.026)
             ellipsoid("glanz", p4, (0.013 * gr, 0.008, 0.015 * gr), m["glanzpunkt"], "head", rot=rot4.to_matrix().to_4x4())
+            if form in ("mandel", "lachend"):
+                # Lidlinie: dunkler Bogen über dem Auge (Comic-Wimpernstrich)
+                bogen = []
+                for i in range(7):
+                    t = i / 6 * 2 - 1
+                    bogen.append(self.kopf_punkt(xr + t * 0.2 * gr, zr + 0.088 * gr * h_skal / self.kopf_r.z * (1 - 0.55 * t * t) + 0.012,
+                                                 raus=0.022)[0])
+                rohr("lidlinie", bogen, [0.006, 0.009, 0.011, 0.011, 0.011, 0.009, 0.006], m["pupille"], "head", abflachen=0.6)
+                if form == "lachend":
+                    # untere Lachfalte unter dem Auge
+                    falte = [self.kopf_punkt(xr + t * 0.14 * gr, zr - 0.15 * gr + 0.04 * t * t, raus=0.006)[0] for t in (-1, -0.5, 0, 0.5, 1)]
+                    rohr("lachfalte", falte, [0.003, 0.006, 0.007, 0.006, 0.003], m["haut_dunkel"], "head", abflachen=0.5)
             if form == "muede":
                 # Oberlid
                 p5, rot5 = self.auf_kopf(xr, zr + 0.13, raus=0.0)
@@ -614,7 +692,7 @@ class Figur:
         if a["wangenroete"]:
             for sx in (1, -1):
                 p, rot = self.auf_kopf(sx * 0.55, -0.25, raus=-0.004)
-                ellipsoid("wange", p, (0.05, 0.01, 0.03), m["wange"], "head", rot=rot.to_matrix().to_4x4())
+                ellipsoid("wange", p, (0.045, 0.008, 0.026), m["wange"], "head", rot=rot.to_matrix().to_4x4())
         if a["sommersprossen"]:
             fm = material("sommersprossen", abdunkeln(a["hautfarbe"], 0.7))
             for sx in (1, -1):
@@ -634,6 +712,18 @@ class Figur:
             ellipsoid("nase", p, (0.058, 0.035, 0.034), m["haut"], "head", rot=R)
             for sx in (1, -1):
                 ellipsoid("nasenfluegel", p + Vector((sx * 0.04, 0.008, -0.01)), (0.022, 0.02, 0.02), m["haut"], "head")
+        elif nase == "lang":
+            # gerader, langer Nasenrücken mit runder Spitze und Nasenflügeln
+            oben, _ = self.kopf_punkt(0.0, 0.12, raus=0.004)
+            spitze, n_sp = self.kopf_punkt(0.0, -0.2, raus=0.056)
+            kapsel("nasenruecken", oben, spitze, 0.024, m["haut"], "head", r2=0.032)
+            ellipsoid("nasenspitze", spitze + Vector((0, 0, -0.006)), (0.036, 0.034, 0.033), m["haut"], "head")
+            for sx in (1, -1):
+                pf, _ = self.kopf_punkt(sx * 0.11, -0.24, raus=0.02)
+                ellipsoid("nasenfluegel", pf, (0.026, 0.024, 0.022), m["haut"], "head")
+            ps, _ = self.kopf_punkt(0.0, -0.27, raus=0.045)
+            for sx in (1, -1):
+                ellipsoid("nasenloch", ps + Vector((sx * 0.022, 0.004, 0.0)), (0.011, 0.008, 0.006), m["haut_dunkel"], "head")
         else:  # spitz
             ellipsoid("nase", p + Vector((0, 0, 0.01)), (0.03, 0.055, 0.04), m["haut"], "head", rot=R,
                       verformen=lambda v: Vector((v.x * (1 - 0.4 * max(0, -v.y)), v.y, v.z)))
@@ -641,8 +731,8 @@ class Figur:
         # Mund
         mund = a["mund"]
         pts = []
-        breite = {"laecheln": 0.24, "grinsen": 0.30, "neutral": 0.18, "frech": 0.22}[mund]
-        kurve = {"laecheln": 0.10, "grinsen": 0.12, "neutral": 0.0, "frech": 0.06}[mund]
+        breite = {"laecheln": 0.24, "grinsen": 0.30, "neutral": 0.18, "frech": 0.22, "lachen": 0.34}[mund]
+        kurve = {"laecheln": 0.10, "grinsen": 0.12, "neutral": 0.0, "frech": 0.06, "lachen": 0.14}[mund]
         n = 7
         for i in range(n):
             t = i / (n - 1) * 2 - 1  # -1..1
@@ -652,7 +742,22 @@ class Figur:
                 z += 0.05 * max(t, 0)
             pts.append(self.kopf_punkt(x, z, raus=0.004)[0])
         dicke = 0.017
-        if mund == "grinsen":
+        if mund == "lachen":
+            # breites D-Lachen: oben gerade Zahnreihe, unten runder Bogen, Mundwinkel hoch
+            pm, rotm = self.auf_kopf(0.0, -0.47, raus=-0.010)
+            Rm = rotm.to_matrix().to_4x4()
+            ellipsoid("mund_offen", pm, (0.135, 0.03, 0.075), m["mund"], "head", rot=Rm,
+                      verformen=lambda v: Vector((v.x, v.y, (v.z * 0.12 if v.z > 0 else v.z) + 0.55 * v.x * v.x)))
+            pz, rotz = self.auf_kopf(0.0, -0.435, raus=-0.002)
+            ellipsoid("zaehne", pz, (0.115, 0.022, 0.026), m["zaehne"], "head", rot=rotz.to_matrix().to_4x4(),
+                      verformen=lambda v: Vector((v.x, v.y, v.z + 0.5 * v.x * v.x)))
+            pzu, rotzu = self.auf_kopf(0.0, -0.56, raus=-0.006)
+            ellipsoid("zunge", pzu, (0.06, 0.02, 0.025), material("zunge", "#D9646E"), "head", rot=rotzu.to_matrix().to_4x4())
+            for sx in (1, -1):
+                # Lachfalten an den Mundwinkeln
+                falte = [self.kopf_punkt(sx * (0.40 + 0.02 * t), -0.33 - 0.09 * t, raus=0.004)[0] for t in (0, 0.5, 1, 1.5)]
+                rohr("mundfalte", falte, [0.004, 0.007, 0.007, 0.004], m["haut_dunkel"], "head", abflachen=0.5)
+        elif mund == "grinsen":
             # offener Mund mit Zähnen
             pm, rotm = self.auf_kopf(0.0, -0.49, raus=-0.012)
             ellipsoid("mund_offen", pm, (0.10, 0.03, 0.055), m["mund"], "head", rot=rotm.to_matrix().to_4x4(),
@@ -694,6 +799,13 @@ class Figur:
         if stil == "buzz":
             schale("haare", km, (kr.x * 1.01, kr.y * 1.01, kr.z * 1.01), hm, "head",
                    haarlinie(math.radians(62), math.radians(92), math.radians(118), math.radians(12)), dicke=0.012)
+            return
+
+        if stil == "buerste":
+            # Bürstenschnitt: eine Schicht, Seiten anliegend, oben vorne etwas Volumen
+            schale("haare", km, (kr.x * 1.012, kr.y * 1.012, kr.z * 1.012), hm, "head",
+                   haarlinie(math.radians(50), math.radians(84), math.radians(112), math.radians(14)), dicke=0.016,
+                   versatz=lambda phi, a_: 0.035 * math.sin(min(a_ / math.radians(55), 1.0) * math.pi) * (0.6 + 0.4 * math.cos(phi)))
             return
 
         if stil in ("kurz", "stachel", "seitenscheitel", "iro", "locken", "lang", "zopf", "dutt"):
@@ -911,6 +1023,8 @@ class Figur:
             ellipsoid("kristall", hm + Vector((0, 0, 0.52)), (0.06, 0.06, 0.09), material("kristall", w["farbe"], leuchten=True), k)
         elif w["stil"] == "buch":
             rundbox("buch", hm + Vector((0, -0.08, 0.02)), (0.05, 0.16, 0.2), m1, k, rundung=0.2)
+        elif w["stil"] == "kreide":
+            kapsel("kreide", hm + Vector((0, -0.04, -0.02)), hm + Vector((0, -0.16, 0.03)), 0.022, m1, k)
 
 
 # ---------------------------------------------------------------- Skelett

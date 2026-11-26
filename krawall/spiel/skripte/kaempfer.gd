@@ -523,8 +523,10 @@ func angreifen(richtung: Vector3, ziel_punkt := Vector3.INF) -> void:
 					w = lerpf(-streu / 2.0, streu / 2.0, float(i) / float(n - 1))
 				if a["typ"] == "schrot":
 					w += randf_range(-0.04, 0.04)
+				var texte: Array = a.get("geschoss_text", [])
 				arena.projektil(self, start, richtung.rotated(Vector3.UP, w), float(a["projektil_tempo"]),
-					reichweite(), schaden, farbe, 0.22 if a["typ"] == "schuss" else 0.16)
+					reichweite(), schaden, farbe, 0.22 if a["typ"] == "schuss" else 0.16,
+					str(texte[randi() % texte.size()]) if texte.size() > 0 else "")
 			Arena.ton("schuss")
 		"wurf":
 			var ziel := ziel_punkt
@@ -550,6 +552,8 @@ func angreifen(richtung: Vector3, ziel_punkt := Vector3.INF) -> void:
 
 
 func _tarnung_beenden() -> void:
+	if super_info.get("bleibt_beim_angriff", false):
+		return
 	if hat_effekt("unsichtbar"):
 		_effekte.erase("unsichtbar")
 
@@ -573,6 +577,8 @@ func super_ausloesen(richtung: Vector3, ziel_punkt := Vector3.INF) -> void:
 		_baum.set("parameters/super/request", AnimationNodeOneShot.ONE_SHOT_REQUEST_FIRE)
 	Arena.ton("super")
 	Effekte.super_blitz(arena, global_position, Color.html(super_info.get("farbe", "#FF4D6D")))
+	if super_info.get("ruf", "") != "":
+		Effekte.ruf(self, str(super_info["ruf"]), Color.html(super_info.get("farbe", "#FFD23F")))
 	letzter_super = zeit()
 	pose_setzen("")
 	if arena.has_method("laerm"):
