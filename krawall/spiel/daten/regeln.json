@@ -1,0 +1,11 @@
+{
+  "_info": "Regeln für den Schul-Modus. Heilung ist in Anteilen des maximalen Lebens (0.3 = 30 %).",
+  "schule": {
+    "leben": 1,
+    "max_angreifer": 3,
+    "heilung_super_ko": 0.3,
+    "heilung_doppel_ko": 0.35,
+    "doppel_ko_fenster": 4.0,
+    "heilung_ueberraschungs_ko": 0.25
+  }
+}

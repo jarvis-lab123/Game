@@ -813,4 +813,4 @@ func _unhandled_input(e: InputEvent) -> void:
 func _starten() -> void:
 	if Daten.charaktere.is_empty():
 		return
-	get_tree().change_scene_to_file("res://szenen/spiel.tscn")
+	get_tree().change_scene_to_file("res://szenen/schule.tscn")

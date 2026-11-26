@@ -10,6 +10,10 @@ const DUNKEL := Color("#1B1424")
 const GOLD := Color("#FFD23F")
 
 var arena: Arena
+var modus := "arena"            # arena | schule
+var _untertitel: Label
+var _raum_label: Label
+var _karte: Control
 var stick_bewegung := Vector2.ZERO
 var stick_ziel := Vector2.ZERO
 
@@ -56,16 +60,29 @@ func _ready() -> void:
 	_touch_steuerung()
 	_hinweise()
 	_gadget_bauen()
+	if modus == "schule":
+		_schule_bauen()
 
 
 func _process(_d: float) -> void:
 	if arena == null:
 		return
-	_punkte_blau.text = str(arena.punkte[0])
-	_punkte_rot.text = str(arena.punkte[1])
-	var s := int(ceil(arena.restzeit))
-	_zeit.text = "%d:%02d" % [s / 60, s % 60]
-	_zeit.add_theme_color_override("font_color", ROT if s <= 15 else Color.WHITE)
+	if modus == "schule":
+		var sch: Schule = arena
+		var uebrig := sch.lehrer_uebrig()
+		_punkte_blau.text = "✔ %d" % (sch.lehrer_gesamt - uebrig)
+		_punkte_rot.text = str(uebrig)
+		var g := int(arena.restzeit)
+		_zeit.text = "%d:%02d" % [g / 60, g % 60]
+		var n := sch.angreifer.filter(func(a): return is_instance_valid(a) and not a.tot).size()
+		_untertitel.text = "Lehrer übrig: %d   ·   greifen an: %d / %d" % [uebrig, n, int(sch.regeln.get("max_angreifer", 3))]
+		_karte.queue_redraw()
+	else:
+		_punkte_blau.text = str(arena.punkte[0])
+		_punkte_rot.text = str(arena.punkte[1])
+		var s := int(ceil(arena.restzeit))
+		_zeit.text = "%d:%02d" % [s / 60, s % 60]
+		_zeit.add_theme_color_override("font_color", ROT if s <= 15 else Color.WHITE)
 	stick_bewegung = _stick_links.wert if _stick_links else Vector2.ZERO
 	stick_ziel = Vector2.ZERO
 	if _stick_angriff and _stick_angriff.gezogen():
@@ -148,9 +165,10 @@ func _kopfleiste() -> void:
 	box.add_child(pr)
 	add_child(box)
 	var ziel := _label("Zuerst %d K.o.s gewinnt" % Arena.SIEG_KOS, 22, Color.WHITE, 6)
+	_untertitel = ziel
 	ziel.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	ziel.position = Vector2(-150, 96)
-	ziel.size = Vector2(300, 30)
+	ziel.position = Vector2(-300, 96)
+	ziel.size = Vector2(600, 30)
 	ziel.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	add_child(ziel)
 
@@ -174,6 +192,68 @@ func _hinweise() -> void:
 		var l: float = arena.spieler.super_ladung if arena and arena.spieler else 0.0
 		TouchStick.super_kreis(_super_knopf_desktop, Vector2(70, 70), 62.0, l, SCHRIFT))
 	add_child(_super_knopf_desktop)
+
+
+func _schule_bauen() -> void:
+	_raum_label = _label("", 46, Color.WHITE, 12)
+	_raum_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	_raum_label.position = Vector2(-400, 135)
+	_raum_label.size = Vector2(800, 60)
+	_raum_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_raum_label.modulate.a = 0.0
+	add_child(_raum_label)
+	_karte = Control.new()
+	_karte.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	_karte.position = Vector2(-310, 90)
+	_karte.size = Vector2(290, 203)
+	_karte.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_karte.draw.connect(_karte_zeichnen)
+	add_child(_karte)
+
+
+func raum_anzeigen(name: String) -> void:
+	if _raum_label == null:
+		return
+	_raum_label.text = name.to_upper()
+	var tw := create_tween()
+	tw.tween_property(_raum_label, "modulate:a", 1.0, 0.2)
+	tw.tween_interval(1.4)
+	tw.tween_property(_raum_label, "modulate:a", 0.0, 0.5)
+
+
+## Minikarte: Räume, du (grün), entdeckende Lehrer (gelb ?) und angreifende Lehrer (rot)
+func _karte_zeichnen() -> void:
+	var sch: Schule = arena
+	var sk := _karte.size.x / Schule.BREITE
+	_karte.draw_rect(Rect2(Vector2(-6, -6), _karte.size + Vector2(12, 12)), DUNKEL)
+	for r in Schule.RAEUME:
+		var a: Array = r["r"]
+		var rect := Rect2(Vector2(a[0], a[1]) * sk, Vector2(a[2] - a[0], a[3] - a[1]) * sk)
+		_karte.draw_rect(rect, Color.html(r["boden"][0]).darkened(0.1))
+		_karte.draw_rect(rect, DUNKEL, false, 1.5)
+	var plan_von := func(p: Vector3) -> Vector2:
+		var q := p - Schule.URSPRUNG
+		return Vector2(q.x, q.z) * sk
+	for l in sch.lehrer_liste:
+		if l.tot:
+			continue
+		var farbe := Color(0, 0, 0, 0)
+		match l.zustand:
+			"angriff", "alarm":
+				farbe = ROT
+			"warten", "suchen":
+				farbe = Color("#FF9F1C")
+			"misstrauisch":
+				farbe = GOLD
+			_:
+				if l.global_position.distance_to(sch.spieler.global_position) < 14.0:
+					farbe = Color(1, 1, 1, 0.8)
+		if farbe.a > 0.0:
+			_karte.draw_circle(plan_von.call(l.global_position), 4.0, farbe)
+	if sch.spieler:
+		var p: Vector2 = plan_von.call(sch.spieler.global_position)
+		_karte.draw_circle(p, 6.0, DUNKEL)
+		_karte.draw_circle(p, 4.5, GRUEN)
 
 
 func _gadget_bauen() -> void:
@@ -406,12 +486,19 @@ func ende(ergebnis: int, verdient := 0) -> void:
 	var v: VBoxContainer = _ende.get_child(0).get_child(0)
 	(_ende.get_child(0) as Control).offset_left = 700  # rechts neben der jubelnden Figur
 	var text: String = {1: "SIEG!", -1: "NIEDERLAGE", 0: "UNENTSCHIEDEN"}[ergebnis]
+	if modus == "schule":
+		text = "SCHULE GEROCKT!" if ergebnis == 1 else "ERWISCHT!"
 	var farbe: Color = {1: GOLD, -1: ROT, 0: Color.WHITE}[ergebnis]
 	var t := _label(text, 120, farbe, 24)
 	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	t.pivot_offset = Vector2(300, 70)
 	v.add_child(t)
-	var s := _label("%d : %d   ·   deine K.o.s: %d" % [arena.punkte[0], arena.punkte[1], arena.spieler.ko_zaehler], 34, Color.WHITE, 8)
+	var zeile := "%d : %d   ·   deine K.o.s: %d" % [arena.punkte[0], arena.punkte[1], arena.spieler.ko_zaehler]
+	if modus == "schule":
+		var sch: Schule = arena
+		var g := int(arena.restzeit)
+		zeile = "Lehrer besiegt: %d / %d   ·   Zeit %d:%02d" % [sch.lehrer_gesamt - sch.lehrer_uebrig(), sch.lehrer_gesamt, g / 60, g % 60]
+	var s := _label(zeile, 34, Color.WHITE, 8)
 	s.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(s)
 	var m := _label("+%d Münzen  (jetzt %d)" % [verdient, Konto.muenzen], 40, GOLD, 10)

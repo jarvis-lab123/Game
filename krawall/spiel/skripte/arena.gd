@@ -513,8 +513,11 @@ var _maus_ziel := Vector3.ZERO
 var _touch_aktiv := false
 
 
+var steuerung_aktiv := true      # false = Spieler wird nicht von Eingaben gesteuert (z. B. für Tests)
+
+
 func _spieler_steuern() -> void:
-	if spieler == null or vorbei:
+	if spieler == null or vorbei or not steuerung_aktiv:
 		return
 	var v := Input.get_vector("links", "rechts", "hoch", "runter")
 	if hud.stick_bewegung.length() > 0.05:

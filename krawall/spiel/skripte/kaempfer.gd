@@ -55,6 +55,10 @@ var _baum: AnimationTree
 var _mats: Array = []
 var _ring: MeshInstance3D
 var _blase: MeshInstance3D
+var _posen: Array = []
+var regeneration := true        # Arena-Modus: ja · Schule: nein (nur über besondere K.o.s)
+var letzter_super := -99.0
+var einrasten := Vector3.INF     # wenn gesetzt: gleitet ohne Kollision dorthin (Sitzplatz)
 
 # KI
 var ki := false
@@ -158,10 +162,10 @@ func _relativ(wurzel: Node3D, n: Node3D) -> Transform3D:
 
 
 func _animationen_einrichten() -> void:
-	for n in ["Idle", "Run", "Victory"]:
+	for n in ["Idle", "Run", "Victory", "Walk", "Sit", "Read", "Talk"]:
 		if _anim.has_animation(n):
 			_anim.get_animation(n).loop_mode = Animation.LOOP_LINEAR
-	for n in ["Attack", "Super", "Hit", "Dead"]:
+	for n in ["Attack", "Super", "Hit", "Dead", "Alarm"]:
 		if _anim.has_animation(n):
 			_anim.get_animation(n).loop_mode = Animation.LOOP_NONE
 	if not (_anim.has_animation("Idle") and _anim.has_animation("Run")):
@@ -173,13 +177,34 @@ func _animationen_einrichten() -> void:
 	idle.animation = "Idle"
 	var lauf := AnimationNodeAnimation.new()
 	lauf.animation = "Run"
-	var mix := AnimationNodeBlend2.new()
-	bt.add_node("idle", idle, Vector2(0, 0))
-	bt.add_node("lauf", lauf, Vector2(0, 150))
-	bt.add_node("bewegung", mix, Vector2(200, 50))
-	bt.connect_node("bewegung", 0, "idle")
-	bt.connect_node("bewegung", 1, "lauf")
-	var letzter := "bewegung"
+	# Fortbewegung: Stehen – Gehen – Rennen (BlendSpace nach Geschwindigkeit)
+	var raum := AnimationNodeBlendSpace1D.new()
+	raum.min_space = 0.0
+	raum.max_space = 1.0
+	raum.add_blend_point(idle, 0.0)
+	if _anim.has_animation("Walk"):
+		var geh := AnimationNodeAnimation.new()
+		geh.animation = "Walk"
+		raum.add_blend_point(geh, 0.35)
+	raum.add_blend_point(lauf, 1.0)
+	bt.add_node("bewegung", raum, Vector2(200, 50))
+	# Haltung: normal bewegen oder Alltags-Posen (Sitzen, Lesen, Reden)
+	var pose := AnimationNodeTransition.new()
+	pose.xfade_time = 0.3
+	pose.add_input("lauf")
+	bt.add_node("pose", pose, Vector2(400, 50))
+	bt.connect_node("pose", 0, "bewegung")
+	var i_pose := 1
+	for n in ["Sit", "Read", "Talk"]:
+		if _anim.has_animation(n):
+			pose.add_input(n)
+			var an := AnimationNodeAnimation.new()
+			an.animation = n
+			bt.add_node("pose_" + n, an, Vector2(200, 150 + i_pose * 80))
+			bt.connect_node("pose", i_pose, "pose_" + n)
+			_posen.append(n)
+			i_pose += 1
+	var letzter := "pose"
 	var x := 400
 	# Angriff nur im Oberkörper (Beine laufen weiter)
 	if _anim.has_animation("Attack"):
@@ -210,7 +235,7 @@ func _animationen_einrichten() -> void:
 		bt.connect_node("angriff", 1, "angriff_tempo")
 		letzter = "angriff"
 		x += 300
-	for paar in [["Super", "super"], ["Hit", "treffer"]]:
+	for paar in [["Super", "super"], ["Hit", "treffer"], ["Alarm", "alarm"]]:
 		if _anim.has_animation(paar[0]):
 			var a := AnimationNodeAnimation.new()
 			a.animation = paar[0]
@@ -236,6 +261,7 @@ func _animationen_einrichten() -> void:
 	_tempo_setzen("angriff", "Attack", 0.55)
 	_tempo_setzen("super", "Super", 1.0)
 	_tempo_setzen("treffer", "Hit", 0.4)
+	_tempo_setzen("alarm", "Alarm", 0.5)
 
 
 func _tempo_setzen(knoten: String, anim: String, ziel_dauer: float) -> void:
@@ -331,10 +357,14 @@ func _physics_process(delta: float) -> void:
 	if passiv_info.get("typ", "") == "schnelle_heilung":
 		warte = 1.5
 		rate = 0.26
-	if t - _letzter_schaden > warte and t - _letzter_angriff > warte and leben < max_leben:
+	if regeneration and t - _letzter_schaden > warte and t - _letzter_angriff > warte and leben < max_leben:
 		leben = minf(max_leben, leben + max_leben * rate * delta)
 	# Bewegung
-	if not _springt:
+	if einrasten != Vector3.INF:
+		# auf einen Platz gleiten (z. B. auf den Stuhl), ohne Kollision
+		global_position = global_position.move_toward(einrasten, 1.6 * delta)
+		velocity = Vector3.ZERO
+	elif not _springt:
 		var v := bewegung.limit_length(1.0) * tempo()
 		if t < _sprint_bis:
 			v = _sprint_richtung * 17.0
@@ -353,9 +383,9 @@ func _physics_process(delta: float) -> void:
 	modell.rotation.y = lerp_angle(modell.rotation.y, atan2(richtung.x, richtung.z), minf(1.0, 16.0 * delta))
 	# Animation
 	if _baum:
-		var lauf := clampf(velocity.length() / maxf(tempo(), 0.1), 0.0, 1.0)
-		var alt: float = _baum.get("parameters/bewegung/blend_amount")
-		_baum.set("parameters/bewegung/blend_amount", lerpf(alt, lauf, minf(1.0, 12.0 * delta)))
+		var lauf := clampf(velocity.length() / maxf(TEMPO_BASIS * float(daten["werte"]["tempo"]), 0.1), 0.0, 1.0)
+		var alt: float = _baum.get("parameters/bewegung/blend_position")
+		_baum.set("parameters/bewegung/blend_position", lerpf(alt, lauf, minf(1.0, 12.0 * delta)))
 	# Comic-Effekte: Blitz, Quetschen, Spawnschutz-Blinken, Tarnung
 	if _blitz > 0.0:
 		_blitz = maxf(0.0, _blitz - delta * 6.0)
@@ -374,6 +404,20 @@ func _physics_process(delta: float) -> void:
 		glimmen = 0.4 if int(t * 8.0) % 2 == 0 else 0.0
 	for m in _mats:
 		(m as ShaderMaterial).set_shader_parameter("leuchten", glimmen)
+
+
+## Alltags-Pose: "" = normal bewegen, sonst "Sit", "Read", "Talk" (falls das Modell sie hat)
+func pose_setzen(name: String) -> void:
+	if _baum == null:
+		return
+	var ziel := name if name in _posen else "lauf"
+	if _baum.get("parameters/pose/current_state") != ziel:
+		_baum.set("parameters/pose/transition_request", ziel)
+
+
+func alarm_animation() -> void:
+	if _baum and _anim.has_animation("Alarm"):
+		_baum.set("parameters/alarm/request", AnimationNodeOneShot.ONE_SHOT_REQUEST_FIRE)
 
 
 func zielen_auf(richtung: Vector3) -> void:
@@ -456,6 +500,9 @@ func angreifen(richtung: Vector3, ziel_punkt := Vector3.INF) -> void:
 	richtung = richtung.normalized()
 	munition -= 1.0
 	_letzter_angriff = zeit()
+	pose_setzen("")
+	if arena.has_method("laerm"):
+		arena.laerm(self, global_position, 11.0)
 	_effekte.erase("spawnschutz")
 	_tarnung_beenden()
 	zielen_auf(richtung)
@@ -526,6 +573,10 @@ func super_ausloesen(richtung: Vector3, ziel_punkt := Vector3.INF) -> void:
 		_baum.set("parameters/super/request", AnimationNodeOneShot.ONE_SHOT_REQUEST_FIRE)
 	Arena.ton("super")
 	Effekte.super_blitz(arena, global_position, Color.html(super_info.get("farbe", "#FF4D6D")))
+	letzter_super = zeit()
+	pose_setzen("")
+	if arena.has_method("laerm"):
+		arena.laerm(self, global_position, 14.0)
 	Faehigkeiten.super_ausfuehren(self, super_info, richtung, ziel_punkt)
 
 
@@ -591,8 +642,10 @@ func schaden_nehmen(menge: float, quelle: Kaempfer, stoss := Vector3.ZERO) -> vo
 		_ausschalten(quelle)
 
 
-func heilen(menge: float) -> void:
+func heilen(menge: float, erzwingen := false) -> void:
 	if tot:
+		return
+	if not erzwingen and arena and arena.has_method("heilung_erlaubt") and not arena.heilung_erlaubt(self):
 		return
 	leben = minf(max_leben, leben + menge)
 
@@ -622,6 +675,13 @@ func wiederbeleben(punkt: Vector3) -> void:
 	effekt_setzen("spawnschutz", SPAWNSCHUTZ, 1.0)
 	set_physics_process(true)
 	Effekte.puff(arena, punkt + Vector3(0, 0.5, 0), Color("#FFF3B0"))
+
+
+func stehen_bleiben() -> void:
+	if _baum:
+		_baum.active = false
+	if _anim and _anim.has_animation("Idle"):
+		_anim.play("Idle")
 
 
 func jubeln() -> void:

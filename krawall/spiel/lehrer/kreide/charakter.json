@@ -1,0 +1,84 @@
+{
+  "name": "Herr Kreide",
+  "titel": "Mathelehrer",
+  "beschreibung": "Wirft Kreide zielsicher über Tische.",
+  "werte": {
+    "leben": 3200,
+    "tempo": 0.9
+  },
+  "angriff": {
+    "typ": "wurf",
+    "name": "Kreidewurf",
+    "schaden": 420,
+    "reichweite": 8.0,
+    "nachladen": 1.6,
+    "radius": 1.3,
+    "farbe": "#F4F1EA"
+  },
+  "super": {
+    "typ": "salve",
+    "name": "Formelregen",
+    "schaden": 1200,
+    "farbe": "#F4F1EA"
+  },
+  "gadgets": [
+    {
+      "typ": "frost"
+    }
+  ],
+  "passive": [
+    {
+      "typ": "schnelllader"
+    }
+  ],
+  "lehrer": {
+    "anzahl": 2,
+    "raeume": [
+      "klasse"
+    ],
+    "sicht": 9,
+    "sichtwinkel": 110
+  },
+  "aussehen": {
+    "hautfarbe": "#EBC3A0",
+    "groesse": 1.05,
+    "kopfform": "oval",
+    "haare": {
+      "stil": "seitenscheitel",
+      "farbe": "#8A8A8A",
+      "scheitel": "links"
+    },
+    "bart": {
+      "stil": "schnauzer",
+      "farbe": "#7A7A7A"
+    },
+    "brille": {
+      "stil": "eckig",
+      "farbe": "#2A2140"
+    },
+    "augenbrauen": {
+      "winkel": 10,
+      "dicke": 1.3
+    },
+    "oberteil": {
+      "stil": "pulli",
+      "farbe": "#8B5A2B",
+      "farbe2": "#F4F1EA"
+    },
+    "hose": {
+      "stil": "lang",
+      "farbe": "#5E6578"
+    },
+    "schuhe": {
+      "farbe": "#3A2E4F",
+      "sohle": "#2A2140"
+    },
+    "waffe": {
+      "stil": "buch",
+      "farbe": "#3A7BD5",
+      "farbe2": "#F4F1EA"
+    },
+    "mund": "neutral"
+  },
+  "platzhalter": true
+}

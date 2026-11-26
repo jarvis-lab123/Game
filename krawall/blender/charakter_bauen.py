@@ -25,6 +25,7 @@ from mathutils import Matrix, Vector
 
 # ---------------------------------------------------------------- Standardwerte
 STANDARD_AUSSEHEN = {
+    "proportionen": "comic",         # comic (erwachsen, ca. 6 Köpfe groß) | chibi (großer Kopf, kindlich)
     "hautfarbe": "#F2C29B",
     "koerperbau": "normal",          # schmal | normal | kraeftig
     "groesse": 1.0,                   # 0.85 – 1.15
@@ -317,23 +318,49 @@ def kegel(name, basis, spitze, r, mat, knochen, segs=16):
 class Figur:
     def __init__(self, a):
         self.a = a
+        self.comic = a.get("proportionen", "comic") == "comic"
         bau = {"schmal": 0.86, "normal": 1.0, "kraeftig": 1.18}[a["koerperbau"]]
+        if self.comic:
+            bau *= 0.82          # schlanker: alle Breiten (Rumpf, Arme, Beine, Hände) skalieren mit bau
         self.bau = bau
         g = a["groesse"]
         self.g = g
-        # Schlüsselpunkte (Z-Höhen) – Chibi-Proportionen: großer Kopf, kurzer Körper
-        self.fuss_z = 0.0
-        self.knie_z = 0.30 * g
-        self.huefte_z = 0.60 * g
-        self.brust_z = 1.02 * g
-        self.schulter = Vector((0.27 * bau, 0.0, 1.03 * g))
-        self.hals_z = 1.10 * g
         kg = a["kopfgroesse"]
         form = {"rund": (0.37, 0.34, 0.35), "oval": (0.34, 0.33, 0.38),
                 "eckig": (0.37, 0.34, 0.35), "breit": (0.40, 0.35, 0.34)}[a["kopfform"]]
-        self.kopf_r = Vector(form) * kg
+        self.fuss_z = 0.0
+        if self.comic:
+            # Erwachsene Comic-Proportionen (ca. 6 Köpfe): Kopf wird im Chibi-Maßstab gebaut und danach verkleinert
+            self.knie_z = 0.50 * g
+            self.huefte_z = 0.95 * g
+            self.brust_z = 1.33 * g
+            self.schulter = Vector((0.27 * bau, 0.0, 1.40 * g))
+            self.hals_z = 1.47 * g
+            self.arm_ell = Vector((0.05, 0.0, -0.30 * g))
+            self.arm_hand = Vector((0.02, -0.02, -0.27 * g))
+            self.kopf_faktor = 0.5 * kg
+            kg_bau = 1.0
+        else:
+            # Chibi: großer Kopf, kurzer Körper
+            self.knie_z = 0.30 * g
+            self.huefte_z = 0.60 * g
+            self.brust_z = 1.02 * g
+            self.schulter = Vector((0.27 * bau, 0.0, 1.03 * g))
+            self.hals_z = 1.10 * g
+            self.arm_ell = Vector((0.07, 0.0, -0.22 * g))
+            self.arm_hand = Vector((0.035, -0.02, -0.20 * g))
+            self.kopf_faktor = 1.0
+            kg_bau = kg
+        self.kopf_r = Vector(form) * kg_bau
         self.kopf_m = Vector((0, 0, self.hals_z + self.kopf_r.z * 1.02))
+        # endgültiger Kopf (nach dem Skalieren)
+        self.kopf_ziel_m = Vector((0, 0, self.hals_z + self.kopf_r.z * self.kopf_faktor * 0.98))
         self.bein_x = 0.12 * bau
+        if self.comic:
+            # realistischere Augen: kleiner und etwas enger, wenn nicht ausdrücklich anders gewünscht
+            au = a["augen"]
+            au["groesse"] = au.get("groesse", 1.0) * 0.72
+            au["abstand"] = au.get("abstand", 1.0) * 0.95
 
         self.m = {
             "haut": material("haut", a["hautfarbe"], rau=0.55),
@@ -354,6 +381,19 @@ class Figur:
             "schuh": material("schuh", a["schuhe"]["farbe"], rau=0.45),
             "sohle": material("sohle", a["schuhe"]["sohle"], rau=0.45),
         }
+
+    def kopf_skalieren(self, ab_index):
+        """Alle Kopfteile (ab TEILE[ab_index]) auf die endgültige Kopfgröße bringen und an den Hals setzen."""
+        f = self.kopf_faktor
+        if f == 1.0:
+            return
+        alt = self.kopf_m.copy()
+        neu = self.kopf_ziel_m.copy()
+        for ob, _ in TEILE[ab_index:]:
+            for v in ob.data.vertices:
+                v.co = neu + (v.co - alt) * f
+        self.kopf_r = self.kopf_r * f
+        self.kopf_m = neu
 
     def rumpf_y(self, z):
         """Vorderseite des Rumpfes (y-Wert) auf Höhe z (Superellipsoid-Näherung)."""
@@ -457,9 +497,10 @@ class Figur:
             oben = Vector((x, 0, self.huefte_z))
             knie = Vector((x * 1.03, 0, self.knie_z))
             fuss = Vector((x * 1.05, 0, 0.11))
-            kapsel(f"oberschenkel.{seite}", knie, oben, 0.085 * bau, hose, f"thigh.{seite}", r2=0.095 * bau)
+            bd = 1.18 if self.comic else 1.0
+            kapsel(f"oberschenkel.{seite}", knie, oben, 0.085 * bau * bd, hose, f"thigh.{seite}", r2=0.095 * bau * bd)
             unter_mat = hose if a["hose"]["stil"] == "lang" else m["haut"]
-            kapsel(f"unterschenkel.{seite}", fuss, knie, 0.07 * bau, unter_mat, f"shin.{seite}", r2=0.08 * bau)
+            kapsel(f"unterschenkel.{seite}", fuss, knie, 0.07 * bau * bd, unter_mat, f"shin.{seite}", r2=0.08 * bau * bd)
             if a["hose"]["stil"] == "kurz":
                 torus(f"hosensaum.{seite}", knie + Vector((0, 0, 0.06)), 0.085 * bau, 0.025, hose, f"thigh.{seite}",
                       normale=(0, 0, 1))
@@ -481,8 +522,8 @@ class Figur:
         lang = stil in ("hoodie", "jacke", "pulli")
         for seite, sx in (("L", 1), ("R", -1)):
             s = Vector((sx * self.schulter.x, 0, self.schulter.z))
-            ell = s + Vector((sx * 0.07, 0.0, -0.22 * g))
-            hand = ell + Vector((sx * 0.035, -0.02, -0.20 * g))
+            ell = s + Vector((sx * self.arm_ell.x, self.arm_ell.y, self.arm_ell.z))
+            hand = ell + Vector((sx * self.arm_hand.x, self.arm_hand.y, self.arm_hand.z))
             arm_r = 0.065 * bau
             ellipsoid(f"schulter.{seite}", s + Vector((sx * 0.01, 0, -0.01)), (0.075 * bau, 0.075 * bau, 0.07 * bau),
                       m["haut"] if stil == "tanktop" else ober, f"upper_arm.{seite}")
@@ -499,7 +540,16 @@ class Figur:
             # Hand: Fäustling-artig, groß und rund (Comic)
             hmat = material("handschuh", a["handschuhe"]["farbe"]) if a["handschuhe"]["an"] else m["haut"]
             hm = hand + Vector((0, 0, -0.055))
-            ellipsoid(f"hand.{seite}", hm, (0.07 * bau, 0.075 * bau, 0.08 * bau), hmat, f"hand.{seite}")
+            if self.comic:
+                # flache Handfläche (zeigt zum Körper) + vier Finger + Daumen
+                ellipsoid(f"hand.{seite}", hm, (0.032, 0.05, 0.055), hmat, f"hand.{seite}")
+                for i in range(4):
+                    fy = -0.03 + i * 0.02
+                    laenge = 0.075 - abs(i - 1.3) * 0.01
+                    kapsel(f"finger.{seite}{i}", hm + Vector((0, fy, -0.035)), hm + Vector((-sx * 0.006, fy * 1.08, -0.035 - laenge)),
+                           0.0125, hmat, f"hand.{seite}")
+            else:
+                ellipsoid(f"hand.{seite}", hm, (0.07 * bau, 0.075 * bau, 0.08 * bau), hmat, f"hand.{seite}")
             kapsel(f"daumen.{seite}", hm + Vector((-sx * 0.01, -0.05, 0.02)), hm + Vector((-sx * 0.0, -0.085, -0.02)),
                    0.026 * bau, hmat, f"hand.{seite}")
             self.hand_punkt = getattr(self, "hand_punkt", {})
@@ -831,6 +881,15 @@ class Figur:
         w = a["waffe"]
         if w["stil"] == "keine":
             return
+        start = len(TEILE)
+        self._waffe_bauen(w)
+        if self.comic:
+            hm = self.hand_punkt["R"]
+            for ob, _ in TEILE[start:]:
+                for v in ob.data.vertices:
+                    v.co = hm + (v.co - hm) * 0.7
+
+    def _waffe_bauen(self, w):
         hm = self.hand_punkt["R"]
         m1 = material("waffe", w["farbe"], glanz=True)
         m2 = material("waffe2", w["farbe2"])
@@ -882,8 +941,8 @@ def skelett_bauen(f):
     knochen("head", (0, 0, f.hals_z + 0.08), (0, 0, f.kopf_m.z + f.kopf_r.z), "neck")
     for seite, sx in (("L", 1), ("R", -1)):
         s = Vector((sx * f.schulter.x, 0, f.schulter.z))
-        ell = s + Vector((sx * 0.07, 0.0, -0.22 * g))
-        hand = ell + Vector((sx * 0.035, -0.02, -0.20 * g))
+        ell = s + Vector((sx * f.arm_ell.x, f.arm_ell.y, f.arm_ell.z))
+        hand = ell + Vector((sx * f.arm_hand.x, f.arm_hand.y, f.arm_hand.z))
         knochen(f"upper_arm.{seite}", s, ell, "chest")
         knochen(f"forearm.{seite}", ell, hand, f"upper_arm.{seite}")
         knochen(f"hand.{seite}", hand, hand + Vector((0, 0, -0.12)), f"forearm.{seite}")
@@ -917,7 +976,7 @@ def zusammenbauen(skelett):
 
 
 # ---------------------------------------------------------------- Animationen
-def animationen(skelett):
+def animationen(skelett, f=None):
     D = math.radians
     pb = skelett.pose.bones
     for b in pb:
@@ -1045,6 +1104,58 @@ def animationen(skelett):
         (10, arme_ruhe),
     ])
 
+    # --- Alltag (für Lehrer-Verhalten): Gehen, Sitzen, Lesen, Reden, Erschrecken
+    def geh(phase):
+        s_ = 1 if phase == 0 else -1
+        return {"spine": {"r": (3, 0, 0)}, "chest": {"r": (0, -5 * s_, 0)},
+                "thigh.L": {"r": (24 * s_, 0, 0)}, "thigh.R": {"r": (-24 * s_, 0, 0)},
+                "shin.L": {"r": (-8 if s_ > 0 else -30, 0, 0)}, "shin.R": {"r": (-30 if s_ > 0 else -8, 0, 0)},
+                "upper_arm.L": {"r": (-20 * s_, 0, 6)}, "upper_arm.R": {"r": (20 * s_, 0, -6)},
+                "forearm.L": {"r": (18, 0, 0)}, "forearm.R": {"r": (18, 0, 0)}}
+
+    def geh_mitte(phase):
+        p_ = {k: dict(v) for k, v in geh(phase).items()}
+        for k in ("thigh.L", "thigh.R", "upper_arm.L", "upper_arm.R"):
+            r = p_[k]["r"]
+            p_[k]["r"] = (r[0] * 0.1, r[1], r[2])
+        p_["hips"] = {"l": (0, 0.025, 0)}
+        p_["shin.L"]["r"] = (-20, 0, 0)
+        p_["shin.R"]["r"] = (-20, 0, 0)
+        return p_
+
+    neu("Walk", [(0, geh(0)), (8, geh_mitte(0)), (16, geh(1)), (24, geh_mitte(1)), (32, geh(0))])
+
+    sitz_tief = (f.huefte_z - 0.5) if f else 0.15
+    sitz = {"hips": {"l": (0, -sitz_tief, 0)}, "spine": {"r": (4, 0, 0)},
+            "thigh.L": {"r": (88, 0, 4)}, "thigh.R": {"r": (88, 0, -4)},
+            "shin.L": {"r": (-88, 0, 0)}, "shin.R": {"r": (-88, 0, 0)}, "foot.L": {"r": (0, 0, 0)},
+            "upper_arm.L": {"r": (25, 0, 8)}, "upper_arm.R": {"r": (25, 0, -8)},
+            "forearm.L": {"r": (55, 0, 0)}, "forearm.R": {"r": (55, 0, 0)}}
+    sitz2 = mit(sitz, {"spine": {"r": (7, 0, 0)}, "head": {"r": (6, 8, 0)}, "chest": {"r": (2, 0, 0)}})
+    neu("Sit", [(0, sitz), (30, sitz2), (60, sitz)])
+
+    lesen = {"spine": {"r": (6, 0, 0)}, "head": {"r": (22, 0, 0)},
+             "upper_arm.L": {"r": (35, 0, 12)}, "upper_arm.R": {"r": (35, 0, -12)},
+             "forearm.L": {"r": (75, 0, -20)}, "forearm.R": {"r": (75, 0, 20)}}
+    neu("Read", [(0, lesen), (40, mit(lesen, {"head": {"r": (24, -10, 0)}, "hips": {"l": (0, -0.01, 0)}})),
+                 (80, mit(lesen, {"head": {"r": (22, 10, 0)}})), (120, lesen)])
+
+    reden = mit(arme_ruhe, {"upper_arm.R": {"r": (40, 0, -15)}, "forearm.R": {"r": (60, 0, 0)}})
+    neu("Talk", [(0, reden),
+                 (10, mit(reden, {"upper_arm.R": {"r": (60, 0, -25)}, "forearm.R": {"r": (40, 0, 0)}, "head": {"r": (-5, 8, 0)}})),
+                 (20, mit(reden, {"upper_arm.L": {"r": (30, 0, 20)}, "forearm.L": {"r": (50, 0, 0)}, "head": {"r": (5, -6, 0)}})),
+                 (30, mit(reden, {"upper_arm.R": {"r": (55, 0, -10)}, "head": {"r": (-3, 0, 0)}})),
+                 (40, reden)])
+
+    neu("Alarm", [
+        (0, arme_ruhe),
+        (4, {"hips": {"l": (0, 0.12, 0)}, "spine": {"r": (-12, 0, 0)}, "head": {"r": (-15, 0, 0)},
+             "upper_arm.L": {"r": (-10, 0, 70)}, "upper_arm.R": {"r": (-10, 0, -70)},
+             "forearm.L": {"r": (40, 0, 0)}, "forearm.R": {"r": (40, 0, 0)}}),
+        (10, mit(arme_ruhe, {"spine": {"r": (10, 0, 0)}, "upper_arm.L": {"r": (30, 0, 10)}, "upper_arm.R": {"r": (30, 0, -10)}})),
+        (16, arme_ruhe),
+    ])
+
     # Alle Aktionen als NLA-Spuren ablegen (damit der glTF-Export jede einzeln findet)
     skelett.animation_data.action = None
     for b in pb:
@@ -1137,14 +1248,16 @@ def main():
 
     f = Figur(aussehen)
     f.koerper()
+    kopf_start = len(TEILE)
     f.kopf()
     f.haare()
     f.bart()
     f.accessoires()
+    f.kopf_skalieren(kopf_start)
     f.waffe()
     skelett = skelett_bauen(f)
     figur = zusammenbauen(skelett)
-    animationen(skelett)
+    animationen(skelett, f)
     hoehe = f.kopf_m.z + f.kopf_r.z
     print(f"Figur: {len(figur.data.vertices)} Vertices, {len(figur.data.materials)} Materialien, Höhe {hoehe:.2f} m")
 

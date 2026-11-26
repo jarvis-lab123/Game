@@ -3,13 +3,13 @@
 ## Der Kreislauf
 
 ```
- Start mit 1 Kämpfer ──► Match spielen ──► Münzen verdienen ──► Laptop kaufen & öffnen
+ Start mit 1 Kämpfer ──► Schule stürmen ──► Münzen verdienen ──► Laptop kaufen & öffnen
         ▲                                                              │
         └──────── neuer Kämpfer oder +1 Stufe ◄────────────────────────┘
 ```
 
 1. **Am Anfang** hast du genau **einen Kämpfer** (in `charakter.json` mit `"start": true`) und **300 Münzen**.
-2. **Matches** bringen Münzen: Sieg 60 · Unentschieden 40 · Niederlage 25, dazu +5 pro K.o.
+2. **Einsätze** bringen Münzen: geschafft 60 · verloren 25, dazu +5 pro besiegtem Lehrer.
 3. Im **Laptop-Shop** kaufst du Laptops. Jeder Laptop enthält Münzen und mit einer bestimmten
    Wahrscheinlichkeit einen Kämpfer.
 4. **Neuer Kämpfer:** Er ist freigeschaltet und spielbar. **Schon vorhanden:** Er steigt eine Stufe auf
@@ -52,19 +52,53 @@ Dann springt der Deckel auf, der Ladebalken klettert durch die Seltenheitsfarben
 länger), der Bildschirm glitcht, eine Lichtsäule schießt hoch, und der Kämpfer wird aus dem Bildschirm
 „heruntergeladen“.
 
-## Ein Match: „Krawall“
+## Ein Einsatz: die Schule
 
-- **3 gegen 3** (du + 2 Bots gegen 3 Bots), Kamera schräg von oben.
-- **Ziel:** zuerst **10 K.o.s** fürs Team. Nach **2:30** gewinnt das Team mit mehr K.o.s.
-- Wer K.o. geht, kommt nach **4 s** am eigenen Startpunkt zurück, mit **2 s Spawnschutz** (blinkt).
-- **Leben regeneriert sich**, wenn du 3 s weder angreifst noch getroffen wirst.
-- Die Bots sind ungefähr auf deiner Stufe und haben zufällige Gadgets und Passive.
+Du betrittst die Schule durch den Haupteingang. Der Komplex hat Klassenzimmer (5a, 7b, 9c, Chemieraum),
+Bibliothek, Hauptgang, Eingangshalle, Mensa, Lehrerzimmer und Sekretariat.
 
-### Die Arena
-- **Mauern** blockieren alles. **Kisten** auch, gehen aber mit `bombe`-Supers kaputt.
-- **Wasser** blockiert Laufen, Schüsse fliegen drüber.
-- **Büsche:** Wer drinsteht, ist für Gegner unsichtbar, außer sie kommen auf unter 3 m heran oder
-  er schießt bzw. wird getroffen.
+- **Ziel:** Besiege **alle Lehrer**. Erst dann hast du gewonnen. Rechts oben steht, wie viele noch übrig sind.
+- **Ein Leben:** Gehst du K.o., ist der Einsatz verloren (einstellbar in `spiel/daten/regeln.json`).
+- **Keine Regeneration.** Leben gibt es nur durch **besondere K.o.s**:
+  - **Super-K.o.** (Lehrer mit dem Super besiegt): +30 %
+  - **Doppel-K.o.** (zwei Lehrer innerhalb von 4 s): +35 %
+  - **Überraschungs-K.o.** (Lehrer besiegt, bevor er dich richtig bemerkt hat): +25 %
+  - **Beute:** Manche Lehrer lassen etwas fallen (grüne Kugel mit +), z. B. die Mensa-Chefin oder der Hausmeister.
+  - Heil-Gadgets und Heil-Passive des Spielers wirken in der Schule nicht.
+
+### Wie sich die Lehrer verhalten
+- **Alltag:** Jeder Lehrer hat Lieblingsräume und geht dort natürlich von Platz zu Platz. Er sitzt am Pult,
+  schreibt an die Tafel, redet vor der Klasse, liest am Regal, trinkt Kaffee im Lehrerzimmer, isst in der
+  Mensa oder geht im Gang auf und ab. Ab und zu wandert er auch in andere Räume.
+- **Sehen:** Lehrer sehen nur nach vorne (Sichtkegel, ca. 9–11 m) und nicht durch Wände.
+  Bist du sehr nah (2 m), merken sie dich auch von hinten.
+- **Hören:** Schüsse und Supers sind laut. Lehrer in der Nähe hören sie, durch Wände nur halb so weit.
+- **? gelb = misstrauisch:** Der Lehrer bleibt stehen und schaut in deine Richtung. Bleibst du in seiner Sicht,
+  wird daraus ein Alarm, aus der Nähe schneller.
+- **! rot = entdeckt:** Er erschrickt und greift an.
+- **Höchstens 3 greifen gleichzeitig an.** Weitere Lehrer, die dich entdecken (! orange), halten Abstand
+  und warten, bis ein Platz frei wird.
+- **Suchen:** Verliert ein Lehrer dich 5 s aus den Augen, sucht er an der letzten Stelle, schaut sich um und
+  kehrt danach in seinen Alltag zurück.
+- **Überraschungsangriff:** Der erste Treffer auf einen ahnungslosen Lehrer macht **50 % mehr Schaden**.
+  Anschleichen lohnt sich.
+
+### Minikarte
+Rechts oben: du (grün), Lehrer in der Nähe (weiß), misstrauisch (gelb), wartend oder suchend (orange),
+angreifend (rot).
+
+### Die Lehrer (Platzhalter)
+| Lehrer | Revier | Angriff | Super | Besonderes |
+|---|---|---|---|---|
+| Herr Kreide (2×) | Klassenzimmer | Kreidewurf | Formelregen (Salve) | – |
+| Frau Leise | Bibliothek | Buchwurf | „Psst!“ (Eisfeld) | sieht weit |
+| Hausmeister Schraube | Gang, Halle | Schraubenschlüssel | Wischmopp-Sprint | viel Leben, Beute |
+| Frau Kelle | Mensa | Suppenkelle (Wurf) | Großer Topf (Bombe) | Beute |
+| Dr. Reagenz | Chemie, Lehrerzimmer | Säurespritzer | Reagenzglas-Bombe | – |
+| Direktor Glocke | Sekretariat, Lehrerzimmer | Tadel (3er-Schuss) | Konferenz-Strudel | Boss, große Beute |
+
+Eigene Lehrer kommen nach `spiel/lehrer/<id>/charakter.json` (Format wie bei Kämpfern, zusätzlich
+`"lehrer": {"anzahl", "raeume", "sicht", "sichtwinkel", "beute_heilung"}`).
 
 ## Die vier Fähigkeiten jedes Kämpfers
 
@@ -89,5 +123,8 @@ Die vollständige Liste aller Fähigkeiten steht in `spiel/charaktere/_vorlage/L
 
 ## Platzhalter
 
-Die sieben Figuren Testi, Pixel, Kiki, Brocken, Funke, Nebel und Krone sind erfundene Test-Figuren, eine
-oder mehrere pro Seltenheit. Sobald es eigene Kämpfer gibt, werden sie automatisch ausgeblendet.
+Die Kämpfer Testi, Pixel, Kiki, Brocken, Funke, Nebel und Krone und die sechs Lehrer sind erfundene
+Test-Figuren. Sobald es eigene Kämpfer bzw. eigene Lehrer gibt, werden die Platzhalter automatisch ausgeblendet.
+
+Der alte 3-gegen-3-Modus („Arena“, `szenen/spiel.tscn`) steckt noch im Projekt, wird aber vom Menü
+nicht mehr gestartet.

@@ -1,0 +1,82 @@
+{
+  "name": "Dr. Reagenz",
+  "titel": "Chemielehrerin",
+  "beschreibung": "Experimentiert gern – vor allem mit Explosionen.",
+  "werte": {
+    "leben": 3100,
+    "tempo": 1.0
+  },
+  "angriff": {
+    "typ": "schrot",
+    "name": "Säurespritzer",
+    "schaden": 240,
+    "projektile": 5,
+    "streuung": 30,
+    "reichweite": 5.5,
+    "projektil_tempo": 14,
+    "nachladen": 1.4,
+    "farbe": "#7CFF5B"
+  },
+  "super": {
+    "typ": "bombe",
+    "name": "Reagenzglas-Bombe",
+    "schaden": 1300,
+    "farbe": "#7CFF5B"
+  },
+  "gadgets": [
+    {
+      "typ": "mine"
+    }
+  ],
+  "passive": [
+    {
+      "typ": "letzte_kraft"
+    }
+  ],
+  "lehrer": {
+    "anzahl": 1,
+    "raeume": [
+      "chemie",
+      "lehrerzimmer"
+    ],
+    "sicht": 9
+  },
+  "aussehen": {
+    "hautfarbe": "#8D5A3B",
+    "haare": {
+      "stil": "afro",
+      "farbe": "#1A1A1A"
+    },
+    "brille": {
+      "stil": "rund",
+      "farbe": "#7CFF5B"
+    },
+    "augen": {
+      "farbe": "#3B2414"
+    },
+    "oberteil": {
+      "stil": "hoodie",
+      "farbe": "#FFFFFF",
+      "farbe2": "#7CFF5B"
+    },
+    "hose": {
+      "stil": "lang",
+      "farbe": "#2E3A59"
+    },
+    "schuhe": {
+      "farbe": "#7CFF5B",
+      "sohle": "#2A2140"
+    },
+    "handschuhe": {
+      "an": true,
+      "farbe": "#7CFFCB"
+    },
+    "waffe": {
+      "stil": "stab",
+      "farbe": "#7CFF5B",
+      "farbe2": "#D9DEE8"
+    },
+    "mund": "frech"
+  },
+  "platzhalter": true
+}

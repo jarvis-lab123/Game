@@ -6,6 +6,7 @@ const ORDNER := "res://charaktere"
 const KACHEL := 1.6
 
 var charaktere: Array = []
+var lehrer: Array = []          # Gegner im Schul-Modus (res://lehrer/<id>/charakter.json)
 var gewaehlt_index := 0
 var siege := 0
 
@@ -30,15 +31,26 @@ func _ready() -> void:
 
 func laden() -> void:
 	charaktere.clear()
-	var dir := DirAccess.open(ORDNER)
-	if dir == null:
-		push_error("Ordner %s fehlt" % ORDNER)
-		return
+	lehrer = _ordner_laden("res://lehrer")
+	var alle: Array = _ordner_laden(ORDNER)
+	# Eigene Charaktere haben Vorrang: Platzhalter nur, solange es keine echten gibt
+	var echte := alle.filter(func(c): return not c.get("platzhalter", false) and c["modell"] != "")
+	charaktere = echte if echte.size() > 0 else alle
+	charaktere.sort_custom(func(a, b): return str(a["name"]) < str(b["name"]))
+	var echte_lehrer := lehrer.filter(func(c): return not c.get("platzhalter", false) and c["modell"] != "")
+	if echte_lehrer.size() > 0:
+		lehrer = echte_lehrer
+
+
+func _ordner_laden(ordner: String) -> Array:
 	var alle: Array = []
+	var dir := DirAccess.open(ordner)
+	if dir == null:
+		return alle
 	for name in dir.get_directories():
 		if name.begins_with("_"):
 			continue
-		var pfad := "%s/%s/charakter.json" % [ORDNER, name]
+		var pfad := "%s/%s/charakter.json" % [ordner, name]
 		if not FileAccess.file_exists(pfad):
 			continue
 		var roh = JSON.parse_string(FileAccess.get_file_as_string(pfad))
@@ -47,15 +59,11 @@ func laden() -> void:
 			continue
 		var c: Dictionary = _mischen(STANDARD.duplicate(true), roh)
 		c["id"] = name
-		c["ordner"] = "%s/%s" % [ORDNER, name]
-		var modell := "%s/%s/model.glb" % [ORDNER, name]
+		c["ordner"] = "%s/%s" % [ordner, name]
+		var modell := "%s/%s/model.glb" % [ordner, name]
 		c["modell"] = modell if ResourceLoader.exists(modell) else ""
 		alle.append(c)
-	# Eigene Charaktere haben Vorrang: Platzhalter nur, solange es keine echten gibt
-	var echte := alle.filter(func(c): return not c.get("platzhalter", false) and c["modell"] != "")
-	charaktere = echte if echte.size() > 0 else alle
-	charaktere.sort_custom(func(a, b): return str(a["name"]) < str(b["name"]))
-	gewaehlt_index = clampi(gewaehlt_index, 0, maxi(charaktere.size() - 1, 0))
+	return alle
 
 
 func gewaehlt() -> Dictionary:

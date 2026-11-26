@@ -1,6 +1,6 @@
 # 💥 KRAWALL CREW
 
-3D-Arena-Brawler im Comic-Stil: 3 gegen 3, schräg von oben, kurze schnelle Runden.
+3D-Action im Comic-Stil, schräg von oben: Du stürmst einen Schulkomplex und besiegst alle Lehrer, die dort ihrem Alltag nachgehen, bis sie dich bemerken.
 Alle Kämpfer sind **echte Personen**, die du einbringst. Sie werden in Blender als animierte
 Comic-Charaktere modelliert. Neue Kämpfer bekommt man aus Laptops mit verschiedenen Seltenheiten.
 
@@ -16,9 +16,9 @@ Rechtsklick/E Super · Esc Pause. Gamepad geht auch.
 **Handy/Tablet:** links Bewegungs-Stick, rechts Angriffs-Stick (ziehen = zielen, tippen = Auto-Ziel),
 daneben der Super-Knopf.
 
-**Modus „Krawall“:** Wer zuerst 10 K.o.s schafft, gewinnt (sonst nach 2:30 das Team mit mehr K.o.s).
-Büsche verstecken dich, Kisten gehen mit Bomben-Supers kaputt, Wasser blockiert Laufen, aber nicht Schüsse.
-Leben regeneriert sich, wenn du 3 s weder triffst noch getroffen wirst.
+**Ablauf:** Schule durch den Eingang betreten, Lehrer finden und besiegen. Höchstens 3 greifen gleichzeitig an.
+Es gibt keine Regeneration, Leben nur durch Super-, Doppel- und Überraschungs-K.o.s oder Beute. Mit den Münzen
+kaufst du Laptops und ziehst neue Kämpfer. Alles im Detail: [GAMEPLAY.md](GAMEPLAY.md)
 
 ## Eigenen Charakter einbauen
 
@@ -33,9 +33,11 @@ Figur in **Blender** (`blender/charakter_bauen.py` plus individuelle Anpassungen
 | Ordner | Inhalt |
 |---|---|
 | `spiel/` | Godot-Projekt (GL Compatibility: PC, Web, Handy) |
-| `spiel/skripte/` | `arena.gd` Match & Karte · `kaempfer.gd` Kämpfer + Bot-KI · `hud.gd` Oberfläche · `menue.gd` Auswahl · `toon.gd` Comic-Materialien |
+| `spiel/skripte/` | `schule.gd` Schulkarte & Regeln · `lehrer.gd` Lehrer-KI · `kaempfer.gd` Kämpfer · `faehigkeiten.gd` Supers/Gadgets/Passive · `hud.gd` Oberfläche · `menue.gd` Auswahl · `toon.gd` Comic-Materialien |
 | `spiel/shader/` | Toon-Shader (Stufen-Licht, Randlicht), Umrisslinien, Boden |
-| `spiel/charaktere/` | ein Ordner pro Charakter (`charakter.json` + `model.glb`) |
+| `spiel/charaktere/` | ein Ordner pro spielbarem Kämpfer (`charakter.json` + `model.glb`) |
+| `spiel/lehrer/` | ein Ordner pro Lehrer (Gegner) |
+| `spiel/schule/moebel.glb` | Schulmöbel aus Blender (`blender/schule_bauen.py`) |
 | `spiel/arena/objekte.glb` | Mauern, Kisten, Büsche, Wasser, Bäume, Zaun (aus Blender) |
 | `blender/umgebung_bauen.py` | Arena-Objekte und der Laptop fürs Öffnen |
 | `blender/charakter_bauen.py` | Charakter-Modellierer: Figur, Skelett, Animationen → `model.glb` |
