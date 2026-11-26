@@ -1,0 +1,12 @@
+{
+  "name": "gack-attack-desktop",
+  "private": true,
+  "version": "8.0.0",
+  "scripts": {
+    "prepare-www": "node prepare.js",
+    "tauri": "tauri"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.12.4"
+  }
+}
