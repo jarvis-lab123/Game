@@ -15,6 +15,9 @@ var sicht := 9.0
 var sichtwinkel := 115.0
 var raum_wahl: Array = []
 var beute_heilung := 0.0
+var burnout: Dictionary = {}     # {"nach": s Dauerkampf, "dauer": s reglos, "text": "BURN OUT"}
+var _kampfzeit := 0.0
+var _dampf_timer := 0.0
 
 var _platz: Dictionary = {}      # aktueller Aktivitätsplatz
 var _platz_bis := 0.0
@@ -32,6 +35,7 @@ func lehrer_einrichten(info: Dictionary) -> void:
 	sichtwinkel = float(info.get("sichtwinkel", 115.0))
 	raum_wahl = info.get("raeume", [])
 	beute_heilung = float(info.get("beute_heilung", 0.0))
+	burnout = info.get("burnout", {})
 	_blase_label = Label3D.new()
 	_blase_label.font = Effekte.SCHRIFT
 	_blase_label.font_size = 120
@@ -64,6 +68,8 @@ func _zu(neu: String) -> void:
 # ---------------------------------------------------------------- Hauptschleife (aus Kaempfer._physics_process)
 func _ki_denken(delta: float) -> void:
 	var sp: Kaempfer = arena.spieler
+	if _burnout_pruefen(delta):
+		return
 	_wahrnehmen(delta, sp)
 	_blase_aktualisieren()
 	match zustand:
@@ -90,6 +96,43 @@ func _ki_denken(delta: float) -> void:
 			_warten(sp)
 		"suchen":
 			_suchen(delta)
+
+
+# ---------------------------------------------------------------- Burnout (z. B. Frau Rahn)
+## Nach einer Weile Dauerkampf: Schriftzug, sie sackt zusammen und kann sich einige Sekunden nicht bewegen.
+func _burnout_pruefen(delta: float) -> bool:
+	if burnout.is_empty():
+		return false
+	if hat_effekt("betaeubt"):
+		bewegung = Vector3.ZERO
+		_dampf_timer -= delta
+		if _dampf_timer <= 0.0:
+			_dampf_timer = 0.35
+			Effekte.dampf(arena, global_position + Vector3(randf_range(-0.2, 0.2), 1.7, randf_range(-0.2, 0.2)))
+		return true
+	if pose_ist_burnout:
+		pose_ist_burnout = false
+		pose_setzen("")
+		_blase_label.visible = true
+	if zustand == "angriff":
+		_kampfzeit += delta
+		if _kampfzeit >= float(burnout.get("nach", 12.0)):
+			_kampfzeit = 0.0
+			var dauer := float(burnout.get("dauer", 5.0))
+			effekt_setzen("betaeubt", dauer, 1.0)
+			bewegung = Vector3.ZERO
+			pose_setzen("Sit")       # sackt erschöpft zu Boden
+			pose_ist_burnout = true
+			_blase_label.text = ""
+			Effekte.ruf(self, str(burnout.get("text", "BURN OUT")), Color("#FF6B35"))
+			Arena.ton("ko")
+			return true
+	else:
+		_kampfzeit = maxf(0.0, _kampfzeit - delta * 0.5)
+	return false
+
+
+var pose_ist_burnout := false
 
 
 # ---------------------------------------------------------------- Wahrnehmung

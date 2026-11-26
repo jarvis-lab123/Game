@@ -7,6 +7,7 @@ const KACHEL := 1.6
 
 var charaktere: Array = []
 var lehrer: Array = []          # Gegner im Schul-Modus (res://lehrer/<id>/charakter.json)
+var begleiter := {}             # id -> Daten; werden von Supers beschworen (res://begleiter/<id>/charakter.json)
 var gewaehlt_index := 0
 var siege := 0
 
@@ -32,6 +33,9 @@ func _ready() -> void:
 func laden() -> void:
 	charaktere.clear()
 	lehrer = _ordner_laden("res://lehrer")
+	begleiter.clear()
+	for b in _ordner_laden("res://begleiter"):
+		begleiter[b["id"]] = b
 	var alle: Array = _ordner_laden(ORDNER)
 	# Eigene Charaktere haben Vorrang: Platzhalter nur, solange es keine echten gibt
 	var echte := alle.filter(func(c): return not c.get("platzhalter", false) and c["modell"] != "")

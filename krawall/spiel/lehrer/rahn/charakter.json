@@ -1,0 +1,102 @@
+{
+  "name": "Frau Rahn",
+  "titel": "Carolina Rahn",
+  "beschreibung": "Wirft Schnecken (Schleim macht langsam). Ulti: Herr Lascha taucht auf und wirft Kameras. Nach zu viel Kampf: BURN OUT – 5 Sekunden reglos.",
+  "werte": {
+    "leben": 4400,
+    "tempo": 0.88
+  },
+  "angriff": {
+    "typ": "wurf",
+    "name": "Schneckenwurf",
+    "schaden": 480,
+    "reichweite": 8.0,
+    "nachladen": 1.5,
+    "radius": 1.3,
+    "farbe": "#C9A15B",
+    "geschoss_modell": "schnecke",
+    "verlangsamt": {
+      "dauer": 1.5,
+      "faktor": 0.6
+    }
+  },
+  "super": {
+    "typ": "beschwoeren",
+    "name": "Herr Lascha",
+    "begleiter": "lascha",
+    "dauer": 10.0,
+    "ladung_pro_treffer": 0.14,
+    "reichweite": 9.0,
+    "farbe": "#4CC9F0"
+  },
+  "lehrer": {
+    "anzahl": 1,
+    "raeume": [
+      "klasse",
+      "lehrerzimmer",
+      "bibliothek"
+    ],
+    "sicht": 9,
+    "sichtwinkel": 115,
+    "burnout": {
+      "nach": 12.0,
+      "dauer": 5.0,
+      "text": "BURN OUT"
+    }
+  },
+  "aussehen": {
+    "proportionen": "comic",
+    "figur": "weiblich",
+    "groesse": 0.95,
+    "hautfarbe": "#F2C4A8",
+    "kopfform": "breit",
+    "wangenroete": true,
+    "wangenfarbe": "#F2A090",
+    "augen": {
+      "farbe": "#7A93A8",
+      "groesse": 1.0,
+      "form": "lachend"
+    },
+    "augenbrauen": {
+      "dicke": 0.85,
+      "winkel": -3,
+      "farbe": "#6B5236"
+    },
+    "nase": "knubbel",
+    "mund": "lachen",
+    "haare": {
+      "stil": "pixie",
+      "farbe": "#7A5E43",
+      "farbe2": "#C9AA7A",
+      "pony_richtung": "rechts"
+    },
+    "ohrringe": {
+      "farbe": "#F7F3EA"
+    },
+    "schal": {
+      "farbe": "#2E4A7D",
+      "farbe2": "#C9D6EA"
+    },
+    "oberteil": {
+      "stil": "pulli",
+      "farbe": "#A9C4E8",
+      "farbe2": "#A9C4E8"
+    },
+    "hose": {
+      "stil": "lang",
+      "farbe": "#2E3A59"
+    },
+    "schuhe": {
+      "farbe": "#5A3A22",
+      "sohle": "#2A2140"
+    },
+    "waffe": {
+      "stil": "schnecke",
+      "farbe": "#A0522D",
+      "farbe2": "#E9C46A"
+    },
+    "koerperbau": "rundlich",
+    "gang": "watscheln",
+    "lachfalten": false
+  }
+}

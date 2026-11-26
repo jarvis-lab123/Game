@@ -91,6 +91,7 @@ angreifend (rot).
 | Lehrer | Revier | Angriff | Super | Besonderes |
 |---|---|---|---|---|
 | **Herr Mouscho** (echt) | Klassenzimmer, Lehrerzimmer | Formelwurf (fliegende Formeln) | **„Papi Tag“**: 5 s unsichtbar, greift dabei weiter an | trägt seine Heizjacke |
+| **Frau Rahn** (echt) | Klassen, Lehrerzimmer, Bibliothek | Schneckenwurf (Bogen, Schleim verlangsamt) | **Herr Lascha** erscheint und wirft Kameras (10 s, schwach) | **BURN OUT**: nach 12 s Dauerkampf 5 s reglos, schwankender Gang |
 | Frau Leise | Bibliothek | Buchwurf | „Psst!“ (Eisfeld) | sieht weit |
 | Hausmeister Schraube | Gang, Halle | Schraubenschlüssel | Wischmopp-Sprint | viel Leben, Beute |
 | Frau Kelle | Mensa | Suppenkelle (Wurf) | Großer Topf (Bombe) | Beute |

@@ -338,9 +338,11 @@ func vorruecken_punkt(team: int) -> Vector3:
 
 # ---------------------------------------------------------------- Angriffe
 func projektil(quelle: Kaempfer, start: Vector3, richtung: Vector3, tempo: float, weite: float, schaden: float,
-		farbe: Color, radius: float, text := "") -> void:
+		farbe: Color, radius: float, text := "", modell := "", effekt := {}) -> void:
 	var p := Projektil.new()
 	p.text = text
+	p.modell = modell
+	p.effekt = effekt
 	p.quelle = quelle
 	p.arena = self
 	p.team = quelle.team
@@ -354,8 +356,11 @@ func projektil(quelle: Kaempfer, start: Vector3, richtung: Vector3, tempo: float
 	add_child(p)
 
 
-func wurf(quelle: Kaempfer, start: Vector3, ziel: Vector3, schaden: float, radius: float, farbe: Color, gross: bool) -> void:
+func wurf(quelle: Kaempfer, start: Vector3, ziel: Vector3, schaden: float, radius: float, farbe: Color, gross: bool,
+		modell := "", effekt := {}) -> void:
 	var p := Projektil.new()
+	p.modell = modell
+	p.effekt = effekt
 	p.quelle = quelle
 	p.arena = self
 	p.team = quelle.team
@@ -372,8 +377,14 @@ func wurf(quelle: Kaempfer, start: Vector3, ziel: Vector3, schaden: float, radiu
 	add_child(p)
 
 
-func explosion(quelle: Kaempfer, team: int, pos: Vector3, radius: float, schaden: float, farbe: Color, zerstoert: bool) -> void:
+func explosion(quelle: Kaempfer, team: int, pos: Vector3, radius: float, schaden: float, farbe: Color, zerstoert: bool,
+		effekt := {}) -> void:
 	Effekte.explosion(self, pos, radius, farbe)
+	if effekt.has("dauer"):
+		Effekte.pfuetze(self, pos, radius, Color("#C8D96F"), float(effekt["dauer"]) + 1.0)
+		for k in gegner_von(team):
+			if Vector2(k.global_position.x - pos.x, k.global_position.z - pos.z).length() < radius + 0.4:
+				k.effekt_setzen("langsam", float(effekt["dauer"]), float(effekt.get("faktor", 0.6)))
 	ton("explosion")
 	wackeln(0.35 if zerstoert else 0.15)
 	for k in gegner_von(team):

@@ -16,6 +16,7 @@ Alle Maße in Metern, Blender: Z oben, Figur schaut nach -Y.
 """
 import json
 import math
+import random
 import os
 import sys
 
@@ -319,7 +320,7 @@ class Figur:
     def __init__(self, a):
         self.a = a
         self.comic = a.get("proportionen", "comic") == "comic"
-        bau = {"schmal": 0.86, "normal": 1.0, "kraeftig": 1.18}[a["koerperbau"]]
+        bau = {"schmal": 0.86, "normal": 1.0, "kraeftig": 1.18, "rundlich": 1.42}[a["koerperbau"]]
         if self.comic:
             bau *= 0.82          # schlanker: alle Breiten (Rumpf, Arme, Beine, Hände) skalieren mit bau
         self.bau = bau
@@ -334,7 +335,7 @@ class Figur:
             self.knie_z = 0.50 * g
             self.huefte_z = 0.95 * g
             self.brust_z = 1.33 * g
-            self.schulter = Vector((0.27 * bau, 0.0, 1.40 * g))
+            self.schulter = Vector((0.27 * bau * (0.9 if a.get("figur") == "weiblich" else 1.0), 0.0, 1.40 * g))
             self.hals_z = 1.47 * g
             self.arm_ell = Vector((0.05, 0.0, -0.30 * g))
             self.arm_hand = Vector((0.02, -0.02, -0.27 * g))
@@ -373,6 +374,7 @@ class Figur:
             "mund": material("mund", "#5A1E1E", rau=0.5),
             "zaehne": material("zaehne", "#FFFFFF", rau=0.4),
             "haare": material("haare", a["haare"]["farbe"], rau=0.5),
+            "haare2": material("haare2", a["haare"].get("farbe2") or a["haare"]["farbe"], rau=0.5),
             "brauen": material("brauen", a["augenbrauen"]["farbe"] or abdunkeln(a["haare"]["farbe"], 0.85), rau=0.6),
             "bart": material("bart", a["bart"]["farbe"] or a["haare"]["farbe"], rau=0.6),
             "oberteil": material("oberteil", a["oberteil"]["farbe"]),
@@ -548,7 +550,17 @@ class Figur:
 
         # Becken / Hose oben
         hose = m["hose"]
-        ellipsoid("becken", Vector((0, 0, self.huefte_z + 0.02)), (0.215 * bau, 0.15 * bau, 0.11), hose, "hips",
+        if a["koerperbau"] == "rundlich":
+            # runder Bauch und weiche Hüften
+            zb = self.huefte_z + (self.brust_z - self.huefte_z) * 0.35
+            ellipsoid("bauch", Vector((0, self.rumpf_y(zb) + 0.09, zb)), (0.2 * bau, 0.13 * bau, 0.2), ober, "spine")
+        if a.get("figur") == "weiblich":
+            # dezente weibliche Silhouette: Brust und etwas breitere Hüfte
+            for sx in (1, -1):
+                zb = self.brust_z - 0.03
+                ellipsoid("brust_w", Vector((sx * 0.075 * bau / 0.82, self.rumpf_y(zb) + 0.035, zb)), (0.075, 0.055, 0.07), ober, "chest")
+        breit_h = 1.12 if a.get("figur") == "weiblich" else 1.0
+        ellipsoid("becken", Vector((0, 0, self.huefte_z + 0.02)), (0.215 * bau * breit_h, 0.15 * bau, 0.11), hose, "hips",
                   verformen=lambda v: Vector((math.copysign(abs(v.x) ** 0.85, v.x), v.y, v.z)))
 
         # Beine
@@ -557,7 +569,7 @@ class Figur:
             oben = Vector((x, 0, self.huefte_z))
             knie = Vector((x * 1.03, 0, self.knie_z))
             fuss = Vector((x * 1.05, 0, 0.11))
-            bd = 1.18 if self.comic else 1.0
+            bd = (1.18 if self.comic else 1.0) * (1.2 if a["koerperbau"] == "rundlich" else 1.0)
             kapsel(f"oberschenkel.{seite}", knie, oben, 0.085 * bau * bd, hose, f"thigh.{seite}", r2=0.095 * bau * bd)
             unter_mat = hose if a["hose"]["stil"] == "lang" else m["haut"]
             kapsel(f"unterschenkel.{seite}", fuss, knie, 0.07 * bau * bd, unter_mat, f"shin.{seite}", r2=0.08 * bau * bd)
@@ -753,7 +765,7 @@ class Figur:
                       verformen=lambda v: Vector((v.x, v.y, v.z + 0.5 * v.x * v.x)))
             pzu, rotzu = self.auf_kopf(0.0, -0.56, raus=-0.006)
             ellipsoid("zunge", pzu, (0.06, 0.02, 0.025), material("zunge", "#D9646E"), "head", rot=rotzu.to_matrix().to_4x4())
-            for sx in (1, -1):
+            for sx in ((1, -1) if a.get("lachfalten", True) else ()):
                 # Lachfalten an den Mundwinkeln
                 falte = [self.kopf_punkt(sx * (0.40 + 0.02 * t), -0.33 - 0.09 * t, raus=0.004)[0] for t in (0, 0.5, 1, 1.5)]
                 rohr("mundfalte", falte, [0.004, 0.007, 0.007, 0.004], m["haut_dunkel"], "head", abflachen=0.5)
@@ -799,6 +811,22 @@ class Figur:
         if stil == "buzz":
             schale("haare", km, (kr.x * 1.01, kr.y * 1.01, kr.z * 1.01), hm, "head",
                    haarlinie(math.radians(62), math.radians(92), math.radians(118), math.radians(12)), dicke=0.012)
+            return
+
+        if stil == "pixie":
+            # Pixie: Seiten/Nacken kurz, oben Volumen, langer Pony schwungvoll zur Seite über die Stirn
+            sgn = -1 if h.get("pony_richtung", "rechts") == "rechts" else 1   # rechts = zur rechten Gesichtshälfte der Figur
+            schale("haare", km, (kr.x * 1.012, kr.y * 1.012, kr.z * 1.012), hm, "head",
+                   haarlinie(math.radians(46), math.radians(80), math.radians(110), math.radians(10)), dicke=0.02,
+                   versatz=lambda phi, a_: 0.06 * math.sin(min(a_ / math.radians(55), 1.0) * math.pi) * (0.7 + 0.3 * math.cos(phi)))
+            hm2 = m["haare2"]
+            # geschwungene Pony-Strähnen (flache Röhren entlang der Kopfoberfläche)
+            for i, (dx, dz, mat) in enumerate(((0.0, 0.0, hm), (0.08, 0.05, hm2), (-0.06, -0.05, hm), (0.14, 0.1, hm),
+                                              (0.04, -0.1, hm2), (-0.1, 0.06, hm))):
+                bahn = [(-sgn * 0.42 + dx, 0.88 + dz * 0.3), (-sgn * 0.1 + dx, 0.74 + dz), (sgn * 0.28 + dx * 0.5, 0.56 + dz),
+                        (sgn * 0.55, 0.40 + dz * 0.8), (sgn * 0.7, 0.22 + dz * 0.6)]
+                pkt = [self.kopf_punkt(max(min(x, 0.95), -0.95), min(z, 0.97), raus=0.045 - 0.006 * j)[0] for j, (x, z) in enumerate(bahn)]
+                rohr("strähne", pkt, [0.055, 0.06, 0.05, 0.035, 0.015], mat, "head", abflachen=0.45)
             return
 
         if stil == "buerste":
@@ -977,6 +1005,12 @@ class Figur:
                 torus("stirnband", km + Vector((0, 0, kr.z * 0.42)), kr.x * 0.95, 0.04, cm, "head", normale=(0, 0, 1),
                       skal=(1.0, kr.y / kr.x))
 
+        if a.get("ohrringe"):
+            om = material("ohrring", a["ohrringe"].get("farbe", "#FFFFFF"), glanz=True)
+            for sx in (1, -1):
+                ellipsoid("ohrstecker", km + Vector((sx * kr.x * 0.99, -0.005, -0.10)), (0.018, 0.018, 0.018), om, "head",
+                          segs=12, ringe=8)
+
         if a["kopfhoerer"]["an"]:
             hm = material("kopfhoerer", a["kopfhoerer"]["farbe"])
             for sx in (1, -1):
@@ -987,6 +1021,35 @@ class Figur:
             schale("buegel_kh2", km, (kr.x * 1.12, kr.y * 0.35, kr.z * 1.12), hm, "head",
                    lambda phi: math.radians(85), dicke=0.03, nphi=24, unterteilen=0,
                    phi_bereich=(math.radians(240), math.radians(300)))
+
+    def schal(self):
+        """Großer Loop-Schal mit Fleckenmuster (am Hals/Brustkorb)."""
+        sch = self.a.get("schal")
+        if not sch:
+            return
+        m1 = material("schal", sch.get("farbe", "#2E4A7D"))
+        m2 = material("schal_muster", sch.get("farbe2", "#C9D6EA"))
+        bau = self.bau
+        schlaufen = [  # (Mitte, R, r, Normale, Skalierung, Knochen)
+            (Vector((0, 0.0, self.hals_z - 0.02)), 0.085 + 0.07 * bau, 0.05, (0, 0.2, 1), (1.12, 0.95), "neck"),
+            (Vector((0, -0.02, self.hals_z - 0.085)), 0.1 + 0.09 * bau, 0.055, (0, 0.38, 1), (1.12, 0.92), "chest"),
+            (Vector((0.03, self.rumpf_y(self.brust_z) - 0.035, self.brust_z - 0.02)), 0.075, 0.045, (0.2, -0.7, 0.5), (1.0, 1.25), "chest"),
+        ]
+        random.seed(5)
+        for c, R, r, n, sk, kn in schlaufen:
+            torus("schal", c, R, r, m1, kn, normale=n, skal=sk, segs=28, rsegs=12)
+            M = Matrix.Translation(c) @ _ausrichtung(n)
+            for i in range(14):
+                a_ = random.uniform(0, 2 * math.pi)
+                b_ = random.uniform(-1.6, 1.6)   # nur außen sichtbare Seite
+                lp = Vector(((R + r * math.cos(b_)) * math.cos(a_) * sk[0], (R + r * math.cos(b_)) * math.sin(a_) * sk[1],
+                             r * math.sin(b_)))
+                ln = Vector((math.cos(b_) * math.cos(a_), math.cos(b_) * math.sin(a_), math.sin(b_)))
+                wp = M @ lp
+                wn = (M.to_3x3() @ ln).normalized()
+                rot = Vector((0, 0, 1)).rotation_difference(wn).to_matrix().to_4x4()
+                gr = random.uniform(0.012, 0.02)
+                ellipsoid("schalfleck", wp - wn * 0.001, (gr * 1.4, gr, 0.004), m2, kn, rot=rot, segs=10, ringe=6)
 
     def waffe(self):
         a = self.a
@@ -1023,6 +1086,17 @@ class Figur:
             ellipsoid("kristall", hm + Vector((0, 0, 0.52)), (0.06, 0.06, 0.09), material("kristall", w["farbe"], leuchten=True), k)
         elif w["stil"] == "buch":
             rundbox("buch", hm + Vector((0, -0.08, 0.02)), (0.05, 0.16, 0.2), m1, k, rundung=0.2)
+        elif w["stil"] == "schnecke":
+            ellipsoid("schneckenhaus", hm + Vector((0, -0.09, 0.05)), (0.05, 0.06, 0.06), m1, k)
+            torus("spirale", hm + Vector((0, -0.09, 0.05)), 0.03, 0.009, m2, k, normale=(1, 0, 0))
+            kapsel("schneckenkoerper", hm + Vector((0, -0.04, 0.0)), hm + Vector((0, -0.17, 0.0)), 0.022,
+                   material("schneckenhaut", "#E8D28A"), k)
+            for sx in (-1, 1):
+                kapsel("fuehler", hm + Vector((sx * 0.01, -0.16, 0.01)), hm + Vector((sx * 0.02, -0.19, 0.06)), 0.005,
+                       material("schneckenhaut", "#E8D28A"), k)
+        elif w["stil"] == "kamera":
+            rundbox("kamera", hm + Vector((0, -0.08, 0.04)), (0.12, 0.08, 0.08), m1, k, rundung=0.3)
+            kapsel("objektiv", hm + Vector((0, -0.11, 0.04)), hm + Vector((0, -0.16, 0.04)), 0.028, m2, k)
         elif w["stil"] == "kreide":
             kapsel("kreide", hm + Vector((0, -0.04, -0.02)), hm + Vector((0, -0.16, 0.03)), 0.022, m1, k)
 
@@ -1167,7 +1241,26 @@ def animationen(skelett, f=None):
         p["shin.R"]["r"] = (-50, 0, 0)
         return p
 
-    neu("Run", [(0, lauf(0)), (5, lauf_mitte(0)), (10, lauf(1)), (15, lauf_mitte(1)), (20, lauf(0))])
+    watscheln = bool(f and f.a.get("gang") == "watscheln")
+
+    def schwank(pose, s_, staerke=1.0):
+        """Seitliches Wiegen von Oberkörper und Hüfte (für einen schwankenden Gang)."""
+        if not watscheln:
+            return pose
+        p_ = {k: dict(v) for k, v in pose.items()}
+        sp = p_.get("spine", {}).get("r", (0, 0, 0))
+        p_.setdefault("spine", {})["r"] = (sp[0], sp[1], sp[2] + 9 * s_ * staerke)
+        hp = p_.get("hips", {}).get("r", (0, 0, 0))
+        p_.setdefault("hips", {})["r"] = (hp[0], hp[1] + 6 * s_ * staerke, hp[2] - 6 * s_ * staerke)
+        hd = p_.get("head", {}).get("r", (0, 0, 0))
+        p_.setdefault("head", {})["r"] = (hd[0], hd[1], hd[2] - 5 * s_ * staerke)
+        for arm, sx in (("upper_arm.L", 1), ("upper_arm.R", -1)):
+            r = p_.get(arm, {}).get("r", (0, 0, 0))
+            p_.setdefault(arm, {})["r"] = (r[0], r[1], r[2] + 10 * sx)   # Arme etwas abgespreizt
+        return p_
+
+    neu("Run", [(0, schwank(lauf(0), 1)), (5, schwank(lauf_mitte(0), 0)), (10, schwank(lauf(1), -1)),
+                (15, schwank(lauf_mitte(1), 0)), (20, schwank(lauf(0), 1))])
 
     neu("Attack", [
         (0, arme_ruhe),
@@ -1237,7 +1330,8 @@ def animationen(skelett, f=None):
         p_["shin.R"]["r"] = (-20, 0, 0)
         return p_
 
-    neu("Walk", [(0, geh(0)), (8, geh_mitte(0)), (16, geh(1)), (24, geh_mitte(1)), (32, geh(0))])
+    neu("Walk", [(0, schwank(geh(0), 1, 1.3)), (8, schwank(geh_mitte(0), 0)), (16, schwank(geh(1), -1, 1.3)),
+                 (24, schwank(geh_mitte(1), 0)), (32, schwank(geh(0), 1, 1.3))])
 
     sitz_tief = (f.huefte_z - 0.5) if f else 0.15
     sitz = {"hips": {"l": (0, -sitz_tief, 0)}, "spine": {"r": (4, 0, 0)},
@@ -1368,6 +1462,7 @@ def main():
     f.bart()
     f.accessoires()
     f.kopf_skalieren(kopf_start)
+    f.schal()
     f.waffe()
     skelett = skelett_bauen(f)
     figur = zusammenbauen(skelett)

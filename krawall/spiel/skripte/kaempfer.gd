@@ -365,7 +365,7 @@ func _physics_process(delta: float) -> void:
 		global_position = global_position.move_toward(einrasten, 1.6 * delta)
 		velocity = Vector3.ZERO
 	elif not _springt:
-		var v := bewegung.limit_length(1.0) * tempo()
+		var v := bewegung.limit_length(1.0) * tempo() * (0.0 if hat_effekt("betaeubt") else 1.0)
 		if t < _sprint_bis:
 			v = _sprint_richtung * 17.0
 			_sprint_treffer()
@@ -488,7 +488,7 @@ func reichweite() -> float:
 
 
 func kann_angreifen() -> bool:
-	return not tot and munition >= 1.0 and not _springt
+	return not tot and munition >= 1.0 and not _springt and not hat_effekt("betaeubt")
 
 
 func angreifen(richtung: Vector3, ziel_punkt := Vector3.INF) -> void:
@@ -526,7 +526,8 @@ func angreifen(richtung: Vector3, ziel_punkt := Vector3.INF) -> void:
 				var texte: Array = a.get("geschoss_text", [])
 				arena.projektil(self, start, richtung.rotated(Vector3.UP, w), float(a["projektil_tempo"]),
 					reichweite(), schaden, farbe, 0.22 if a["typ"] == "schuss" else 0.16,
-					str(texte[randi() % texte.size()]) if texte.size() > 0 else "")
+					str(texte[randi() % texte.size()]) if texte.size() > 0 else "",
+					str(a.get("geschoss_modell", "")), a.get("verlangsamt", {}))
 			Arena.ton("schuss")
 		"wurf":
 			var ziel := ziel_punkt
@@ -536,7 +537,8 @@ func angreifen(richtung: Vector3, ziel_punkt := Vector3.INF) -> void:
 			weg.y = 0
 			if weg.length() > reichweite():
 				ziel = global_position + weg.normalized() * reichweite()
-			arena.wurf(self, start, ziel, schaden, float(a["radius"]), farbe, false)
+			arena.wurf(self, start, ziel, schaden, float(a["radius"]), farbe, false,
+				str(a.get("geschoss_modell", "")), a.get("verlangsamt", {}))
 			Arena.ton("wurf")
 		"nahkampf":
 			await get_tree().create_timer(0.12).timeout
@@ -559,7 +561,7 @@ func _tarnung_beenden() -> void:
 
 
 func super_bereit() -> bool:
-	return not tot and super_ladung >= 1.0 and not _springt and not super_info.is_empty()
+	return not tot and super_ladung >= 1.0 and not _springt and not super_info.is_empty() and not hat_effekt("betaeubt")
 
 
 func super_ausloesen(richtung: Vector3, ziel_punkt := Vector3.INF) -> void:
@@ -587,7 +589,7 @@ func super_ausloesen(richtung: Vector3, ziel_punkt := Vector3.INF) -> void:
 
 
 func gadget_bereit() -> bool:
-	return not tot and gadget_ladungen > 0 and zeit() >= _gadget_bereit_ab and not _springt
+	return not tot and gadget_ladungen > 0 and zeit() >= _gadget_bereit_ab and not _springt and not hat_effekt("betaeubt")
 
 
 func gadget_abklingen() -> float:

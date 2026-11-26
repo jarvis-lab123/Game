@@ -1,0 +1,28 @@
+{
+  "name": "Herr Lascha",
+  "titel": "Fotograf (Begleiter von Frau Rahn)",
+  "beschreibung": "Taucht beim Ulti von Frau Rahn auf und wirft Kameras. Absichtlich schwach.",
+  "foto_fehlt": true,
+  "ruf_farbe": "#4CC9F0",
+  "werte": { "leben": 1500, "tempo": 0.95 },
+  "angriff": {
+    "typ": "schuss", "name": "Kamerawurf",
+    "schaden": 240, "projektile": 1, "streuung": 0, "reichweite": 7.5,
+    "projektil_tempo": 13, "nachladen": 1.9, "farbe": "#2A2140", "geschoss_modell": "kamera"
+  },
+  "super": { "typ": "keiner" },
+  "aussehen": {
+    "proportionen": "comic",
+    "hautfarbe": "#E8B896",
+    "kopfform": "oval",
+    "haare": { "stil": "kurz", "farbe": "#3B2A1E", "pony": false },
+    "bart": { "stil": "stoppeln" },
+    "augen": { "farbe": "#4A3424", "form": "mandel" },
+    "nase": "klein",
+    "mund": "laecheln",
+    "oberteil": { "stil": "jacke", "farbe": "#6B7A3A", "farbe2": "#E9E4D4" },
+    "hose": { "stil": "lang", "farbe": "#3A3A44" },
+    "schuhe": { "farbe": "#5A3A22", "sohle": "#2A2140" },
+    "waffe": { "stil": "kamera", "farbe": "#2A2140", "farbe2": "#5E6578" }
+  }
+}

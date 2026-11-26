@@ -144,3 +144,54 @@ static func ruf(kaempfer: Node3D, text: String, farbe: Color) -> void:
 	tw.tween_property(l, "outline_modulate:a", 0.0, 0.35)
 	tw.tween_property(l, "position:y", 3.6, 0.35)
 	tw.chain().tween_callback(l.queue_free)
+
+
+## Schleimpfütze am Boden (z. B. nach einem Schneckenwurf)
+static func pfuetze(eltern: Node3D, pos: Vector3, radius: float, farbe: Color, dauer: float) -> void:
+	var m := MeshInstance3D.new()
+	var z := CylinderMesh.new()
+	z.top_radius = radius
+	z.bottom_radius = radius
+	z.height = 0.03
+	z.radial_segments = 24
+	m.mesh = z
+	var c := farbe
+	c.a = 0.55
+	m.material_override = Toon.unschattiert(c, true)
+	m.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	eltern.add_child(m)
+	m.global_position = Vector3(pos.x, 0.03, pos.z)
+	m.scale = Vector3(0.3, 1, 0.3)
+	var tw := m.create_tween()
+	tw.tween_property(m, "scale", Vector3.ONE, 0.2).set_trans(Tween.TRANS_BACK)
+	tw.tween_interval(dauer)
+	tw.tween_property(m, "scale", Vector3(0.01, 1, 0.01), 0.4)
+	tw.tween_callback(m.queue_free)
+
+
+## Weißer Kamerablitz
+static func blitzlicht(eltern: Node3D, pos: Vector3) -> void:
+	var l := OmniLight3D.new()
+	l.light_color = Color.WHITE
+	l.light_energy = 6.0
+	l.omni_range = 4.0
+	eltern.add_child(l)
+	l.global_position = pos + Vector3(0, 0.5, 0)
+	var k := _kugel(eltern, pos, 0.35, Color.WHITE)
+	var tw := l.create_tween()
+	tw.set_parallel(true)
+	tw.tween_property(l, "light_energy", 0.0, 0.25)
+	tw.tween_property(k, "scale", Vector3.ONE * 2.5, 0.2)
+	tw.chain().tween_callback(func():
+		l.queue_free()
+		k.queue_free())
+
+
+## Kleine graue Dampfwolke, die aufsteigt (Erschöpfung, Überhitzung …)
+static func dampf(eltern: Node3D, pos: Vector3) -> void:
+	var k := _kugel(eltern, pos, randf_range(0.12, 0.2), Color("#B8B8C8"))
+	var tw := k.create_tween()
+	tw.set_parallel(true)
+	tw.tween_property(k, "global_position", pos + Vector3(randf_range(-0.3, 0.3), 0.9, randf_range(-0.3, 0.3)), 0.9)
+	tw.tween_property(k, "scale", Vector3.ONE * 1.8, 0.9)
+	tw.chain().tween_callback(k.queue_free)

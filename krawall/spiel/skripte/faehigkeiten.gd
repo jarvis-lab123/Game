@@ -28,6 +28,8 @@ const SUPERS := {
 		"schaden": 600, "reichweite": 8.0, "radius": 3.2, "dauer": 4.0},
 	"unsichtbar": {"name": "Tarnkappe", "beschreibung": "Wird unsichtbar. Der nächste Angriff macht 50 % mehr Schaden.",
 		"dauer": 4.0},
+	"beschwoeren": {"name": "Verstärkung", "beschreibung": "Ein Begleiter erscheint und kämpft eine Weile mit.",
+		"begleiter": "", "dauer": 10.0},
 }
 
 const GADGETS := {
@@ -65,6 +67,8 @@ static func voll(art: String, eintrag) -> Dictionary:
 	elif typeof(eintrag) == TYPE_DICTIONARY:
 		e = eintrag.duplicate()
 	var typ: String = e.get("typ", "")
+	if typ in ["", "keiner"]:
+		return {}
 	if not katalog.has(typ):
 		push_warning("Unbekannte %s-Fähigkeit '%s' – verfügbar: %s" % [art, typ, ", ".join(katalog.keys())])
 		return {}
@@ -156,12 +160,44 @@ static func super_ausfuehren(k: Kaempfer, s: Dictionary, richtung: Vector3, ziel
 			var d := float(s.get("dauer", 5.0))
 			k.effekt_setzen("wut", d, 1.0)
 			k.blase_zeigen(Color("#FF3B30"), d, 0.15)
+		"beschwoeren":
+			begleiter_rufen(k, str(s.get("begleiter", "")), float(s.get("dauer", 10.0)), richtung)
 		"unsichtbar":
 			k.effekt_setzen("unsichtbar", float(s.get("dauer", 4.0)), 1.0)
 			var bonus := float(s.get("bonus", 1.5))
 			if bonus > 1.0:
 				k.effekt_setzen("hinterhalt", float(s.get("dauer", 4.0)) + 1.0, bonus)
 			Effekte.puff(arena, k.global_position + Vector3(0, 1, 0), Color(farbe.r, farbe.g, farbe.b))
+
+
+## Begleiter (z. B. Herr Lascha) erscheint neben dem Beschwörer, kämpft für dessen Team und verschwindet wieder.
+static func begleiter_rufen(k: Kaempfer, id: String, dauer: float, richtung: Vector3) -> void:
+	var d: Dictionary = Daten.begleiter.get(id, {})
+	if d.is_empty():
+		push_warning("Begleiter '%s' fehlt in res://begleiter" % id)
+		return
+	var arena = k.arena
+	var b := Kaempfer.new()
+	b.name = "Begleiter_" + id
+	arena.add_child(b)
+	b.einrichten(d, k.team, false, arena, k.stufe)
+	b.regeneration = false
+	var seite := richtung.cross(Vector3.UP).normalized()
+	b.global_position = arena.freier_punkt(k.global_position + seite * 1.6)
+	b.spawn_punkt = k.global_position
+	b.blick = richtung
+	arena.kaempfer.append(b)
+	Effekte.puff(arena, b.global_position + Vector3(0, 0.8, 0), Color("#FFFFFF"))
+	Effekte.ruf(b, str(d.get("name", id)).to_upper(), Color.html(d.get("ruf_farbe", "#4CC9F0")))
+	Arena.ton("super")
+	var weg := func():
+		if is_instance_valid(b):
+			arena.kaempfer.erase(b)
+			if not b.tot:
+				Effekte.puff(arena, b.global_position + Vector3(0, 0.8, 0), Color("#FFFFFF"))
+			b.queue_free()
+	b.ausgeschaltet.connect(func(_o, _t): arena.get_tree().create_timer(0.3).timeout.connect(weg), CONNECT_ONE_SHOT)
+	arena.get_tree().create_timer(dauer).timeout.connect(weg)
 
 
 # ---------------------------------------------------------------- Gadgets
