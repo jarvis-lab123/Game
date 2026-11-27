@@ -589,7 +589,7 @@ class Zone extends Node3D:
 			var anteil := schaden_gesamt * 0.5 / dauer
 			for g in besitzer.arena.gegner_von(besitzer.team):
 				if g.global_position.distance_to(global_position) < radius:
-					g.schaden_nehmen(anteil, besitzer)
+					g.schaden_nehmen(anteil, besitzer, Vector3.ZERO, 0.1)   # Flächen-Ticks laden die Ulti kaum
 
 
 

@@ -214,11 +214,11 @@ func entdecken() -> void:
 	Arena.ton("zaehlen")
 
 
-func schaden_nehmen(menge: float, quelle: Kaempfer, stoss := Vector3.ZERO) -> void:
+func schaden_nehmen(menge: float, quelle: Kaempfer, stoss := Vector3.ZERO, ladung := 1.0) -> void:
 	if quelle and quelle.team != team and ist_ahnungslos() and not tot:
 		menge *= UEBERRASCHUNG
 		_zuletzt_gesehen = quelle.global_position
-		super.schaden_nehmen(menge, quelle, stoss)
+		super.schaden_nehmen(menge, quelle, stoss, ladung)
 		if not tot:
 			entdecken()
 		return
@@ -227,7 +227,7 @@ func schaden_nehmen(menge: float, quelle: Kaempfer, stoss := Vector3.ZERO) -> vo
 		_gesehen_zeit = zeit()
 		if zustand == "suchen":
 			entdecken()
-	super.schaden_nehmen(menge, quelle, stoss)
+	super.schaden_nehmen(menge, quelle, stoss, ladung)
 
 
 ## Angry-Modus (z. B. Frau Gerometta): nach Dauerkampf einige Sekunden doppelter Schaden

@@ -34,7 +34,7 @@
     "feuer_schaden": 1600,
     "feuer_dauer": 4.5,
     "feuer_radius": 3.2,
-    "ladung_pro_treffer": 0.13,
+    "ladung_pro_treffer": 0.1,
     "farbe": "#FF5A1F"
   },
   "lehrer": {

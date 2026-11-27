@@ -59,12 +59,10 @@ Bibliothek, Hauptgang, Eingangshalle, Mensa, Lehrerzimmer und Sekretariat.
 
 - **Ziel:** Besiege **alle Lehrer**. Erst dann hast du gewonnen. Rechts oben steht, wie viele noch übrig sind.
 - **Ein Leben:** Gehst du K.o., ist der Einsatz verloren (einstellbar in `spiel/daten/regeln.json`).
-- **Keine Regeneration.** Leben gibt es nur durch **besondere K.o.s**:
-  - **Super-K.o.** (Lehrer mit dem Super besiegt): +30 %
-  - **Doppel-K.o.** (zwei Lehrer innerhalb von 4 s): +35 %
-  - **Überraschungs-K.o.** (Lehrer besiegt, bevor er dich richtig bemerkt hat): +25 %
-  - **Beute:** Manche Lehrer lassen etwas fallen (grüne Kugel mit +), z. B. die Mensa-Chefin oder der Hausmeister.
-  - Heil-Gadgets und Heil-Passive des Spielers wirken in der Schule nicht.
+- **Heilen nur mit Cookies:** Es gibt keine Regeneration. Leben bekommst du **nur** über die **Cookies in der Mensa**
+  (zwei Stück vor der Essensausgabe, leuchtender Ring am Boden). Ein Cookie heilt **40 %** und ist nach **30 s** wieder da.
+  Heil-Gadgets, Heil-Passive und besondere K.o.s heilen in der Schule nicht (einstellbar in `spiel/daten/regeln.json`).
+- **Lehrer-Ultis:** Zwischen zwei Ultis eines Lehrers liegen mindestens **20 s**; im Kampf lädt sie sich in 35 s voll.
 
 ### Wie sich die Lehrer verhalten
 - **Alltag:** Jeder Lehrer hat Lieblingsräume und geht dort natürlich von Platz zu Platz. Er sitzt am Pult,

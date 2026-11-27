@@ -1,12 +1,12 @@
 {
-  "_info": "Regeln für den Schul-Modus. Heilung in Anteilen des maximalen Lebens (0.3 = 30 %). lehrer_schaden = Schadensfaktor der Lehrer, spieler_leben = Lebensfaktor des Spielers, lehrer_feuerpause = Sekunden zwischen Lehrer-Schüssen, lehrer_ausflug_chance = wie oft ein Lehrer kurz einen leeren Raum besucht (pro Raum immer nur ein Lehrer). lehrer_leben = Lebensfaktor der Lehrer (längere Kämpfe), angriff_ansage = Sekunden, die ein Lehrerangriff vorher rot angezeigt wird. lehrer_ulti_sekunden = Lehrer-Ulti lädt im Kampf zusätzlich in so vielen Sekunden voll.",
+  "_info": "Regeln für den Schul-Modus. Heilung in Anteilen des maximalen Lebens (0.3 = 30 %). lehrer_schaden = Schadensfaktor der Lehrer, spieler_leben = Lebensfaktor des Spielers, lehrer_feuerpause = Sekunden zwischen Lehrer-Schüssen, lehrer_ausflug_chance = wie oft ein Lehrer kurz einen leeren Raum besucht (pro Raum immer nur ein Lehrer). lehrer_leben = Lebensfaktor der Lehrer (längere Kämpfe), angriff_ansage = Sekunden, die ein Lehrerangriff vorher rot angezeigt wird. lehrer_ulti_sekunden = Lehrer-Ulti lädt im Kampf zusätzlich in so vielen Sekunden voll. lehrer_ulti_mindestpause = so viele Sekunden mindestens zwischen zwei Lehrer-Ultis. lehrer_ulti_ladung = Faktor fürs Aufladen durch Treffer. Heilen geht NUR mit den Cookies in der Mensa: cookie_heilung = Anteil des Lebens, cookie_neu_nach = Sekunden, bis ein gegessener Cookie wieder da ist. (heilung_*_ko auf 0 = besondere K.o.s heilen nicht.)",
   "schule": {
     "leben": 1,
     "max_angreifer": 1,
-    "heilung_super_ko": 0.3,
-    "heilung_doppel_ko": 0.35,
+    "heilung_super_ko": 0,
+    "heilung_doppel_ko": 0,
     "doppel_ko_fenster": 4.0,
-    "heilung_ueberraschungs_ko": 0.25,
+    "heilung_ueberraschungs_ko": 0,
     "lehrer_schaden": 0.55,
     "spieler_leben": 1.5,
     "lehrer_feuerpause": [
@@ -16,6 +16,10 @@
     "lehrer_ausflug_chance": 0.15,
     "lehrer_leben": 2.0,
     "angriff_ansage": 0.22,
-    "lehrer_ulti_sekunden": 12.0
+    "lehrer_ulti_sekunden": 35.0,
+    "lehrer_ulti_mindestpause": 20.0,
+    "lehrer_ulti_ladung": 0.5,
+    "cookie_heilung": 0.4,
+    "cookie_neu_nach": 30.0
   }
 }

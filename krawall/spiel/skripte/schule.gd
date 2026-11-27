@@ -47,6 +47,7 @@ var _start_zeit := 0.0
 var _aktueller_raum := ""
 var _leben_uebrig := 1
 var _beute: Array = []
+var _cookies: Array = []          # Heil-Cookies in der Mensa (einzige Heilung)
 var wueste := false               # Herr Lüthi hat die Map in eine Wüste verwandelt (bleibt bis Spielende)
 var _env: Environment
 var _sonne: DirectionalLight3D
@@ -429,6 +430,9 @@ func _moeblieren(r: Dictionary) -> void:
 			_moebel_setzen("Pflanze", x1 - 1, z0 + 5)
 		"mensa":
 			_moebel_setzen("Theke", x0 + 1.0, (z0 + z1) / 2.0, PI / 2)
+			# Heil-Cookies vor der Essensausgabe
+			for dz in [-2.6, 2.8]:
+				_cookie_setzen(plan(x0 + 2.8, (z0 + z1) / 2.0 + dz))
 			_platz(x0 + 0.6, (z0 + z1) / 2.0 - 1.0, O, "Talk", id, 8, 16)   # Essensausgabe
 			_platz(x0 + 0.6, (z0 + z1) / 2.0 + 1.2, O, "", id, 6, 12)
 			for rr in 4:
@@ -567,7 +571,7 @@ func _spieler_erzeugen() -> void:
 	add_child(k)
 	var id: String = d.get("id", "")
 	k.einrichten(d, 0, true, self, Konto.stufe(id), Konto.gewaehlt_gadget(id), Konto.gewaehlt_passiv(id))
-	k.regeneration = false
+	k.regeneration = false   # Heilen nur mit dem Cookie in der Mensa
 	k.max_leben *= float(regeln.get("spieler_leben", 1.5))
 	k.leben = k.max_leben
 	k.spawn_punkt = plan(40, 2.5)
@@ -597,7 +601,9 @@ func _lehrer_erzeugen() -> void:
 			l.max_leben *= float(regeln.get("lehrer_leben", 2.0))
 			l.leben = l.max_leben
 			l.ansage_zeit = float(regeln.get("angriff_ansage", 0.5))
-			l.ulti_sekunden = float(regeln.get("lehrer_ulti_sekunden", 12.0))
+			l.ulti_sekunden = float(l.daten.get("lehrer", {}).get("ulti_sekunden", regeln.get("lehrer_ulti_sekunden", 35.0)))
+			l.ulti_mindestpause = float(regeln.get("lehrer_ulti_mindestpause", 20.0))
+			l.ulti_ladung_faktor = float(regeln.get("lehrer_ulti_ladung", 0.5))
 			var fp: Array = regeln.get("lehrer_feuerpause", [0.9, 1.6])
 			l.ki_feuerpause = Vector2(float(fp[0]), float(fp[1]))
 			# eigener Raum: bevorzugt passend zu "raeume", jeder Raum nur einmal vergeben
@@ -716,6 +722,7 @@ func _process(delta: float) -> void:
 		if name != _aktueller_raum and name != "":
 			_aktueller_raum = name
 			hud.raum_anzeigen(name)
+		_cookies_pruefen()
 		for b in _beute.duplicate():
 			if not is_instance_valid(b):
 				_beute.erase(b)
@@ -803,6 +810,79 @@ func _beute_fallen_lassen(pos: Vector3, menge: float) -> void:
 	tw.tween_property(b, "position:y", 0.8, 0.6).set_trans(Tween.TRANS_SINE)
 	tw.tween_property(b, "position:y", 0.5, 0.6).set_trans(Tween.TRANS_SINE)
 	_beute.append(b)
+
+
+# ---------------------------------------------------------------- Cookie (Heilung)
+func _cookie_setzen(pos: Vector3) -> void:
+	var c := Node3D.new()
+	add_child(c)
+	c.global_position = pos + Vector3(0, 0.9, 0)
+	c.set_meta("basis", c.position)
+	c.set_meta("bereit_ab", 0.0)
+	var keks := MeshInstance3D.new()
+	var z := CylinderMesh.new()
+	z.top_radius = 0.34
+	z.bottom_radius = 0.36
+	z.height = 0.11
+	keks.mesh = z
+	keks.material_override = Toon.farbig(Color("#D9A05B"), 0.03)
+	keks.rotation.x = 1.1
+	c.add_child(keks)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = int(pos.x * 10 + pos.z)
+	for i in 7:
+		var s := MeshInstance3D.new()
+		var k := SphereMesh.new()
+		k.radius = 0.055
+		k.height = 0.08
+		s.mesh = k
+		s.material_override = Toon.farbig(Color("#4A2A18"), 0.0)
+		var w := rng.randf() * TAU
+		var r := sqrt(rng.randf()) * 0.26
+		s.position = Vector3(cos(w) * r, 0.055, sin(w) * r)
+		keks.add_child(s)
+	var ring := MeshInstance3D.new()
+	var t := TorusMesh.new()
+	t.inner_radius = 0.5
+	t.outer_radius = 0.6
+	ring.mesh = t
+	ring.material_override = Toon.unschattiert(Color(1.0, 0.85, 0.4, 0.55), true)
+	ring.position.y = -0.85
+	c.add_child(ring)
+	var l := Label3D.new()
+	l.text = "COOKIE"
+	l.font = Effekte.SCHRIFT
+	l.font_size = 64
+	l.pixel_size = 0.007
+	l.outline_size = 14
+	l.modulate = Color("#FFE2A8")
+	l.outline_modulate = Color("#4A2A18")
+	l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	l.position.y = 0.55
+	c.add_child(l)
+	var tw := c.create_tween().set_loops()
+	tw.tween_property(keks, "rotation:y", TAU, 2.5).from(0.0)
+	_cookies.append(c)
+
+
+func _cookies_pruefen() -> void:
+	var jetzt := Time.get_ticks_msec() / 1000.0
+	for c in _cookies:
+		var bereit := jetzt >= float(c.get_meta("bereit_ab"))
+		c.visible = bereit
+		if bereit:
+			c.position.y = c.get_meta("basis").y + sin(jetzt * 3.0) * 0.12
+		if not bereit or spieler.leben >= spieler.max_leben:
+			continue
+		var d := Vector2(c.global_position.x - spieler.global_position.x, c.global_position.z - spieler.global_position.z)
+		if d.length() < 1.3:
+			var menge := spieler.max_leben * float(regeln.get("cookie_heilung", 0.4))
+			spieler.heilen(menge, true)
+			Effekte.zahl(self, spieler.global_position + Vector3(0, 2.4, 0), int(menge), true)
+			Effekte.ruf(spieler, "MMH, COOKIE!", Color("#FFC56B"))
+			Effekte.puff(self, c.global_position, Color("#FFD38A"))
+			ton("super")
+			c.set_meta("bereit_ab", jetzt + float(regeln.get("cookie_neu_nach", 30.0)))
 
 
 func _ende_schule(sieg: bool) -> void:

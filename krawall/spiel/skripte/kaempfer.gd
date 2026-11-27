@@ -57,7 +57,10 @@ var _mats: Array = []
 var _ring: MeshInstance3D
 var _blase: MeshInstance3D
 var _posen: Array = []
-var regeneration := true        # Arena-Modus: ja · Schule: nein (nur über besondere K.o.s)
+var regeneration := true        # Arena-Modus: ja · Schule: langsam und nur bis regen_bis
+var regen_bis := 1.0             # Anteil des max. Lebens, bis zu dem sich regeneriert wird
+var regen_warte := -1.0          # > 0: eigene Wartezeit ohne Kampf, bevor die Regeneration startet
+var regen_rate := -1.0           # > 0: eigene Rate (Anteil max. Leben pro Sekunde)
 var letzter_super := -99.0
 var einrasten := Vector3.INF
 var schadens_multiplikator := 1.0   # Balance (z. B. Lehrer in der Schule schwächer)
@@ -376,8 +379,12 @@ func _physics_process(delta: float) -> void:
 	if passiv_info.get("typ", "") == "schnelle_heilung":
 		warte = 1.5
 		rate = 0.26
-	if regeneration and t - _letzter_schaden > warte and t - _letzter_angriff > warte and leben < max_leben:
-		leben = minf(max_leben, leben + max_leben * rate * delta)
+	if regen_warte > 0.0:
+		warte = regen_warte
+	if regen_rate > 0.0:
+		rate = regen_rate
+	if regeneration and t - _letzter_schaden > warte and t - _letzter_angriff > warte and leben < max_leben * regen_bis:
+		leben = minf(max_leben * regen_bis, leben + max_leben * rate * delta)
 	# Bewegung
 	if einrasten != Vector3.INF:
 		# auf einen Platz gleiten (z. B. auf den Stuhl), ohne Kollision
@@ -704,7 +711,14 @@ func _tarnung_beenden() -> void:
 		_effekte.erase("unsichtbar")
 
 
+var ulti_mindestpause := 0.0      # Sekunden, die nach einer Ulti mindestens vergehen müssen (Lehrer)
+var ulti_ladung_faktor := 1.0     # Faktor für das Aufladen durch Treffer (Lehrer laden langsamer)
+var _letzte_ulti := -999.0
+
+
 func super_bereit() -> bool:
+	if zeit() - _letzte_ulti < ulti_mindestpause:
+		return false
 	return not tot and super_ladung >= 1.0 and not _springt and not super_info.is_empty() and not hat_effekt("betaeubt")
 
 
@@ -714,6 +728,7 @@ func super_ausloesen(richtung: Vector3, ziel_punkt := Vector3.INF) -> void:
 	if not super_bereit():
 		return
 	super_ladung = 0.0
+	_letzte_ulti = zeit()
 	richtung.y = 0
 	if richtung.length() < 0.01:
 		richtung = blick
@@ -768,10 +783,11 @@ func _sprint_treffer() -> void:
 
 
 func super_laden(menge: float) -> void:
-	super_ladung = minf(1.0, super_ladung + menge * (1.0 + passiv("superlader")))
+	super_ladung = minf(1.0, super_ladung + menge * ulti_ladung_faktor * (1.0 + passiv("superlader")))
 
 
-func schaden_nehmen(menge: float, quelle: Kaempfer, stoss := Vector3.ZERO) -> void:
+## ladung: Anteil, mit dem dieser Treffer die Ulti des Angreifers auflädt (Flächen-Ticks laden kaum)
+func schaden_nehmen(menge: float, quelle: Kaempfer, stoss := Vector3.ZERO, ladung := 1.0) -> void:
 	if tot or hat_effekt("spawnschutz"):
 		return
 	menge *= 1.0 - effekt("schild")
@@ -789,7 +805,7 @@ func schaden_nehmen(menge: float, quelle: Kaempfer, stoss := Vector3.ZERO) -> vo
 	Effekte.zahl(arena, global_position + Vector3(0, kopf_hoehe() - 0.2, 0), int(menge), quelle != null and quelle.ist_spieler)
 	if quelle and quelle != self and is_instance_valid(quelle):
 		quelle.schaden_gesamt += menge
-		quelle.super_laden(float(quelle.super_info.get("ladung_pro_treffer", 0.12)))
+		quelle.super_laden(float(quelle.super_info.get("ladung_pro_treffer", 0.12)) * ladung)
 		if quelle.passiv("vampir") > 0.0:
 			quelle.heilen(menge * quelle.passiv("vampir"))
 		if passiv("dornen") > 0.0 and not quelle.tot:
