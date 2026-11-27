@@ -7,11 +7,11 @@
     "heilung_doppel_ko": 0,
     "doppel_ko_fenster": 4.0,
     "heilung_ueberraschungs_ko": 0,
-    "lehrer_schaden": 0.55,
+    "lehrer_schaden": 0.72,
     "spieler_leben": 1.5,
     "lehrer_feuerpause": [
-      0.9,
-      1.6
+      0.7,
+      1.25
     ],
     "lehrer_ausflug_chance": 0.15,
     "lehrer_leben": 2.5,
