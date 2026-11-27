@@ -523,8 +523,8 @@ func _process(delta: float) -> void:
 	# Busch-Sichtbarkeit aus Sicht des Spielers
 	for k in kaempfer:
 		if not k.tot and spieler:
-			k.modell.visible = sichtbar_fuer(k, spieler)
-			k._ring.visible = k.modell.visible
+			k.modell.visible = sichtbar_fuer(k, spieler) and k.verwandelt == ""
+			k._ring.visible = sichtbar_fuer(k, spieler)
 	# gegnerische Minen sind unsichtbar
 	if spieler:
 		for m in get_tree().get_nodes_in_group("minen"):

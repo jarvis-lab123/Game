@@ -631,6 +631,50 @@ func _angriff_ankuendigen(richtung: Vector3, ziel: Vector3) -> void:
 		angreifen(richtung, ziel)
 
 
+# ---------------------------------------------------------------- Verwandlung (z. B. Frau Osinga -> Schwein Snowball)
+var verwandelt := ""
+var _tier: Node3D
+var _angriff_normal := {}
+var _feuerpause_normal := Vector2.ZERO
+
+
+func verwandeln(tier: String, dauer: float, angriff: Dictionary, tempo_bonus: float) -> void:
+	if verwandelt != "" or tot:
+		return
+	daten = daten.duplicate(true)
+	verwandelt = tier
+	_angriff_normal = daten["angriff"]
+	daten["angriff"] = angriff
+	_feuerpause_normal = ki_feuerpause
+	ki_feuerpause = Vector2(0.35, 0.6)
+	munition = 3.0
+	Effekte.puff(arena, global_position + Vector3(0, 1, 0), Color("#FFB3D1"))
+	Effekte.puff(arena, global_position + Vector3(0, 0.5, 0), Color.WHITE)
+	if modell:
+		modell.visible = false
+	_tier = Faehigkeiten.Schwein.new()
+	add_child(_tier)
+	_tier.rotation.y = modell.rotation.y if modell else 0.0
+	effekt_setzen("turbo", dauer, tempo_bonus)
+	await get_tree().create_timer(dauer).timeout
+	zurueckverwandeln()
+
+
+func zurueckverwandeln() -> void:
+	if verwandelt == "":
+		return
+	verwandelt = ""
+	daten["angriff"] = _angriff_normal
+	ki_feuerpause = _feuerpause_normal
+	_effekte.erase("turbo")
+	if is_instance_valid(_tier):
+		_tier.queue_free()
+	if modell and not tot:
+		modell.visible = true
+	if is_instance_valid(arena):
+		Effekte.puff(arena, global_position + Vector3(0, 1, 0), Color("#FFB3D1"))
+
+
 ## "Silence": Wer verstummt ist und trotzdem angreift, ist sofort K.o.
 var verstummt_von: Kaempfer = null
 
@@ -758,6 +802,8 @@ func heilen(menge: float, erzwingen := false) -> void:
 
 
 func _ausschalten(taeter: Kaempfer) -> void:
+	if verwandelt != "":
+		zurueckverwandeln()
 	tot = true
 	_sprint_bis = 0.0
 	_effekte.clear()
@@ -828,7 +874,7 @@ func _ki_denken(delta: float) -> void:
 		var sicht: bool = typ == "wurf" or arena.freie_sicht(global_position, _ki_ziel.global_position)
 		if d < reichweite() * 0.95 and sicht and munition >= 1.0 and _ki_schuss_pause <= 0.0:
 			# Vorhalten + etwas Ungenauigkeit
-			var flug := d / maxf(float(daten["angriff"]["projektil_tempo"]), 1.0)
+			var flug := d / maxf(float(daten["angriff"].get("projektil_tempo", 30.0)), 1.0)
 			var vorhalt: Vector3 = _ki_ziel.global_position + _ki_ziel.velocity * flug * 0.7 - global_position
 			vorhalt = vorhalt.rotated(Vector3.UP, randf_range(-0.12, 0.12))
 			if ansage_zeit > 0.0:

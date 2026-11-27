@@ -196,3 +196,35 @@ static func dampf(eltern: Node3D, pos: Vector3) -> void:
 	tw.tween_property(k, "global_position", pos + Vector3(randf_range(-0.3, 0.3), 0.9, randf_range(-0.3, 0.3)), 0.9)
 	tw.tween_property(k, "scale", Vector3.ONE * 1.8, 0.9)
 	tw.chain().tween_callback(k.queue_free)
+
+
+## Müde: "Zzz" steigt über dem Kopf auf (z. B. nach Frau Osingas langweiliger Sprechblase)
+static func zzz(k: Node3D, dauer: float) -> void:
+	if k.has_node("Zzz"):
+		k.get_node("Zzz").set_meta("bis", Time.get_ticks_msec() / 1000.0 + dauer)
+		return
+	var halter := Node3D.new()
+	halter.name = "Zzz"
+	halter.set_meta("bis", Time.get_ticks_msec() / 1000.0 + dauer)
+	k.add_child(halter)
+	var h: float = k.kopf_hoehe() if k.has_method("kopf_hoehe") else 2.2
+	for i in 3:
+		var l := Label3D.new()
+		l.text = "Z" if i == 0 else "z"
+		l.font = SCHRIFT
+		l.font_size = 90 - i * 18
+		l.pixel_size = 0.008
+		l.outline_size = 14
+		l.modulate = Color("#B9A8FF")
+		l.outline_modulate = Color("#2A1F45")
+		l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		l.position = Vector3(-0.5 - i * 0.22, h - 0.2 + i * 0.3, 0)
+		halter.add_child(l)
+		var tw := l.create_tween().set_loops()
+		tw.tween_property(l, "position:y", l.position.y + 0.25, 0.6).set_delay(i * 0.2)
+		tw.tween_property(l, "position:y", l.position.y, 0.6)
+	var t := halter.create_tween().set_loops()
+	t.tween_interval(0.2)
+	t.tween_callback(func():
+		if Time.get_ticks_msec() / 1000.0 > float(halter.get_meta("bis")):
+			halter.queue_free())

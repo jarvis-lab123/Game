@@ -1,0 +1,113 @@
+{
+  "name": "Frau Osinga",
+  "titel": "Lehrerin",
+  "beschreibung": "Redet und redet: ihre langweiligen Sprechblasen machen Schaden und schläfrig. Ulti: verwandelt sich in das rasend schnelle Schwein Snowball, das dich jagt und beißt.",
+  "werte": {
+    "leben": 3300,
+    "tempo": 1.0
+  },
+  "angriff": {
+    "typ": "schuss",
+    "name": "Langweiliger Vortrag",
+    "schaden": 380,
+    "projektile": 1,
+    "streuung": 0,
+    "reichweite": 8.5,
+    "projektil_tempo": 9,
+    "nachladen": 1.3,
+    "farbe": "#FFFFFF",
+    "geschoss_modell": "sprechblase",
+    "geschoss_text": [
+      "Bla bla bla…",
+      "Also, wie gesagt…",
+      "Zzz…",
+      "Und dann…",
+      "Gähn…",
+      "…und außerdem…",
+      "Seite 47!",
+      "Noch mal von vorn…"
+    ],
+    "verlangsamt": {
+      "dauer": 1.8,
+      "faktor": 0.55,
+      "muede": true
+    }
+  },
+  "super": {
+    "typ": "verwandeln",
+    "name": "Snowball",
+    "ruf": "SNOWBALL!",
+    "tier": "schwein",
+    "dauer": 7.0,
+    "biss_schaden": 650,
+    "biss_reichweite": 1.7,
+    "tempo_bonus": 1.3,
+    "reichweite": 9.0,
+    "ladung_pro_treffer": 0.13,
+    "farbe": "#FF8FB8"
+  },
+  "lehrer": {
+    "anzahl": 1,
+    "raeume": [
+      "klasse",
+      "lehrerzimmer"
+    ],
+    "sicht": 9.5,
+    "sichtwinkel": 115
+  },
+  "aussehen": {
+    "proportionen": "comic",
+    "figur": "weiblich",
+    "koerperbau": "schmal",
+    "groesse": 1.0,
+    "hautfarbe": "#F2CDB4",
+    "kopfform": "oval",
+    "wangenroete": true,
+    "augen": {
+      "farbe": "#6C8A9E",
+      "form": "mandel",
+      "groesse": 0.95
+    },
+    "augenbrauen": {
+      "dicke": 0.85,
+      "winkel": 2,
+      "farbe": "#A88752"
+    },
+    "nase": "klein",
+    "mund": "neutral",
+    "haare": {
+      "stil": "dutt",
+      "farbe": "#D6B47A",
+      "farbe2": "#C29E62",
+      "pony": false,
+      "straehnen": true
+    },
+    "brille": {
+      "stil": "rund",
+      "farbe": "#D9BFA0",
+      "dicke": 0.008,
+      "groesse": 0.09
+    },
+    "oberteil": {
+      "stil": "pulli",
+      "farbe": "#F4A9CB",
+      "farbe2": "#F7B8D4",
+      "blumen": true,
+      "blumenfarbe": "#F9C3DB"
+    },
+    "hose": {
+      "stil": "lang",
+      "farbe": "#3A3F4E"
+    },
+    "schuhe": {
+      "farbe": "#E9E4DC",
+      "sohle": "#B9B2A6"
+    },
+    "waffe": {
+      "stil": "keine",
+      "farbe": "#FFFFFF",
+      "farbe2": "#FFFFFF"
+    },
+    "lachfalten": false
+  }
+}

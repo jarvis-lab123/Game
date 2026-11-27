@@ -705,7 +705,9 @@ func _process(delta: float) -> void:
 			if l.tot:
 				continue
 			var sichtbar := sichtbar_fuer(l, spieler)
-			l.modell.visible = sichtbar
+			l.modell.visible = sichtbar and l.verwandelt == ""
+			if is_instance_valid(l._tier):
+				l._tier.visible = sichtbar
 			l._ring.visible = sichtbar
 			l._blase_label.visible = sichtbar
 	if spieler and not spieler.tot:

@@ -26,7 +26,13 @@ var explosions_radius := 1.4
 var zerstoert_waende := false
 
 
+var _blase: Node3D
+
+
 func _ready() -> void:
+	if modell == "sprechblase":
+		_sprechblase_bauen()
+		return
 	if text != "":
 		var l := Label3D.new()
 		l.text = text
@@ -68,7 +74,54 @@ func _ready() -> void:
 		m.scale = Vector3.ONE * 1.5
 
 
+## Comic-Sprechblase (weiß, mit Zipfel) mit langweiligem Text, schaut immer zur Kamera
+func _sprechblase_bauen() -> void:
+	_blase = Node3D.new()
+	add_child(_blase)
+	var b := MeshInstance3D.new()
+	var k := SphereMesh.new()
+	k.radius = 0.5
+	k.height = 1.0
+	b.mesh = k
+	b.scale = Vector3(1.5, 0.75, 0.18)
+	b.material_override = Toon.farbig(Color("#FFFFFF"), 0.035)
+	_blase.add_child(b)
+	var zipfel := MeshInstance3D.new()
+	var z := CylinderMesh.new()
+	z.top_radius = 0.0
+	z.bottom_radius = 0.14
+	z.height = 0.32
+	zipfel.mesh = z
+	zipfel.material_override = Toon.farbig(Color("#FFFFFF"), 0.035)
+	zipfel.position = Vector3(-0.35, -0.38, 0)
+	zipfel.rotation.z = -2.6
+	zipfel.scale = Vector3(1, 1, 0.4)
+	_blase.add_child(zipfel)
+	var l := Label3D.new()
+	l.text = text if text != "" else "Bla bla…"
+	l.font = Effekte.SCHRIFT
+	l.font_size = 64
+	l.pixel_size = 0.006
+	l.outline_size = 0
+	l.modulate = Color("#3A2E4F")
+	l.position.z = 0.1
+	l.render_priority = 2
+	_blase.add_child(l)
+	_blase_ausrichten()
+	var tw := _blase.create_tween().set_loops()
+	tw.tween_property(_blase, "scale", Vector3.ONE * 1.08, 0.25)
+	tw.tween_property(_blase, "scale", Vector3.ONE * 0.95, 0.25)
+
+
+func _blase_ausrichten() -> void:
+	var cam := get_viewport().get_camera_3d() if is_inside_tree() else null
+	if cam and _blase:
+		_blase.look_at(cam.global_position, Vector3.UP, true)
+
+
 func _physics_process(delta: float) -> void:
+	if _blase:
+		_blase_ausrichten()
 	if ist_wurf:
 		_t += delta
 		var f := clampf(_t / dauer, 0.0, 1.0)
@@ -101,6 +154,8 @@ func _physics_process(delta: float) -> void:
 			k.schaden_nehmen(schaden, quelle, richtung * 2.0)
 			if effekt.has("dauer"):
 				k.effekt_setzen("langsam", float(effekt["dauer"]), float(effekt.get("faktor", 0.6)))
+				if effekt.get("muede", false):
+					Effekte.zzz(k, float(effekt["dauer"]))
 			if modell == "kamera":
 				Effekte.blitzlicht(arena, naechster)
 			Effekte.treffer(arena, naechster, farbe)

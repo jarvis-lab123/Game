@@ -551,6 +551,24 @@ class Figur:
         elif stil == "pulli":
             torus("kragen", Vector((0, 0.0, self.hals_z - 0.035)), 0.085 * bau, 0.03, m["oberteil2"], "chest",
                   normale=(0, 0.1, 1))
+            if a["oberteil"].get("blumen"):
+                # aufgenähte Strickblumen (5 Blütenblätter + Mitte), Ton in Ton
+                bm = material("fein_blume", a["oberteil"].get("blumenfarbe", a["oberteil"]["farbe2"]))
+                bm2 = material("fein_blumenmitte", abdunkeln(a["oberteil"].get("blumenfarbe", a["oberteil"]["farbe2"]), 0.85))
+                hoehe = self.hals_z - self.huefte_z
+                for fx, fz, gr in ((-0.13, 0.62, 1.0), (-0.06, 0.45, 0.85), (-0.15, 0.32, 0.9), (0.12, 0.66, 0.9),
+                                   (0.16, 0.5, 0.8), (0.05, 0.3, 0.75), (-0.02, 0.72, 0.7)):
+                    x = fx * bau / 0.82
+                    zz = self.huefte_z + fz * hoehe
+                    mitte = Vector((x, self.rumpf_y(zz) * (1 - (x / (0.25 * bau)) ** 2 * 0.5) - 0.006, zz))
+                    r = 0.022 * gr
+                    for i in range(5):
+                        w = i * math.tau / 5 + 0.3
+                        ellipsoid("blütenblatt", mitte + Vector((math.cos(w) * r * 1.3, 0, math.sin(w) * r * 1.3)),
+                                  (r, r * 0.45, r * 0.7), bm, "chest" if fz > 0.45 else "spine", segs=10, ringe=6,
+                                  rot=Matrix.Rotation(-w, 4, 'Y'))
+                    ellipsoid("blütenmitte", mitte + Vector((0, -0.004, 0)), (r * 0.55, r * 0.4, r * 0.55), bm2,
+                              "chest" if fz > 0.45 else "spine", segs=10, ringe=6)
         else:
             torus("kragen", Vector((0, 0.0, self.hals_z - 0.04)), 0.085 * bau, 0.022, m["oberteil2"], "chest",
                   normale=(0, 0.12, 1))
@@ -1005,6 +1023,13 @@ class Figur:
             kapsel("zopf", p + Vector((0, 0.15, -0.38)), p + Vector((0, 0.04, -0.02)), 0.06, hm, "head", r2=0.085)
         elif stil == "dutt":
             ellipsoid("dutt", km + Vector((0, kr.y * 0.4, kr.z * 1.02)), (0.13, 0.13, 0.11), hm, "head")
+            if h.get("straehnen"):
+                # lose Strähnen, die an den Schläfen heraushängen
+                for sx in (1, -1):
+                    a1, _ = self.kopf_punkt(sx * 0.78, 0.5, raus=0.02)
+                    a2, _ = self.kopf_punkt(sx * 0.9, 0.05, raus=0.04)
+                    a3, _ = self.kopf_punkt(sx * 0.86, -0.35, raus=0.05)
+                    rohr("lose_strähne", [a1, a2, a3], [0.02, 0.016, 0.008], m.get("haare2", hm), "head", abflachen=0.3)
 
     def bart(self):
         a, m = self.a, self.m
@@ -1039,7 +1064,7 @@ class Figur:
         km, kr = self.kopf_m, self.kopf_r
         br = a["brille"]
         if br["stil"] != "keine":
-            gm = material("brille", br["farbe"], glanz=True)
+            gm = material("fein_brille" if br["stil"] == "rund" else "brille", br["farbe"], glanz=True)
             for sx in (1, -1):
                 p, n = self.kopf_punkt(sx * 0.34 * a["augen"]["abstand"], 0.02, raus=0.05)
                 if br["stil"] == "eckig":
@@ -1051,7 +1076,7 @@ class Figur:
                     rundbox("sonnenglas", p, (0.18, 0.025, 0.12), material("sonnenglas", "#151515", glanz=True), "head",
                             rundung=0.45, rot=Vector((0, -1, 0)).rotation_difference(n))
                 else:
-                    torus("brillenrand", p, 0.085, 0.012, gm, "head", normale=n)
+                    torus("brillenrand", p, br.get("groesse", 0.085), br.get("dicke", 0.012), gm, "head", normale=n)
                 # Bügel
                 pb = km + Vector((sx * kr.x * 1.0, -kr.y * 0.25, 0.01))
                 kapsel("buegel", p + Vector((sx * 0.08, 0.02, 0)), pb + Vector((0, 0.18, 0)), 0.011, gm, "head")

@@ -32,6 +32,8 @@ const SUPERS := {
 		"dauer": 4.0, "reichweite": 14.0},
 	"brandbombe": {"name": "Molotow-Cocktail", "beschreibung": "Wirft eine große Brandflasche: Explosion und ein Feuerfeld, das mehrere Sekunden brennt.",
 		"schaden": 700, "reichweite": 9.0, "radius": 2.4, "feuer_schaden": 1600, "feuer_dauer": 4.5, "feuer_radius": 3.2},
+	"verwandeln": {"name": "Verwandlung", "beschreibung": "Verwandelt sich für ein paar Sekunden in ein rasend schnelles Tier, das zubeißt.",
+		"tier": "schwein", "dauer": 7.0, "biss_schaden": 650, "tempo_bonus": 1.2},
 	"co2_wolke": {"name": "CO₂-Wolke", "beschreibung": "Eine dicke CO₂-Wolke hüllt den Werfer ein und wandert mit: Gegner darin nehmen Schaden und werden langsamer. Selten wird die Map zur Wüste.",
 		"schaden": 1400, "dauer": 6.0, "radius": 3.6, "wueste_chance": 0.01},
 	"beschwoeren": {"name": "Verstärkung", "beschreibung": "Ein Begleiter erscheint und kämpft eine Weile mit.",
@@ -179,6 +181,10 @@ static func super_ausfuehren(k: Kaempfer, s: Dictionary, richtung: Vector3, ziel
 					g.verstummt_von = k
 					if g.ist_spieler and arena.hud and arena.hud.has_method("stille_warnung"):
 						arena.hud.stille_warnung(d)
+		"verwandeln":
+			var biss := {"typ": "nahkampf", "name": "Biss", "schaden": float(s.get("biss_schaden", 650)),
+				"reichweite": float(s.get("biss_reichweite", 1.7)), "nachladen": 0.6, "farbe": s.get("farbe", "#FF8FB8")}
+			k.verwandeln(str(s.get("tier", "schwein")), float(s.get("dauer", 7.0)), biss, float(s.get("tempo_bonus", 1.2)))
 		"co2_wolke":
 			var z := Zone.new()
 			z.art = "co2"
@@ -549,3 +555,101 @@ class Zone extends Node3D:
 			for g in besitzer.arena.gegner_von(besitzer.team):
 				if g.global_position.distance_to(global_position) < radius:
 					g.schaden_nehmen(anteil, besitzer)
+
+
+
+## Snowball: rosa Comic-Schwein (Frau Osingas Verwandlung). Beine trippeln, Ringelschwanz wackelt.
+class Schwein extends Node3D:
+	var _beine: Array = []
+	var _schwanz: Node3D
+	var _koerper: Node3D
+	var _t := 0.0
+
+	func _teil(mesh: Mesh, farbe: Color, pos: Vector3, eltern: Node3D = null, linie := 0.03) -> MeshInstance3D:
+		var m := MeshInstance3D.new()
+		m.mesh = mesh
+		m.material_override = Toon.farbig(farbe, linie)
+		m.position = pos
+		(eltern if eltern else _koerper).add_child(m)
+		return m
+
+	func _kugel(r: float) -> SphereMesh:
+		var k := SphereMesh.new()
+		k.radius = r
+		k.height = r * 2.0
+		return k
+
+	func _ready() -> void:
+		var rosa := Color("#FF8FBC")
+		var dunkel := Color("#E8608F")
+		_koerper = Node3D.new()
+		add_child(_koerper)
+		var bauch := _teil(_kugel(0.5), rosa, Vector3(0, 0.72, 0))
+		bauch.scale = Vector3(0.95, 0.85, 1.3)
+		var kopf := _teil(_kugel(0.36), rosa, Vector3(0, 0.98, 0.62))
+		var ruessel := CylinderMesh.new()
+		ruessel.top_radius = 0.16
+		ruessel.bottom_radius = 0.18
+		ruessel.height = 0.16
+		var r := _teil(ruessel, dunkel, Vector3(0, 0.92, 0.98))
+		r.rotation.x = PI / 2
+		for sx in [-1, 1]:
+			var loch := _teil(_kugel(0.035), Color("#7A2E4A"), Vector3(sx * 0.06, 0.93, 1.065), null, 0.0)
+			loch.scale = Vector3(1, 1.5, 0.5)
+			var auge := _teil(_kugel(0.06), Color("#1B1424"), Vector3(sx * 0.15, 1.1, 0.9), null, 0.0)
+			var glanz := _teil(_kugel(0.02), Color.WHITE, Vector3(sx * 0.15 + 0.02, 1.13, 0.95), null, 0.0)
+			glanz.scale = Vector3.ONE
+			auge.scale = Vector3(1, 1.2, 0.8)
+			var ohr := CylinderMesh.new()
+			ohr.top_radius = 0.0
+			ohr.bottom_radius = 0.13
+			ohr.height = 0.24
+			var o := _teil(ohr, dunkel, Vector3(sx * 0.22, 1.3, 0.55))
+			o.rotation = Vector3(0.5, 0, sx * -0.5)
+			o.scale = Vector3(1, 1, 0.45)
+			var wange := _teil(_kugel(0.07), Color("#FF7FA8"), Vector3(sx * 0.24, 0.92, 0.85), null, 0.0)
+			wange.scale = Vector3(1, 0.6, 0.4)
+		for bx in [-1, 1]:
+			for bz in [-1, 1]:
+				var bein := CylinderMesh.new()
+				bein.top_radius = 0.1
+				bein.bottom_radius = 0.09
+				bein.height = 0.42
+				var b := _teil(bein, rosa, Vector3(bx * 0.26, 0.24, bz * 0.38), self)
+				var huf := _teil(_kugel(0.095), Color("#8C4A5E"), Vector3(0, -0.2, 0), b, 0.02)
+				huf.scale = Vector3(1, 0.6, 1)
+				b.set_meta("phase", 0.0 if bx * bz > 0 else PI)
+				_beine.append(b)
+		_schwanz = Node3D.new()
+		_schwanz.position = Vector3(0, 0.85, -0.66)
+		_koerper.add_child(_schwanz)
+		var t := TorusMesh.new()
+		t.inner_radius = 0.06
+		t.outer_radius = 0.1
+		var tm := _teil(t, dunkel, Vector3(0, 0.05, -0.05), _schwanz)
+		tm.rotation.x = PI / 2
+		var name_l := Label3D.new()
+		name_l.text = "SNOWBALL"
+		name_l.font = Effekte.SCHRIFT
+		name_l.font_size = 72
+		name_l.pixel_size = 0.008
+		name_l.outline_size = 16
+		name_l.modulate = Color("#FFD1E3")
+		name_l.outline_modulate = Color("#5A1E36")
+		name_l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		name_l.position.y = 1.75
+		add_child(name_l)
+		scale = Vector3.ONE * 0.01
+		create_tween().tween_property(self, "scale", Vector3.ONE * 0.8, 0.35).set_trans(Tween.TRANS_BACK)
+
+	func _process(delta: float) -> void:
+		_t += delta
+		var k := get_parent() as CharacterBody3D
+		var v := Vector2(k.velocity.x, k.velocity.z) if k else Vector2.ZERO
+		var schnell := clampf(v.length() / 6.0, 0.0, 1.0)
+		for b in _beine:
+			b.rotation.x = sin(_t * 22.0 + float(b.get_meta("phase"))) * 0.7 * schnell
+		_koerper.position.y = absf(sin(_t * 22.0)) * 0.08 * schnell
+		_schwanz.rotation.z = sin(_t * 14.0) * 0.6
+		if k and k.get("modell"):
+			rotation.y = k.modell.rotation.y
