@@ -87,7 +87,7 @@ Bibliothek, Hauptgang, Eingangshalle, Mensa, Lehrerzimmer und Sekretariat.
 
 ### Der Kampf
 - **Angriffe werden angekündigt:** Kurz vor jedem Lehrerangriff erscheint eine rote Fläche am Boden
-  (Schusslinie, Zielkreis oder Halbkreis). Wer rechtzeitig ausweicht, wird nicht getroffen.
+  (Schusslinie, Zielkreis oder Halbkreis). Die Warnung ist kurz (0,22 s) und Lehrer zielen dorthin, wo du hinläufst: Nur wer schnell reagiert und die Richtung wechselt, entkommt.
 - **Lehrer weichen aus:** Schießt du auf sie, springen sie manchmal zur Seite.
 - **Ulti der Lehrer:** lädt im Kampf zusätzlich mit der Zeit (etwa alle 12 s eine Ulti), dazu durch Treffer.
 - **Wutphase:** Bei halbem Leben ruft der Lehrer „JETZT REICHT'S!“, glüht rot, läuft schneller und greift öfter an.

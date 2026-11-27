@@ -12,7 +12,7 @@
     "schaden": 420,
     "reichweite": 9.0,
     "nachladen": 1.2,
-    "radius": 1.6,
+    "radius": 1.9,
     "farbe": "#B79CFF",
     "geschoss_modell": "sprechblase",
     "aufprall": {

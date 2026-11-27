@@ -9,11 +9,11 @@
   "angriff": {
     "typ": "schuss",
     "name": "Formelwurf",
-    "schaden": 450,
-    "projektile": 2,
-    "streuung": 10,
+    "schaden": 360,
+    "projektile": 3,
+    "streuung": 20,
     "reichweite": 8.5,
-    "projektil_tempo": 15,
+    "projektil_tempo": 24,
     "nachladen": 1.4,
     "farbe": "#F4F1EA",
     "geschoss_text": [

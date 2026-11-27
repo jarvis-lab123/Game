@@ -356,6 +356,11 @@ func projektil(quelle: Kaempfer, start: Vector3, richtung: Vector3, tempo: float
 	add_child(p)
 
 
+## Flugzeit eines Wurfs (kurz = schwerer auszuweichen)
+static func wurf_dauer(weite: float) -> float:
+	return 0.15 + weite / 32.0
+
+
 func wurf(quelle: Kaempfer, start: Vector3, ziel: Vector3, schaden: float, radius: float, farbe: Color, gross: bool,
 		modell := "", effekt := {}) -> void:
 	var p := Projektil.new()
@@ -367,7 +372,7 @@ func wurf(quelle: Kaempfer, start: Vector3, ziel: Vector3, schaden: float, radiu
 	p.ist_wurf = true
 	p.start = start
 	p.ziel = Vector3(ziel.x, 0, ziel.z)
-	p.dauer = 0.45 + start.distance_to(ziel) / 18.0
+	p.dauer = wurf_dauer(start.distance_to(ziel))
 	p.schaden = schaden
 	p.farbe = farbe
 	p.radius = 0.32 if gross else 0.22

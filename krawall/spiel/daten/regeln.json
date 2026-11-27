@@ -15,7 +15,7 @@
     ],
     "lehrer_ausflug_chance": 0.15,
     "lehrer_leben": 2.0,
-    "angriff_ansage": 0.5,
+    "angriff_ansage": 0.22,
     "lehrer_ulti_sekunden": 12.0
   }
 }

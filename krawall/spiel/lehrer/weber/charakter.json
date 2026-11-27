@@ -2,20 +2,50 @@
   "name": "Herr Weber",
   "titel": "Chemielehrer",
   "beschreibung": "Wirft mit Chemikalien (Säurepfützen). Ulti: großer Molotow-Cocktail mit Feuerfeld.",
-  "werte": { "leben": 3500, "tempo": 1.0 },
+  "werte": {
+    "leben": 3500,
+    "tempo": 1.0
+  },
   "angriff": {
-    "typ": "wurf", "name": "Chemikalien",
-    "schaden": 420, "reichweite": 8.5, "nachladen": 1.5, "radius": 1.3,
-    "farbe": "#7CFF5B", "geschoss_modell": "kolben",
-    "aufprall": { "zone": { "art": "gift", "radius": 1.3, "dauer": 2.0, "schaden": 300 } }
+    "typ": "wurf",
+    "name": "Chemikalien",
+    "schaden": 420,
+    "reichweite": 8.5,
+    "nachladen": 1.5,
+    "radius": 1.7,
+    "farbe": "#7CFF5B",
+    "geschoss_modell": "kolben",
+    "aufprall": {
+      "zone": {
+        "art": "gift",
+        "radius": 1.3,
+        "dauer": 2.0,
+        "schaden": 300
+      }
+    }
   },
   "super": {
-    "typ": "brandbombe", "name": "Großer Molotow-Cocktail", "ruf": "MOLOTOW!",
-    "schaden": 700, "reichweite": 9.0, "radius": 2.4,
-    "feuer_schaden": 1600, "feuer_dauer": 4.5, "feuer_radius": 3.2,
-    "ladung_pro_treffer": 0.13, "farbe": "#FF5A1F"
+    "typ": "brandbombe",
+    "name": "Großer Molotow-Cocktail",
+    "ruf": "MOLOTOW!",
+    "schaden": 700,
+    "reichweite": 9.0,
+    "radius": 2.4,
+    "feuer_schaden": 1600,
+    "feuer_dauer": 4.5,
+    "feuer_radius": 3.2,
+    "ladung_pro_treffer": 0.13,
+    "farbe": "#FF5A1F"
   },
-  "lehrer": { "anzahl": 1, "raeume": ["chemie", "klasse"], "sicht": 9.5, "sichtwinkel": 115 },
+  "lehrer": {
+    "anzahl": 1,
+    "raeume": [
+      "chemie",
+      "klasse"
+    ],
+    "sicht": 9.5,
+    "sichtwinkel": 115
+  },
   "aussehen": {
     "proportionen": "comic",
     "hautfarbe": "#F0CDB4",
@@ -23,15 +53,43 @@
     "kopfform": "oval",
     "ohren": 1.15,
     "wangenroete": false,
-    "augen": { "farbe": "#7B8FA0", "form": "mandel", "groesse": 0.95 },
-    "augenbrauen": { "dicke": 0.8, "winkel": 0, "farbe": "#A88A62" },
+    "augen": {
+      "farbe": "#7B8FA0",
+      "form": "mandel",
+      "groesse": 0.95
+    },
+    "augenbrauen": {
+      "dicke": 0.8,
+      "winkel": 0,
+      "farbe": "#A88A62"
+    },
     "nase": "lang",
     "mund": "neutral",
-    "haare": { "stil": "geheimratsecken", "farbe": "#B8996B" },
-    "brille": { "stil": "rund", "farbe": "#8C8C8C" },
-    "oberteil": { "stil": "hemd", "farbe": "#8FA5C4", "farbe2": "#3E4F6E" },
-    "hose": { "stil": "lang", "farbe": "#3A3A44" },
-    "schuhe": { "farbe": "#3B2A20", "sohle": "#1F1F24" },
-    "waffe": { "stil": "kolben", "farbe": "#D6F4FF", "farbe2": "#7CFF5B" }
+    "haare": {
+      "stil": "geheimratsecken",
+      "farbe": "#B8996B"
+    },
+    "brille": {
+      "stil": "rund",
+      "farbe": "#8C8C8C"
+    },
+    "oberteil": {
+      "stil": "hemd",
+      "farbe": "#8FA5C4",
+      "farbe2": "#3E4F6E"
+    },
+    "hose": {
+      "stil": "lang",
+      "farbe": "#3A3A44"
+    },
+    "schuhe": {
+      "farbe": "#3B2A20",
+      "sohle": "#1F1F24"
+    },
+    "waffe": {
+      "stil": "kolben",
+      "farbe": "#D6F4FF",
+      "farbe2": "#7CFF5B"
+    }
   }
 }

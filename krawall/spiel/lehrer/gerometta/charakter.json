@@ -9,11 +9,11 @@
   "angriff": {
     "typ": "schuss",
     "name": "Vokabelwurf",
-    "schaden": 420,
-    "projektile": 2,
-    "streuung": 16,
+    "schaden": 336,
+    "projektile": 3,
+    "streuung": 24,
     "reichweite": 9.5,
-    "projektil_tempo": 13,
+    "projektil_tempo": 22,
     "nachladen": 1.5,
     "farbe": "#7FB2FF",
     "geschoss_text": [

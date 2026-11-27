@@ -4,6 +4,7 @@ class_name Kaempfer
 extends CharacterBody3D
 
 signal ausgeschaltet(opfer: Kaempfer, taeter: Kaempfer)
+signal angriff_angesagt(richtung: Vector3, ziel: Vector3)   # rote Warnung erscheint (für Tests/Effekte)
 
 const MAX_MUNITION := 3
 const TEMPO_BASIS := 5.0
@@ -583,6 +584,7 @@ func _angriff_ankuendigen(richtung: Vector3, ziel: Vector3) -> void:
 	richtung.y = 0
 	richtung = richtung.normalized() if richtung.length() > 0.01 else blick
 	zielen_auf(richtung)
+	angriff_angesagt.emit(richtung, ziel)
 	var a: Dictionary = daten["angriff"]
 	var marke := MeshInstance3D.new()
 	var farbe := Color(1.0, 0.15, 0.2, 0.0)
@@ -880,13 +882,20 @@ func _ki_denken(delta: float) -> void:
 		var sicht: bool = typ == "wurf" or arena.freie_sicht(global_position, _ki_ziel.global_position)
 		if d < reichweite() * 0.95 and sicht and munition >= 1.0 and _ki_schuss_pause <= 0.0:
 			# Vorhalten + etwas Ungenauigkeit
+			# Vorhalten: dorthin zielen, wo das Ziel beim Einschlag sein wird (Ansage + Flugzeit)
 			var flug := d / maxf(float(daten["angriff"].get("projektil_tempo", 30.0)), 1.0)
-			var vorhalt: Vector3 = _ki_ziel.global_position + _ki_ziel.velocity * flug * 0.7 - global_position
-			vorhalt = vorhalt.rotated(Vector3.UP, randf_range(-0.12, 0.12))
+			if typ == "wurf":
+				flug = Arena.wurf_dauer(d)
+			var vorhersage := (flug + ansage_zeit) * randf_range(0.75, 1.05)
+			var v_ziel: Vector3 = _ki_ziel.velocity
+			v_ziel.y = 0
+			var treffpunkt: Vector3 = _ki_ziel.global_position + v_ziel * vorhersage
+			var vorhalt: Vector3 = treffpunkt - global_position
+			vorhalt = vorhalt.rotated(Vector3.UP, randf_range(-0.05, 0.05))
 			if ansage_zeit > 0.0:
-				_angriff_ankuendigen(vorhalt, _ki_ziel.global_position + _ki_ziel.velocity * 0.4)
+				_angriff_ankuendigen(vorhalt, treffpunkt)
 			else:
-				angreifen(vorhalt, _ki_ziel.global_position + _ki_ziel.velocity * 0.4)
+				angreifen(vorhalt, treffpunkt)
 			_ki_schuss_pause = randf_range(ki_feuerpause.x, ki_feuerpause.y)
 		if super_bereit() and d < float(super_info.get("reichweite", 7.0)) * 0.9 and sicht:
 			super_ausloesen(zu, _ki_ziel.global_position)
