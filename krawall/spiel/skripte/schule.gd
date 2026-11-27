@@ -55,6 +55,8 @@ var _rasen_mat: ShaderMaterial
 var _boden_mats: Array = []
 var _wand_mats: Array = []
 var _baeume: Array = []
+var _wand_teile: Array = []       # [Wand, Kappe] – werden in der Ego-Perspektive hochgezogen
+const EGO_WAND_H := 3.2
 
 
 func _ready() -> void:
@@ -88,6 +90,9 @@ func _ready() -> void:
 	hud.modus = "schule"
 	add_child(hud)
 	_ziel_anzeige_bauen()
+	if ego_ansicht:
+		ego_ansicht = false
+		ansicht_wechseln()
 	_start()
 
 
@@ -279,6 +284,7 @@ func _waende_bauen() -> void:
 			k.material_override = kappe
 			add_child(k)
 			k.position = pos + Vector3(0, WAND_H / 2.0 + 0.03, 0)
+			_wand_teile.append([w, k])
 			_kollision(pos, Vector3(groesse.x, 2.0, groesse.z), 1)
 			_sperren(pos, Vector3(groesse.x, 1, groesse.z), 0.0, 0.05)
 			if aussenwand:
@@ -321,6 +327,18 @@ func _ausschneiden(st: Array, von: float, bis: float) -> Array:
 		if bis < s[1]:
 			out.append([bis, s[1]])
 	return out
+
+
+## Ego-Perspektive: Wände auf volle Höhe, sonst Puppenhaus-Ansicht (abgeschnitten)
+func _ansicht_gewechselt() -> void:
+	var h := EGO_WAND_H if ego_ansicht else WAND_H
+	var tw := create_tween().set_parallel(true)
+	for t in _wand_teile:
+		var w: MeshInstance3D = t[0]
+		var k: MeshInstance3D = t[1]
+		tw.tween_property(w, "scale:y", h / WAND_H, 0.35).set_trans(Tween.TRANS_SINE)
+		tw.tween_property(w, "position:y", h / 2.0, 0.35).set_trans(Tween.TRANS_SINE)
+		tw.tween_property(k, "position:y", h + 0.03, 0.35).set_trans(Tween.TRANS_SINE)
 
 
 # ---------------------------------------------------------------- Möbel

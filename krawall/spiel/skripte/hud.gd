@@ -180,7 +180,7 @@ func _kopfleiste() -> void:
 func _hinweise() -> void:
 	if DisplayServer.is_touchscreen_available():
 		return
-	var h := _label("WASD laufen  ·  LEERTASTE Angriff  ·  E Ulti  ·  F Gadget  ·  Esc Pause", 24, Color.WHITE, 7)
+	var h := _label("WASD laufen  ·  LEERTASTE Angriff  ·  E Ulti  ·  F Gadget  ·  V Ansicht  ·  Esc Pause", 24, Color.WHITE, 7)
 	h.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
 	h.position = Vector2(-560, -40)
 	h.size = Vector2(1120, 30)
@@ -444,14 +444,27 @@ func _leisten_zeichnen() -> void:
 	if arena == null or arena.kamera() == null:
 		return
 	var cam := arena.kamera()
+	var ego: bool = arena.ego_ansicht
 	for k in arena.kaempfer:
 		var kk: Kaempfer = k
-		if kk.tot or not kk.modell.visible:
+		if kk.tot:
 			continue
-		var welt := kk.global_position + Vector3(0, kk.kopf_hoehe(), 0)
-		if cam.is_position_behind(welt):
-			continue
-		var p := cam.unproject_position(welt)
+		var p: Vector2
+		if ego and kk.ist_spieler:
+			# eigener Balken in der Ego-Perspektive fest unten in der Mitte
+			p = Vector2(_leisten.size.x / 2.0, _leisten.size.y - 120.0)
+		else:
+			if not kk.modell.visible:
+				continue
+			var welt := kk.global_position + Vector3(0, kk.kopf_hoehe(), 0)
+			if cam.is_position_behind(welt):
+				continue
+			if ego:
+				# keine Namen durch Wände hindurch
+				var q := PhysicsRayQueryParameters3D.create(cam.global_position, welt - Vector3(0, 0.4, 0), 1)
+				if not arena.get_world_3d().direct_space_state.intersect_ray(q).is_empty():
+					continue
+			p = cam.unproject_position(welt)
 		var b := 112.0
 		var h := 20.0
 		var farbe := GRUEN if kk.ist_spieler else (BLAU if kk.team == 0 else ROT)

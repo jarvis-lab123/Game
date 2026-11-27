@@ -51,6 +51,13 @@ static var _toene := {}
 static var _ton_spieler: Array = []
 
 
+const EGO_DREHTEMPO := 2.6       # rad/s mit A/D
+const EGO_AUGENHOEHE := 1.5
+static var ego_ansicht := false   # bleibt beim "Nochmal" erhalten
+var _ego_dreh := 0.0
+var _fadenkreuz: Control
+
+
 func _ready() -> void:
 	randomize()
 	_karte_aufbauen()
@@ -551,7 +558,15 @@ func _spieler_steuern() -> void:
 	if hud.stick_bewegung.length() > 0.05:
 		v = hud.stick_bewegung
 		_touch_aktiv = true
-	spieler.bewegung = Vector3(v.x, 0, v.y) if laeuft else Vector3.ZERO
+	if ego_ansicht:
+		# Ego: W/S vor/zurück, A/D drehen (keine Maus)
+		var dt := get_process_delta_time()
+		_ego_dreh -= v.x * EGO_DREHTEMPO * dt
+		var vorne := Vector3(sin(_ego_dreh), 0, cos(_ego_dreh))
+		spieler.bewegung = vorne * (-v.y) if laeuft else Vector3.ZERO
+		spieler.blick = vorne
+	else:
+		spieler.bewegung = Vector3(v.x, 0, v.y) if laeuft else Vector3.ZERO
 	# Kein Maus-Zielen: Angriffe zielen automatisch auf den nächsten Gegner in Reichweite (roter Ring)
 	var zielend := hud.zielt_mit_stick()
 	var anvisiert := _auto_ziel()
@@ -584,6 +599,12 @@ func _auto_ziel() -> Kaempfer:
 		if not sichtbar_fuer(k, spieler):
 			continue
 		var d: float = k.global_position.distance_to(spieler.global_position)
+		if ego_ansicht:
+			# in der Ego-Perspektive zählen Gegner vor einem deutlich mehr als welche hinter einem
+			var zu: Vector3 = k.global_position - spieler.global_position
+			zu.y = 0
+			if zu.length() > 0.1 and zu.normalized().dot(spieler.blick) < 0.5:
+				d *= 2.5
 		if d < beste_d:
 			beste_d = d
 			bester = k
@@ -591,15 +612,7 @@ func _auto_ziel() -> Kaempfer:
 
 
 func _auto_angriff(ist_super := false) -> void:
-	var bester: Kaempfer = null
-	var beste_d := spieler.reichweite() * 1.1
-	for k in gegner_von(spieler.team):
-		if not sichtbar_fuer(k, spieler):
-			continue
-		var d: float = k.global_position.distance_to(spieler.global_position)
-		if d < beste_d:
-			beste_d = d
-			bester = k
+	var bester := _auto_ziel()
 	var richtung := spieler.blick
 	var ziel := Vector3.INF
 	if bester:
@@ -677,6 +690,13 @@ func _kamera_bauen() -> void:
 
 
 func _kamera_folgen(delta: float) -> void:
+	if ego_ansicht and spieler and not vorbei:
+		_ego_kamera(delta)
+		return
+	if spieler and not spieler.modell.visible and not spieler.tot:
+		spieler.modell.visible = true
+	if _kamera.fov != 40.0:
+		_kamera.fov = 40.0
 	if spieler:
 		var ziel := spieler.global_position
 		var hg := halb_groesse()
@@ -695,6 +715,51 @@ func _kamera_folgen(delta: float) -> void:
 	_kamera.look_at(_kamera_ziel + Vector3(0, 0.5 if vorbei else 0.0, 0), Vector3.UP)
 
 
+## Ego-Perspektive: Kamera auf Augenhöhe, eigene Figur unsichtbar
+func _ego_kamera(_delta: float) -> void:
+	spieler.modell.visible = false
+	_kamera.fov = 72.0
+	var vorne := Vector3(sin(_ego_dreh), 0, cos(_ego_dreh))
+	var auge := spieler.global_position + Vector3(0, EGO_AUGENHOEHE * spieler.groesse_faktor(), 0) + vorne * 0.12
+	var w := Vector3(randf_range(-1, 1), randf_range(-1, 1), 0) * _wackeln * 0.12
+	_wackeln = maxf(0.0, _wackeln - _delta * 2.5)
+	_kamera.global_position = auge + w
+	_kamera.look_at(auge + vorne * 4.0 + Vector3(0, -0.35, 0), Vector3.UP)
+
+
+## V: zwischen Ansicht von oben und Ego-Perspektive wechseln
+func ansicht_wechseln() -> void:
+	ego_ansicht = not ego_ansicht
+	if spieler:
+		_ego_dreh = atan2(spieler.blick.x, spieler.blick.z)
+		spieler.modell.visible = not ego_ansicht
+	_fadenkreuz_zeigen(ego_ansicht)
+	_ansicht_gewechselt()
+	if hud and hud.has_method("gross_text"):
+		hud.gross_text("EGO-PERSPEKTIVE" if ego_ansicht else "ANSICHT VON OBEN", 1.0)
+
+
+## Für Unterklassen (Schule: Wände hochziehen)
+func _ansicht_gewechselt() -> void:
+	pass
+
+
+func _fadenkreuz_zeigen(an: bool) -> void:
+	if _fadenkreuz == null and hud:
+		_fadenkreuz = Control.new()
+		_fadenkreuz.set_anchors_preset(Control.PRESET_CENTER)
+		_fadenkreuz.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_fadenkreuz.draw.connect(func():
+			for r in [[Color(0.1, 0.07, 0.15, 0.9), 4.0], [Color.WHITE, 2.0]]:
+				_fadenkreuz.draw_line(Vector2(-12, 0), Vector2(-4, 0), r[0], r[1])
+				_fadenkreuz.draw_line(Vector2(4, 0), Vector2(12, 0), r[0], r[1])
+				_fadenkreuz.draw_line(Vector2(0, -12), Vector2(0, -4), r[0], r[1])
+				_fadenkreuz.draw_line(Vector2(0, 4), Vector2(0, 12), r[0], r[1]))
+		hud.add_child(_fadenkreuz)
+	if _fadenkreuz:
+		_fadenkreuz.visible = an
+
+
 func kamera() -> Camera3D:
 	return _kamera
 
@@ -706,6 +771,8 @@ func wackeln(staerke: float) -> void:
 func _unhandled_input(e: InputEvent) -> void:
 	if e.is_action_pressed("pause") and not vorbei:
 		hud.pause_umschalten()
+	elif e.is_action_pressed("ansicht") and not vorbei:
+		ansicht_wechseln()
 
 
 # ---------------------------------------------------------------- Sound (synthetisch, keine Dateien nötig)

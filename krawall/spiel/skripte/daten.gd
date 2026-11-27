@@ -95,6 +95,7 @@ func _eingaben() -> void:
 		"hoch": [KEY_W, KEY_UP], "runter": [KEY_S, KEY_DOWN],
 		"links": [KEY_A, KEY_LEFT], "rechts": [KEY_D, KEY_RIGHT],
 		"auto_angriff": [KEY_SPACE], "super": [KEY_E], "gadget": [KEY_F], "pause": [KEY_ESCAPE, KEY_P],
+		"ansicht": [KEY_V],
 	}
 	for aktion in tasten:
 		if not InputMap.has_action(aktion):
@@ -114,7 +115,7 @@ func _eingaben() -> void:
 		j.axis = a[1]
 		j.axis_value = a[2]
 		InputMap.action_add_event(a[0], j)
-	for b in [["auto_angriff", JOY_BUTTON_A], ["super", JOY_BUTTON_B], ["gadget", JOY_BUTTON_X]]:
+	for b in [["auto_angriff", JOY_BUTTON_A], ["super", JOY_BUTTON_B], ["gadget", JOY_BUTTON_X], ["ansicht", JOY_BUTTON_Y]]:
 		var jb := InputEventJoypadButton.new()
 		jb.button_index = b[1]
 		InputMap.action_add_event(b[0], jb)
