@@ -21,7 +21,7 @@
     "lehrer_ulti_ladung": 0.5,
     "cookie_heilung": 0.4,
     "cookie_neu_nach": 30.0,
-    "lehrer_tempo": 0.8,
+    "lehrer_tempo": 0.65,
     "spieler_tempo": 0.85,
     "lehrer_ausweich_chance": 0.15,
     "lehrer_ausweich_pause": 4.5,

@@ -27,6 +27,7 @@ from mathutils import Matrix, Vector
 # ---------------------------------------------------------------- Standardwerte
 STANDARD_AUSSEHEN = {
     "proportionen": "comic",         # comic (erwachsen, ca. 6 Köpfe groß) | chibi (großer Kopf, kindlich)
+    "feines_gesicht": True,          # Augen/Nase/Mund ohne dicke Comic-Umrisse (wirkt viel natürlicher)
     "hautfarbe": "#F2C29B",
     "koerperbau": "normal",          # schmal | normal | kraeftig
     "groesse": 1.0,                   # 0.85 – 1.15
@@ -367,14 +368,14 @@ class Figur:
         self.m = {
             "haut_fein": material(fg + "haut_gesicht" if fg else "haut", a["hautfarbe"], rau=0.55),
             "haut": material("haut", a["hautfarbe"], rau=0.55),
-            "haut_dunkel": material("haut_dunkel", abdunkeln(a["hautfarbe"], 0.82), rau=0.6),
+            "haut_dunkel": material(fg + "haut_dunkel", abdunkeln(a["hautfarbe"], 0.82), rau=0.6),
             "wange": material(fg + "wange", a.get("wangenfarbe", "#F0857A"), rau=0.7),
             "weiss": material(fg + "augenweiss", "#FFFFFF", rau=0.3),
             "iris": material(fg + "iris", a["augen"]["farbe"], glanz=True),
             "pupille": material(fg + "pupille", "#111111", glanz=True),
             "glanzpunkt": material(fg + "glanzpunkt", "#FFFFFF", leuchten=True),
             "mund": material(fg + "mund", a.get("mundfarbe", "#5A1E1E"), rau=0.5),
-            "zaehne": material("zaehne", "#FFFFFF", rau=0.4),
+            "zaehne": material(fg + "zaehne", "#FFFFFF", rau=0.4),
             "haare": material("haare", a["haare"]["farbe"], rau=0.5),
             "haare2": material("haare2", a["haare"].get("farbe2") or a["haare"]["farbe"], rau=0.5),
             "brauen": material(fg + "brauen", a["augenbrauen"]["farbe"] or abdunkeln(a["haare"]["farbe"], 0.85), rau=0.6),
@@ -868,35 +869,35 @@ class Figur:
                 pf, _ = self.kopf_punkt(sx * 0.085, -0.22, raus=0.014)
                 ellipsoid("nasenfluegel", pf, (0.019, 0.018, 0.016), m["haut_fein"], "head")
         elif nase == "knubbel":
-            ellipsoid("nase", p, (0.045, 0.042, 0.04), m["haut"], "head", rot=R)
+            ellipsoid("nase", p, (0.045, 0.042, 0.04), m["haut_fein"], "head", rot=R)
         elif nase == "breit":
-            ellipsoid("nase", p, (0.058, 0.035, 0.034), m["haut"], "head", rot=R)
+            ellipsoid("nase", p, (0.058, 0.035, 0.034), m["haut_fein"], "head", rot=R)
             for sx in (1, -1):
-                ellipsoid("nasenfluegel", p + Vector((sx * 0.04, 0.008, -0.01)), (0.022, 0.02, 0.02), m["haut"], "head")
+                ellipsoid("nasenfluegel", p + Vector((sx * 0.04, 0.008, -0.01)), (0.022, 0.02, 0.02), m["haut_fein"], "head")
         elif nase == "haken":
             # große Hakennase: hoher Rücken, Höcker, nach unten gebogene Spitze
             oben, _ = self.kopf_punkt(0.0, 0.14, raus=0.004)
             hoecker, _ = self.kopf_punkt(0.0, -0.02, raus=0.06)
             spitze, _ = self.kopf_punkt(0.0, -0.24, raus=0.085)
-            rohr("hakennase", [oben, hoecker, spitze], [0.03, 0.042, 0.04], m["haut"], "head", glatt_teilen=1)
-            ellipsoid("nasenspitze", spitze + Vector((0, 0.004, -0.022)), (0.045, 0.04, 0.05), m["haut"], "head")
+            rohr("hakennase", [oben, hoecker, spitze], [0.03, 0.042, 0.04], m["haut_fein"], "head", glatt_teilen=1)
+            ellipsoid("nasenspitze", spitze + Vector((0, 0.004, -0.022)), (0.045, 0.04, 0.05), m["haut_fein"], "head")
             for sx in (1, -1):
                 pf, _ = self.kopf_punkt(sx * 0.12, -0.27, raus=0.025)
-                ellipsoid("nasenfluegel", pf, (0.03, 0.026, 0.026), m["haut"], "head")
+                ellipsoid("nasenfluegel", pf, (0.03, 0.026, 0.026), m["haut_fein"], "head")
         elif nase == "lang":
             # gerader, langer Nasenrücken mit runder Spitze und Nasenflügeln
             oben, _ = self.kopf_punkt(0.0, 0.12, raus=0.004)
             spitze, n_sp = self.kopf_punkt(0.0, -0.2, raus=0.056)
-            kapsel("nasenruecken", oben, spitze, 0.024, m["haut"], "head", r2=0.032)
-            ellipsoid("nasenspitze", spitze + Vector((0, 0, -0.006)), (0.036, 0.034, 0.033), m["haut"], "head")
+            kapsel("nasenruecken", oben, spitze, 0.024, m["haut_fein"], "head", r2=0.032)
+            ellipsoid("nasenspitze", spitze + Vector((0, 0, -0.006)), (0.036, 0.034, 0.033), m["haut_fein"], "head")
             for sx in (1, -1):
                 pf, _ = self.kopf_punkt(sx * 0.11, -0.24, raus=0.02)
-                ellipsoid("nasenfluegel", pf, (0.026, 0.024, 0.022), m["haut"], "head")
+                ellipsoid("nasenfluegel", pf, (0.026, 0.024, 0.022), m["haut_fein"], "head")
             ps, _ = self.kopf_punkt(0.0, -0.27, raus=0.045)
             for sx in (1, -1):
                 ellipsoid("nasenloch", ps + Vector((sx * 0.022, 0.004, 0.0)), (0.011, 0.008, 0.006), m["haut_dunkel"], "head")
         else:  # spitz
-            ellipsoid("nase", p + Vector((0, 0, 0.01)), (0.03, 0.055, 0.04), m["haut"], "head", rot=R,
+            ellipsoid("nase", p + Vector((0, 0, 0.01)), (0.03, 0.055, 0.04), m["haut_fein"], "head", rot=R,
                       verformen=lambda v: Vector((v.x * (1 - 0.4 * max(0, -v.y)), v.y, v.z)))
 
         # Mund
