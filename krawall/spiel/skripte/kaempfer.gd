@@ -348,8 +348,11 @@ func schadens_faktor() -> float:
 	return f
 
 
+var tempo_faktor := 1.0          # vom Modus gesetzt (Schule: Lehrer/Spieler etwas gemächlicher)
+
+
 func tempo() -> float:
-	var t := TEMPO_BASIS * float(daten["werte"]["tempo"]) * (1.0 + passiv("flink"))
+	var t := TEMPO_BASIS * float(daten["werte"]["tempo"]) * tempo_faktor * (1.0 + passiv("flink"))
 	t *= 1.0 + effekt("turbo")
 	if hat_effekt("wut"):
 		t *= 1.4

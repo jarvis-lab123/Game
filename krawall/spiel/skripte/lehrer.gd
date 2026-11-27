@@ -20,6 +20,9 @@ var ulti_sekunden := 12.0         # im Kampf lädt die Ulti zusätzlich in diese
 var wut_text := "JETZT REICHT'S!"
 var _wutphase := false
 var _ausweichen_ab := 0.0
+var ausweich_chance := 0.3       # Werte kommen aus daten/regeln.json (Schule)
+var ausweich_pause := 2.5
+var ausweich_weite := 2.4
 var zorn: Dictionary = {}        # {"nach": s Dauerkampf, "dauer": s, "faktor": 2.0, "text": "ANGRY MODE!"}
 var _zornzeit := 0.0
 var burnout: Dictionary = {}     # {"nach": s Dauerkampf, "dauer": s reglos, "text": "BURN OUT"}
@@ -186,10 +189,10 @@ func _wahrnehmen(delta: float, sp: Kaempfer) -> void:
 func hoeren(pos: Vector3, reichweite: float) -> void:
 	# im Kampf: ab und zu seitlich ausweichen, wenn der Spieler schießt
 	if zustand == "angriff" and not tot and zeit() > _ausweichen_ab and not hat_effekt("betaeubt") \
-			and global_position.distance_to(pos) < 12.0 and randf() < 0.3:
-		_ausweichen_ab = zeit() + 2.5
+			and global_position.distance_to(pos) < 12.0 and randf() < ausweich_chance:
+		_ausweichen_ab = zeit() + ausweich_pause
 		var weg := (global_position - pos).normalized().cross(Vector3.UP) * (1.0 if randf() < 0.5 else -1.0)
-		springen_zu(global_position + weg * 2.4, 0.28, Callable(), true)
+		springen_zu(global_position + weg * ausweich_weite, 0.34, Callable(), true)
 	if tot or not ist_ahnungslos():
 		if zustand in ["suchen", "warten"]:
 			_zuletzt_gesehen = pos

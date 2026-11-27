@@ -789,6 +789,7 @@ func _spieler_erzeugen() -> void:
 	k.einrichten(d, 0, true, self, Konto.stufe(id), Konto.gewaehlt_gadget(id), Konto.gewaehlt_passiv(id))
 	k.regeneration = false   # Heilen nur mit dem Cookie in der Mensa
 	k.max_leben *= float(regeln.get("spieler_leben", 1.5))
+	k.tempo_faktor = float(regeln.get("spieler_tempo", 1.0))
 	k.leben = k.max_leben
 	k.spawn_punkt = plan(_eingang.x, _eingang.y + 2.5)
 	k.global_position = k.spawn_punkt
@@ -815,6 +816,10 @@ func _lehrer_erzeugen() -> void:
 			l.regeneration = false
 			l.schadens_multiplikator = float(regeln.get("lehrer_schaden", 0.55))
 			l.max_leben *= float(regeln.get("lehrer_leben", 2.0))
+			l.tempo_faktor = float(regeln.get("lehrer_tempo", 1.0))
+			l.ausweich_chance = float(regeln.get("lehrer_ausweich_chance", 0.3))
+			l.ausweich_pause = float(regeln.get("lehrer_ausweich_pause", 2.5))
+			l.ausweich_weite = float(regeln.get("lehrer_ausweich_weite", 2.4))
 			l.leben = l.max_leben
 			l.ansage_zeit = float(regeln.get("angriff_ansage", 0.5))
 			l.ulti_sekunden = float(l.daten.get("lehrer", {}).get("ulti_sekunden", regeln.get("lehrer_ulti_sekunden", 35.0)))
