@@ -107,7 +107,7 @@ angreifend (rot).
 | **Frau Rahn** (echt) | Klassen, Lehrerzimmer, Bibliothek | Schneckenwurf (Bogen, Schleim verlangsamt) | **Herr Lascha** erscheint und wirft Kameras (10 s, schwach) | **BURN OUT**: nach 12 s Dauerkampf 5 s reglos, schwankender Gang |
 | **Herr Weber** (echt) | Chemieraum, Klassen | Chemikalien (Kolben im Bogen, grüne Säurepfütze) | **MOLOTOW!**: große Brandflasche, Explosion + Feuerfeld (4,5 s) | runde Brille, Geheimratsecken |
 | **Herr Lüthi** (echt) | Klassen, Bibliothek | Giftregen (kleine Regenwolke, über dem Ziel fällt giftiger Regen) | **CO₂-ALARM!**: graue CO₂-Wolke wandert 6 s mit ihm (Schaden + langsamer). **1 % pro Ulti: die ganze Schule wird zur Wüste – bis Spielende** | dunkelblonde Tolle, dunkelblaues Hemd |
-| **Frau Osinga** (echt) | Klassen, Lehrerzimmer | Langweiliger Vortrag (Sprechblasen „Bla bla…“: Schaden + müde = langsamer, „Zzz“) | **SNOWBALL!**: verwandelt sich 7 s in ein rasend schnelles Schwein, das dich jagt und beißt (hoher Schaden) | blonder Dutt, helle Brille, rosa Blumenpulli |
+| **Frau Osinga** (echt, Englischlehrerin) | Klassen, Lehrerzimmer | Boring Lecture: englische Sprechblase („Blah blah…“, „Homework!“) platzt zu einer lila Giftwolke (Schaden, müde + langsam, „Zzz“) | **SNOWBALL!** (OP): 10 s rasend schnelles Schwein, nimmt nur halben Schaden, Biss 1100 + heilt sich dabei | blonder Dutt, helle Brille, rosa Blumenpulli, 4400 Leben |
 | **Frau Gerometta** (echt) | Klassenzimmer | Vokabelwurf (fliegende französische Wörter) | **SILENCE !**: 4 s „PSST! NICHT ANGREIFEN!“ – wer angreift, ist sofort K.o. | **ANGRY MODE**: nach 10 s Dauerkampf 6 s doppelter Schaden |
 
 Eigene Lehrer kommen nach `spiel/lehrer/<id>/charakter.json` (Format wie bei Kämpfern, zusätzlich

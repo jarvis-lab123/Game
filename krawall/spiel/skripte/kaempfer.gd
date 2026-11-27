@@ -570,6 +570,8 @@ func angreifen(richtung: Vector3, ziel_punkt := Vector3.INF) -> void:
 				d.y = 0
 				if d.length() < reichweite() and d.normalized().dot(richtung) > 0.35:
 					k.schaden_nehmen(schaden, self, richtung * 6.0)
+					if verwandelt != "":
+						heilen(schaden * float(a.get("heilt", 0.0)), true)
 			Arena.ton("schlag")
 
 
@@ -638,7 +640,7 @@ var _angriff_normal := {}
 var _feuerpause_normal := Vector2.ZERO
 
 
-func verwandeln(tier: String, dauer: float, angriff: Dictionary, tempo_bonus: float) -> void:
+func verwandeln(tier: String, dauer: float, angriff: Dictionary, tempo_bonus: float, panzer := 0.0) -> void:
 	if verwandelt != "" or tot:
 		return
 	daten = daten.duplicate(true)
@@ -656,6 +658,8 @@ func verwandeln(tier: String, dauer: float, angriff: Dictionary, tempo_bonus: fl
 	add_child(_tier)
 	_tier.rotation.y = modell.rotation.y if modell else 0.0
 	effekt_setzen("turbo", dauer, tempo_bonus)
+	if panzer > 0.0:
+		effekt_setzen("panzer", dauer, panzer)
 	await get_tree().create_timer(dauer).timeout
 	zurueckverwandeln()
 
@@ -667,6 +671,7 @@ func zurueckverwandeln() -> void:
 	daten["angriff"] = _angriff_normal
 	ki_feuerpause = _feuerpause_normal
 	_effekte.erase("turbo")
+	_effekte.erase("panzer")
 	if is_instance_valid(_tier):
 		_tier.queue_free()
 	if modell and not tot:
@@ -768,6 +773,7 @@ func schaden_nehmen(menge: float, quelle: Kaempfer, stoss := Vector3.ZERO) -> vo
 	if tot or hat_effekt("spawnschutz"):
 		return
 	menge *= 1.0 - effekt("schild")
+	menge *= 1.0 - effekt("panzer")
 	menge *= 1.0 - effekt("blase")
 	menge *= 1.0 - passiv("dicke_haut")
 	leben -= menge

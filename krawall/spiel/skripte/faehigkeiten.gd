@@ -183,8 +183,10 @@ static func super_ausfuehren(k: Kaempfer, s: Dictionary, richtung: Vector3, ziel
 						arena.hud.stille_warnung(d)
 		"verwandeln":
 			var biss := {"typ": "nahkampf", "name": "Biss", "schaden": float(s.get("biss_schaden", 650)),
-				"reichweite": float(s.get("biss_reichweite", 1.7)), "nachladen": 0.6, "farbe": s.get("farbe", "#FF8FB8")}
-			k.verwandeln(str(s.get("tier", "schwein")), float(s.get("dauer", 7.0)), biss, float(s.get("tempo_bonus", 1.2)))
+				"reichweite": float(s.get("biss_reichweite", 1.7)), "nachladen": 0.6, "farbe": s.get("farbe", "#FF8FB8"),
+				"heilt": float(s.get("biss_heilt", 0.0))}
+			k.verwandeln(str(s.get("tier", "schwein")), float(s.get("dauer", 7.0)), biss, float(s.get("tempo_bonus", 1.2)),
+				float(s.get("panzer", 0.0)))
 		"co2_wolke":
 			var z := Zone.new()
 			z.art = "co2"
@@ -484,6 +486,36 @@ class Zone extends Node3D:
 				d.position = Vector3(cos(w2) * rr, randf_range(0.1, 2.7), sin(w2) * rr)
 				add_child(d)
 				_tropfen.append(d)
+		if art == "laber":
+			# einschläfernde Laber-Giftwolke: blass-lila Nebel mit "Zzz" und Mini-Sprechblasen
+			for i in 12:
+				var w := TAU * i / 12.0
+				var b := MeshInstance3D.new()
+				var kb := SphereMesh.new()
+				kb.radius = randf_range(0.35, 0.6) * radius / 1.8
+				kb.height = kb.radius * 2.0
+				b.mesh = kb
+				b.material_override = Toon.unschattiert(Color(0.78, 0.68, 0.95, 0.5), true)
+				var rr := radius * randf_range(0.3, 0.85)
+				b.position = Vector3(cos(w) * rr, randf_range(0.3, 1.3), sin(w) * rr)
+				b.set_meta("basis", b.position)
+				b.set_meta("phase", randf() * TAU)
+				add_child(b)
+			for i in 4:
+				var l := Label3D.new()
+				l.text = ["Zzz", "blah", "zzz", "yawn"][i]
+				l.font = Effekte.SCHRIFT
+				l.font_size = 70
+				l.pixel_size = 0.008
+				l.outline_size = 14
+				l.modulate = Color("#E9DDFF")
+				l.outline_modulate = Color("#3A2E4F")
+				l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+				var w2 := TAU * i / 4.0 + 0.4
+				l.position = Vector3(cos(w2) * radius * 0.5, 1.4 + i * 0.2, sin(w2) * radius * 0.5)
+				l.set_meta("basis", l.position)
+				l.set_meta("phase", randf() * TAU)
+				add_child(l)
 		if art == "co2":
 			# dicke graue CO2-Wolke um den Lehrer
 			for i in 16:
@@ -521,12 +553,12 @@ class Zone extends Node3D:
 			d.position.y -= delta * 7.0
 			if d.position.y < 0.05:
 				d.position.y = 2.7
-		if art == "co2":
+		if art == "co2" or art == "laber":
 			for b in get_children():
 				if b.has_meta("basis"):
 					var ph: float = b.get_meta("phase") + _t * 1.7
 					b.position = b.get_meta("basis") + Vector3(0, 0.25 * sin(ph), 0)
-		if (art == "regen" or art == "co2") and _t > dauer - 0.5:
+		if (art == "regen" or art == "co2" or art == "laber") and _t > dauer - 0.5:
 			scale = Vector3.ONE * maxf(0.01, (dauer - _t) * 2.0)
 		if art == "feuer" or art == "gift":
 			for f in get_children():
@@ -547,6 +579,9 @@ class Zone extends Node3D:
 			if d.length() < radius:
 				if art == "wirbel":
 					g.zug(d.normalized() * 5.5)
+				elif art == "laber":
+					g.effekt_setzen("langsam", 0.8, 0.45)
+					Effekte.zzz(g, 0.8)
 				else:
 					g.effekt_setzen("langsam", 0.3, 0.45)
 		if _tick <= 0.0:

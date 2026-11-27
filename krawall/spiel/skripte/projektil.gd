@@ -98,7 +98,10 @@ func _sprechblase_bauen() -> void:
 	zipfel.scale = Vector3(1, 1, 0.4)
 	_blase.add_child(zipfel)
 	var l := Label3D.new()
-	l.text = text if text != "" else "Bla bla…"
+	var texte: Array = effekt.get("texte", [])
+	if text == "" and texte.size() > 0:
+		text = str(texte[randi() % texte.size()])
+	l.text = text if text != "" else "Blah blah…"
 	l.font = Effekte.SCHRIFT
 	l.font_size = 64
 	l.pixel_size = 0.006
@@ -128,7 +131,8 @@ func _physics_process(delta: float) -> void:
 		var p := start.lerp(ziel, f)
 		p.y = lerpf(start.y, 0.3, f) + sin(f * PI) * 3.0
 		global_position = p
-		rotation.x += delta * 10.0
+		if _blase == null:
+			rotation.x += delta * 10.0
 		if f >= 1.0:
 			arena.explosion(quelle, team, ziel, explosions_radius, schaden, farbe, zerstoert_waende, effekt)
 			queue_free()
