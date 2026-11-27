@@ -1,0 +1,109 @@
+{
+  "id": "oskar",
+  "name": "Oskar",
+  "titel": "Der Schüler",
+  "beschreibung": "Ganz normaler Schüler mit Trainingsjacke und Brustbeutel. Wirft mit Stiften – und wenn's ernst wird, gleich mit drei riesigen.",
+  "werte": {
+    "leben": 3800,
+    "tempo": 1.0
+  },
+  "angriff": {
+    "typ": "schuss",
+    "name": "Stiftwurf",
+    "schaden": 950,
+    "projektile": 1,
+    "streuung": 0,
+    "reichweite": 7.5,
+    "projektil_tempo": 18,
+    "nachladen": 1.2,
+    "farbe": "#2E6BE6",
+    "geschoss_modell": "stift"
+  },
+  "super": {
+    "typ": "stifte",
+    "name": "Dreifach-Stift",
+    "schaden": 1300,
+    "anzahl": 3,
+    "winkel": 22,
+    "reichweite": 9.0,
+    "ladung_pro_treffer": 0.2,
+    "farbe": "#2E6BE6"
+  },
+  "aussehen": {
+    "proportionen": "comic",
+    "hautfarbe": "#F1C7A8",
+    "koerperbau": "schmal",
+    "groesse": 1.0,
+    "kopfform": "oval",
+    "kopfgroesse": 1.0,
+    "wangenroete": true,
+    "wangenfarbe": "#EFA592",
+    "augen": {
+      "farbe": "#6E8AA0",
+      "groesse": 0.95,
+      "abstand": 1.0,
+      "form": "mandel"
+    },
+    "augenbrauen": {
+      "dicke": 0.9,
+      "winkel": 2,
+      "farbe": "#9C7448"
+    },
+    "nase": "klein",
+    "mund": "laecheln",
+    "ohren": 1.0,
+    "haare": {
+      "stil": "kurz",
+      "farbe": "#B68A55",
+      "pony": true,
+      "scheitel": "rechts"
+    },
+    "bart": {
+      "stil": "keiner"
+    },
+    "oberteil": {
+      "stil": "trainingsjacke",
+      "farbe": "#1C1C22",
+      "farbe2": "#1C1C22",
+      "panel": "#F0F0EC",
+      "paspel": "#C9DB6B",
+      "zipper": "#3A3A42"
+    },
+    "brustbeutel": {
+      "an": true,
+      "farbe": "#16161A",
+      "kordel": "#1E1E24"
+    },
+    "hose": {
+      "stil": "lang",
+      "farbe": "#7F9FC4"
+    },
+    "schuhe": {
+      "farbe": "#F4F4F4",
+      "sohle": "#D9DEE8"
+    },
+    "waffe": {
+      "stil": "stift",
+      "farbe": "#2E6BE6",
+      "farbe2": "#1B1424"
+    }
+  },
+  "seltenheit": "gewoehnlich",
+  "start": true,
+  "gadgets": [
+    {
+      "typ": "turbo"
+    },
+    {
+      "typ": "sprung"
+    }
+  ],
+  "passive": [
+    {
+      "typ": "schnelllader"
+    },
+    {
+      "typ": "flink"
+    }
+  ]
+}

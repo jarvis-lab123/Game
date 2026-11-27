@@ -548,6 +548,54 @@ class Figur:
                     zz = self.huefte_z + 0.1 + t * (self.hals_z - self.huefte_z - 0.2) / 5
                     pkt.append(Vector((x, self.rumpf_y(zz) * (1 - (x / (0.25 * bau)) ** 2 * 0.5) - 0.002 - 0.028 * (t / 5) ** 1.5, zz)))
                 rohr("streifen", pkt, 0.006, streifen, "chest" if j % 2 else "spine", abflachen=0.4, glatt_teilen=0)
+        elif stil == "trainingsjacke":
+            # geschlossene Trainingsjacke: Stehkragen, Reißverschluss, helles Bauch-/Bruststück, dünne Paspeln
+            o = a["oberteil"]
+            panel_m = material("jacke_panel", o.get("panel", "#F2F2F0"))
+            paspel = material("fein_paspel", o.get("paspel", "#C9DB6B"))
+            cut = self.brust_z - 0.03       # Oberkante des hellen Stücks
+            bz_m = rumpf_m.z + rumpf_h * 0.45
+            def vorne(z):
+                # vorderste Fläche aus Rumpf UND Brust (die Brust steht weiter vor)
+                t = min(abs((z - bz_m) / (rumpf_h * 0.6)), 0.999)
+                yb = -(0.165 * bau * (1 - t ** (2 / 0.82)) ** (0.82 / 2)) - 0.005
+                return min(self.rumpf_y(z), yb)
+            def panel_form(v):
+                p = rumpf_form(v)
+                z = rumpf_m.z + p.z * rumpf_h
+                vorne = v.y < -0.2
+                if z > cut or not vorne or z < self.huefte_z + 0.13:
+                    return Vector((p.x * 0.93, p.y * 0.9, p.z))
+                return p
+            ellipsoid("jacke_panel", rumpf_m, (0.25 * bau * 1.012, 0.17 * bau * 1.04, rumpf_h * 1.0), panel_m, "spine",
+                      verformen=panel_form)
+            # Paspel entlang der Oberkante des hellen Stücks
+            pkt = []
+            for i in range(9):
+                x = -0.2 * bau + i * 0.4 * bau / 8
+                f = 1 - (x / (0.25 * bau)) ** 2 * 0.55
+                pkt.append(Vector((x, vorne(cut) * f - 0.012, cut + 0.004)))
+            rohr("paspel_quer", pkt, 0.011, paspel, "chest", abflachen=0.5, glatt_teilen=1)
+            # Paspeln von der Schulter schräg zur Mitte
+            for sx in (1, -1):
+                a0 = Vector((sx * 0.19 * bau, vorne(self.hals_z - 0.07) * 0.8 - 0.012, self.hals_z - 0.05))
+                a1 = Vector((sx * 0.14 * bau, vorne(self.brust_z + 0.03) - 0.012, self.brust_z + 0.03))
+                a2 = Vector((sx * 0.09 * bau, vorne(cut) - 0.012, cut + 0.004))
+                rohr("paspel_schraeg", [a0, a1, a2], 0.011, paspel, "chest", abflachen=0.5, glatt_teilen=1)
+            # Reißverschluss (geschlossen) mit Zipper
+            zip_m = material("zipper_dunkel", o.get("zipper", "#3A3A42"), glanz=True)
+            zs = []
+            for i in range(6):
+                zz = self.huefte_z + 0.08 + i * (self.hals_z - 0.04 - self.huefte_z - 0.08) / 5
+                zs.append(Vector((0, vorne(zz) - 0.012, zz)))
+            rohr("reissverschluss", zs, 0.007, zip_m, "chest", glatt_teilen=1)
+            rundbox("zipper", Vector((0, vorne(self.hals_z - 0.1) - 0.02, self.hals_z - 0.12)), (0.018, 0.01, 0.04),
+                    material("zipper_hell", "#C9D3E6", glanz=True), "chest", rundung=0.4)
+            # Stehkragen
+            torus("kragen", Vector((0, 0.01, self.hals_z - 0.01)), 0.085 * bau, 0.032, ober, "chest",
+                  normale=(0, 0.15, 1), skal=(1.12, 1.0))
+            torus("kragen2", Vector((0, 0.01, self.hals_z + 0.03)), 0.08 * bau, 0.026, ober, "neck",
+                  normale=(0, 0.15, 1), skal=(1.12, 1.0))
         elif stil == "pulli":
             torus("kragen", Vector((0, 0.0, self.hals_z - 0.035)), 0.085 * bau, 0.03, m["oberteil2"], "chest",
                   normale=(0, 0.1, 1))
@@ -588,6 +636,23 @@ class Figur:
             torus("kette", Vector((0, -0.03, self.hals_z - 0.07)), 0.12 * bau, 0.012, km, "chest",
                   normale=(0, -0.45, 1), skal=(1.0, 1.2))
             ellipsoid("anhaenger", Vector((0, -0.175 * bau, self.brust_z - 0.06)), (0.03, 0.015, 0.035), km, "chest")
+
+        # Brustbeutel: kleine Tasche an einer Kordel um den Hals
+        bb = a.get("brustbeutel", {})
+        if bb.get("an"):
+            bm = material("brustbeutel", bb.get("farbe", "#16161A"))
+            zc = self.brust_z - 0.17
+            yb = self.rumpf_y(zc) - 0.035
+            rundbox("beutel", Vector((0, yb, zc)), (0.1, 0.045, 0.15), bm, "chest", rundung=0.35)
+            rundbox("beutel_klappe", Vector((0, yb - 0.022, zc + 0.05)), (0.098, 0.012, 0.05),
+                    material("brustbeutel_klappe", abdunkeln(bb.get("farbe", "#16161A"), 0.7)), "chest", rundung=0.4)
+            km = material("fein_kordel", bb.get("kordel", "#1E1E24"))
+            for sx in (1, -1):
+                rohr("kordel", [Vector((sx * 0.04, yb + 0.005, zc + 0.075)),
+                                Vector((sx * 0.07, self.rumpf_y(self.brust_z + 0.02) - 0.012, self.brust_z + 0.02)),
+                                Vector((sx * 0.085, -0.02, self.hals_z - 0.04)),
+                                Vector((sx * 0.06, 0.07, self.hals_z - 0.02)), Vector((0, 0.09, self.hals_z - 0.02))],
+                     0.005, km, "chest", glatt_teilen=1)
 
         # Becken / Hose oben
         hose = m["hose"]
@@ -632,7 +697,7 @@ class Figur:
                        schuh_m + Vector((0.035, -0.07 + k * 0.04, 0.07 - k * 0.01)), 0.012, m["oberteil2"], f"foot.{seite}")
 
         # Arme
-        lang = stil in ("hoodie", "jacke", "pulli", "heizjacke", "hemd")
+        lang = stil in ("hoodie", "jacke", "pulli", "heizjacke", "hemd", "trainingsjacke")
         for seite, sx in (("L", 1), ("R", -1)):
             s = Vector((sx * self.schulter.x, 0, self.schulter.z))
             ell = s + Vector((sx * self.arm_ell.x, self.arm_ell.y, self.arm_ell.z))
@@ -651,6 +716,13 @@ class Figur:
                           material("steppnaht", abdunkeln(a["oberteil"]["farbe"], 0.72)), f"upper_arm.{seite}", normale=(ell - s))
             kapsel(f"unterarm.{seite}", hand, ell, arm_r * 0.88, ober if lang else m["haut"], f"forearm.{seite}",
                    r2=arm_r * 0.98)
+            if stil == "trainingsjacke":
+                pm = material("fein_paspel", a["oberteil"].get("paspel", "#C9DB6B"))
+                aus = Vector((sx, 0, 0))
+                rohr(f"armpaspel_o.{seite}", [s + aus * arm_r * 1.1 + Vector((0, 0, 0.05)), ell + aus * arm_r * 1.02],
+                     0.011, pm, f"upper_arm.{seite}", glatt_teilen=0)
+                rohr(f"armpaspel_u.{seite}", [ell + aus * arm_r * 0.98, hand + (ell - hand) * 0.15 + aus * arm_r * 0.86],
+                     0.011, pm, f"forearm.{seite}", glatt_teilen=0)
             if lang:
                 torus(f"armbund.{seite}", hand + (ell - hand) * 0.12, arm_r * 0.85, 0.022, m["oberteil2"],
                       f"forearm.{seite}", normale=(ell - hand))
@@ -1187,6 +1259,13 @@ class Figur:
         elif w["stil"] == "stab":
             kapsel("stab", hm + Vector((0, 0, -0.3)), hm + Vector((0, 0, 0.45)), 0.022, m2, k)
             ellipsoid("kristall", hm + Vector((0, 0, 0.52)), (0.06, 0.06, 0.09), material("kristall", w["farbe"], leuchten=True), k)
+        elif w["stil"] == "stift":
+            # Kugelschreiber (etwas übergroß, damit man ihn sieht): Schaft, Griffzone, Spitze, Clip
+            met = material("stift_metall", "#D9DEE8", glanz=True)
+            kapsel("stift_schaft", hm + Vector((0, -0.04, -0.1)), hm + Vector((0, -0.04, 0.3)), 0.028, m1, k)
+            kapsel("stift_griff", hm + Vector((0, -0.04, -0.1)), hm + Vector((0, -0.04, 0.02)), 0.031, m2, k)
+            kapsel("stift_spitze", hm + Vector((0, -0.04, -0.18)), hm + Vector((0, -0.04, -0.1)), 0.006, met, k, r2=0.028)
+            rundbox("stift_clip", hm + Vector((0, -0.073, 0.22)), (0.012, 0.014, 0.12), met, k, rundung=0.4)
         elif w["stil"] == "buch":
             rundbox("buch", hm + Vector((0, -0.08, 0.02)), (0.05, 0.16, 0.2), m1, k, rundung=0.2)
         elif w["stil"] == "kolben":

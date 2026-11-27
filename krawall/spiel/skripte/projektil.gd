@@ -53,6 +53,8 @@ func _ready() -> void:
 		var form := _modell_bauen(modell)
 		add_child(form)
 		_drehung = Vector3(randf_range(6, 10), randf_range(-4, 4), 0)
+		if modell.begins_with("stift"):
+			_drehung = Vector3(0, 0, 14)      # Stift fliegt gerade, dreht sich nur um die eigene Achse
 		if not ist_wurf and richtung.length() > 0.01:
 			look_at(global_position + richtung, Vector3.UP)
 		return
@@ -197,6 +199,32 @@ func _kugel(r: float) -> SphereMesh:
 func _modell_bauen(art: String) -> Node3D:
 	var form := Node3D.new()
 	match art:
+		"stift", "stift_gross":
+			# Kugelschreiber, zeigt in Flugrichtung (-Z)
+			var gr := 2.4 if art == "stift_gross" else 1.0
+			var schaft := CylinderMesh.new()
+			schaft.top_radius = 0.045 * gr
+			schaft.bottom_radius = 0.045 * gr
+			schaft.height = 0.55 * gr
+			var sch := _teil(form, schaft, farbe, Vector3(0, 0, 0.05 * gr))
+			sch.rotation.x = PI / 2
+			var griff := CylinderMesh.new()
+			griff.top_radius = 0.05 * gr
+			griff.bottom_radius = 0.05 * gr
+			griff.height = 0.16 * gr
+			var gf := _teil(form, griff, Color("#1B1424"), Vector3(0, 0, -0.2 * gr))
+			gf.rotation.x = PI / 2
+			var spitze := CylinderMesh.new()
+			spitze.top_radius = 0.0
+			spitze.bottom_radius = 0.045 * gr
+			spitze.height = 0.14 * gr
+			var sp := _teil(form, spitze, Color("#D9DEE8"), Vector3(0, 0, -0.35 * gr))
+			sp.rotation.x = -PI / 2
+			var kappe := _teil(form, _kugel(0.05 * gr), farbe.darkened(0.3), Vector3(0, 0, 0.32 * gr))
+			kappe.scale = Vector3(1, 1, 0.6)
+			var clip := BoxMesh.new()
+			clip.size = Vector3(0.018, 0.02, 0.2) * gr
+			_teil(form, clip, Color("#D9DEE8"), Vector3(0, 0.055 * gr, 0.18 * gr))
 		"schnecke":
 			_teil(form, _kugel(0.2), Color("#A0522D"), Vector3(0, 0.12, 0.02))
 			var spirale := TorusMesh.new()

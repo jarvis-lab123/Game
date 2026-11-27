@@ -10,6 +10,8 @@ const SUPERS := {
 		"schaden": 1000, "reichweite": 7.0},
 	"salve": {"name": "Rundum-Salve", "beschreibung": "Feuert einen Ring aus Geschossen in alle Richtungen.",
 		"schaden": 1600, "reichweite": 7.0, "anzahl": 16},
+	"stifte": {"name": "Dreifach-Stift", "beschreibung": "Schießt drei riesige Stifte gleichzeitig nach vorne – geradeaus, links und rechts.",
+		"schaden": 1300, "reichweite": 9.0, "anzahl": 3, "winkel": 22},
 	"bombe": {"name": "Mega-Bombe", "beschreibung": "Wirft eine Riesenbombe über Wände. Zerstört Kisten und schleudert Gegner weg.",
 		"schaden": 1400, "reichweite": 8.0, "radius": 2.6},
 	"heilzone": {"name": "Heilzone", "beschreibung": "Ein Kreis, der das eigene Team heilt und Gegnern schadet.",
@@ -123,6 +125,13 @@ static func super_ausfuehren(k: Kaempfer, s: Dictionary, richtung: Vector3, ziel
 			for i in n:
 				var r := richtung.rotated(Vector3.UP, TAU * i / n)
 				arena.projektil(k, k.global_position + Vector3(0, 1.0, 0) + r * 0.5, r, 15.0, rw, schaden / 4.0, farbe, 0.28)
+		"stifte":
+			var n := int(s.get("anzahl", 3))
+			var w := deg_to_rad(float(s.get("winkel", 22)))
+			for i in n:
+				var r := richtung.rotated(Vector3.UP, lerpf(-w, w, float(i) / maxf(n - 1, 1)) if n > 1 else 0.0)
+				arena.projektil(k, k.global_position + Vector3(0, 1.0, 0) + r * 0.6, r, 17.0, rw, schaden, farbe, 0.45, "", "stift_gross")
+			Effekte.ruf(k, "STIFTE RAUS!", farbe)
 		"bombe":
 			arena.wurf(k, k.global_position + Vector3(0, 1.4, 0), ziel, schaden, float(s.get("radius", 2.6)), farbe, true)
 		"heilzone":
