@@ -1051,13 +1051,14 @@ class Figur:
                 rohr("spike", [fuss - n * 0.02, mitte, spitze], [0.04, 0.026, 0.003], hm, "head", abflachen=0.7, glatt_teilen=1)
             if h.get("mullet"):
                 # Mullet: Seiten kurz, hinten lange Haare bis in den Nacken, unten spitze, zerzauste Enden
-                ellipsoid("mullet", km + Vector((0, kr.y * 0.52, -kr.z * 0.58)), (kr.x * 0.84, kr.y * 0.52, kr.z * 0.9), hm, "head",
+                ml = float(h.get("mullet_laenge", 1.0))     # 1.0 = bis in den Nacken
+                ellipsoid("mullet", km + Vector((0, kr.y * 0.52, -kr.z * (0.3 + 0.28 * ml))), (kr.x * 0.84, kr.y * 0.52, kr.z * (0.6 + 0.3 * ml)), hm, "head",
                           verformen=lambda v: Vector((v.x * (1 + 0.14 * max(0.0, -v.z)), v.y * (1 + 0.1 * max(0.0, -v.z)), v.z)))
                 for i in range(9):
                     t = i / 8 * 2 - 1
                     x = t * kr.x * 0.85
-                    oben = km + Vector((x * 0.9, kr.y * 0.75, -kr.z * 0.9))
-                    tief = -kr.z * (1.5 + rnd.uniform(-0.08, 0.12) - 0.15 * abs(t))
+                    oben = km + Vector((x * 0.9, kr.y * 0.75, -kr.z * (0.5 + 0.4 * ml)))
+                    tief = -kr.z * (0.9 + 0.6 * ml + rnd.uniform(-0.08, 0.12) - 0.15 * abs(t))
                     unten = km + Vector((x * 1.08 + t * 0.03, kr.y * (0.9 + rnd.uniform(0, 0.12)), tief))
                     rohr("mullet_spitze", [oben, unten], [0.05, 0.003], hm, "head", abflachen=0.55, glatt_teilen=0)
             return

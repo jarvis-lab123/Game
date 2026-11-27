@@ -59,7 +59,8 @@
       "pony_ende": 0.43,
       "mullet": true,
       "spikes": 14,
-      "seed": 7
+      "seed": 7,
+      "mullet_laenge": 0.65
     },
     "bart": {
       "stil": "keiner"
