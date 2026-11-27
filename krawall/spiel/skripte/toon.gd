@@ -43,6 +43,8 @@ static func material_aus(alt: Material, linie := 0.016, eigen := false) -> Shade
 		if b.emission_enabled and b.emission.get_luminance() > 0.05:
 			leuchten = 0.8
 		name = b.resource_name
+	if name.begins_with("falte") or name.begins_with("fein"):
+		linie = 0.0   # feine Details (Falten) ohne Comic-Umriss
 	var schluessel := "%s|%s|%s|%s|%s" % [farbe.to_html(), str(tex), glanz, leuchten, linie]
 	if not eigen and _cache.has(schluessel):
 		return _cache[schluessel]
@@ -55,8 +57,6 @@ static func material_aus(alt: Material, linie := 0.016, eigen := false) -> Shade
 		m.set_shader_parameter("hat_textur", true)
 	m.set_shader_parameter("glanz", glanz)
 	m.set_shader_parameter("leuchten", leuchten)
-	if name.begins_with("falte") or name.begins_with("fein"):
-		linie = 0.0   # feine Details (Falten) ohne Comic-Umriss
 	if linie > 0.0 and leuchten == 0.0:
 		var l := ShaderMaterial.new()
 		l.shader = LINIE

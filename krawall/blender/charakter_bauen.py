@@ -363,19 +363,21 @@ class Figur:
             au["groesse"] = au.get("groesse", 1.0) * 0.72
             au["abstand"] = au.get("abstand", 1.0) * 0.95
 
+        fg = "fein_" if a.get("feines_gesicht") else ""
         self.m = {
+            "haut_fein": material(fg + "haut_gesicht" if fg else "haut", a["hautfarbe"], rau=0.55),
             "haut": material("haut", a["hautfarbe"], rau=0.55),
             "haut_dunkel": material("haut_dunkel", abdunkeln(a["hautfarbe"], 0.82), rau=0.6),
-            "wange": material("wange", a.get("wangenfarbe", "#F0857A"), rau=0.7),
-            "weiss": material("augenweiss", "#FFFFFF", rau=0.3),
-            "iris": material("iris", a["augen"]["farbe"], glanz=True),
-            "pupille": material("pupille", "#111111", glanz=True),
-            "glanzpunkt": material("glanzpunkt", "#FFFFFF", leuchten=True),
-            "mund": material("mund", "#5A1E1E", rau=0.5),
+            "wange": material(fg + "wange", a.get("wangenfarbe", "#F0857A"), rau=0.7),
+            "weiss": material(fg + "augenweiss", "#FFFFFF", rau=0.3),
+            "iris": material(fg + "iris", a["augen"]["farbe"], glanz=True),
+            "pupille": material(fg + "pupille", "#111111", glanz=True),
+            "glanzpunkt": material(fg + "glanzpunkt", "#FFFFFF", leuchten=True),
+            "mund": material(fg + "mund", a.get("mundfarbe", "#5A1E1E"), rau=0.5),
             "zaehne": material("zaehne", "#FFFFFF", rau=0.4),
             "haare": material("haare", a["haare"]["farbe"], rau=0.5),
             "haare2": material("haare2", a["haare"].get("farbe2") or a["haare"]["farbe"], rau=0.5),
-            "brauen": material("brauen", a["augenbrauen"]["farbe"] or abdunkeln(a["haare"]["farbe"], 0.85), rau=0.6),
+            "brauen": material(fg + "brauen", a["augenbrauen"]["farbe"] or abdunkeln(a["haare"]["farbe"], 0.85), rau=0.6),
             "bart": material("bart", a["bart"]["farbe"] or a["haare"]["farbe"], rau=0.6),
             "oberteil": material("oberteil", a["oberteil"]["farbe"]),
             "oberteil2": material("oberteil2", a["oberteil"]["farbe2"]),
@@ -800,7 +802,7 @@ class Figur:
             if form == "muede":
                 # Oberlid
                 p5, rot5 = self.auf_kopf(xr, zr + 0.13, raus=0.0)
-                ellipsoid("lid", p5, (0.078 * gr, 0.038, 0.045 * gr), m["haut"], "head", rot=rot5.to_matrix().to_4x4())
+                ellipsoid("lid", p5, (0.078 * gr, 0.038, 0.045 * gr), m["haut_fein"], "head", rot=rot5.to_matrix().to_4x4())
 
             # Augenbraue: gebogene Kapsel
             br = a["augenbrauen"]
@@ -855,7 +857,16 @@ class Figur:
         p, rot = self.auf_kopf(0.0, -0.17, raus=0.0)
         R = rot.to_matrix().to_4x4()
         if nase == "klein":
-            ellipsoid("nase", p, (0.03, 0.028, 0.026), m["haut"], "head", rot=R)
+            ellipsoid("nase", p, (0.03, 0.028, 0.026), m["haut_fein"], "head", rot=R)
+        elif nase == "gerade":
+            # schmale, gerade Nase (Jugendlicher): Rücken + kleine Spitze, ohne Umriss-Ringe
+            oben, _ = self.kopf_punkt(0.0, 0.06, raus=0.002)
+            spitze, _ = self.kopf_punkt(0.0, -0.19, raus=0.038)
+            kapsel("nasenruecken", oben, spitze, 0.016, m["haut_fein"], "head", r2=0.024)
+            ellipsoid("nasenspitze", spitze + Vector((0, 0, -0.004)), (0.028, 0.026, 0.024), m["haut_fein"], "head")
+            for sx in (1, -1):
+                pf, _ = self.kopf_punkt(sx * 0.085, -0.22, raus=0.014)
+                ellipsoid("nasenfluegel", pf, (0.019, 0.018, 0.016), m["haut_fein"], "head")
         elif nase == "knubbel":
             ellipsoid("nase", p, (0.045, 0.042, 0.04), m["haut"], "head", rot=R)
         elif nase == "breit":
@@ -1004,12 +1015,52 @@ class Figur:
                    * math.sin(min(a_ / math.radians(50), 1.0) * math.pi) ** 0.7)
             return
 
-        if stil in ("kurz", "stachel", "seitenscheitel", "iro", "locken", "lang", "zopf", "dutt"):
+        if stil in ("kurz", "stachel", "seitenscheitel", "iro", "locken", "lang", "zopf", "dutt", "seitenpony"):
             vorne = math.radians(54)
             seite = math.radians(80 if stil != "lang" else 92)
             schale("haare", km, R, hm, "head",
                    haarlinie(vorne, seite, math.radians(116), math.radians(22)),
                    dicke=0.035, versatz=weich_versatz(0.035))
+
+        if stil == "seitenpony":
+            # voller Pony, schräg zur Seite, etwas zerzaust; optional Spikes oben und Mullet hinten
+            sgn = -1 if h.get("richtung", "links") == "links" else 1     # links/rechts aus Sicht des Betrachters
+            rnd = random.Random(h.get("seed", 7))
+            ellipsoid("haar_volumen", km + Vector((0, -kr.y * 0.05, kr.z * 0.55)), (kr.x * 0.92, kr.y * 0.9, kr.z * 0.5), hm, "head")
+            ende = h.get("pony_ende", 0.34)
+            pm = material("fein_haare", h["farbe"], rau=0.5)   # Strähnen ohne Umriss, damit der Pony weich wirkt
+            for i, x0 in enumerate((-0.62, -0.42, -0.22, -0.02, 0.18, 0.38, 0.58)):
+                x0 = x0 * -sgn + rnd.uniform(-0.05, 0.05)
+                lauf = 0.22 + 0.04 * i + rnd.uniform(-0.06, 0.06)
+                xe = x0 + sgn * lauf
+                ze = ende - 0.06 * (1 - abs(xe)) + (0.05 if abs(xe) > 0.55 else 0.0) + rnd.uniform(-0.05, 0.04)
+                p0, _ = self.kopf_punkt(x0 * 0.9, 0.86, raus=0.03)
+                p1, _ = self.kopf_punkt((x0 + xe) / 2, (0.86 + ze) / 2 + 0.06, raus=0.05 + rnd.uniform(0, 0.015))
+                p2, _ = self.kopf_punkt(xe, ze, raus=0.035)
+                rohr("ponysträhne", [p0, p1, p2], [0.06, 0.055, 0.008], pm, "head", abflachen=0.42, glatt_teilen=1)
+            # Spikes: kleine spitze Büschel oben, in leicht verschiedene Richtungen (zerzaust)
+            for i in range(int(h.get("spikes", 0))):
+                xr = rnd.uniform(-0.7, 0.7)
+                zr = rnd.uniform(0.72, 0.99)
+                fuss, n = self.kopf_punkt(xr, zr, raus=0.04)
+                kipp = Vector((rnd.uniform(-0.9, 0.9), rnd.uniform(-0.8, 0.3), rnd.uniform(-0.3, 0.0)))
+                richtung = (n + kipp).normalized()
+                laenge = rnd.uniform(0.05, 0.095)
+                mitte = fuss + richtung * laenge * 0.55 + Vector((rnd.uniform(-0.01, 0.01), 0, 0))
+                spitze = fuss + richtung * laenge
+                rohr("spike", [fuss - n * 0.02, mitte, spitze], [0.04, 0.026, 0.003], hm, "head", abflachen=0.7, glatt_teilen=1)
+            if h.get("mullet"):
+                # Mullet: Seiten kurz, hinten lange Haare bis in den Nacken, unten spitze, zerzauste Enden
+                ellipsoid("mullet", km + Vector((0, kr.y * 0.52, -kr.z * 0.58)), (kr.x * 0.84, kr.y * 0.52, kr.z * 0.9), hm, "head",
+                          verformen=lambda v: Vector((v.x * (1 + 0.14 * max(0.0, -v.z)), v.y * (1 + 0.1 * max(0.0, -v.z)), v.z)))
+                for i in range(9):
+                    t = i / 8 * 2 - 1
+                    x = t * kr.x * 0.85
+                    oben = km + Vector((x * 0.9, kr.y * 0.75, -kr.z * 0.9))
+                    tief = -kr.z * (1.5 + rnd.uniform(-0.08, 0.12) - 0.15 * abs(t))
+                    unten = km + Vector((x * 1.08 + t * 0.03, kr.y * (0.9 + rnd.uniform(0, 0.12)), tief))
+                    rohr("mullet_spitze", [oben, unten], [0.05, 0.003], hm, "head", abflachen=0.55, glatt_teilen=0)
+            return
 
         if stil == "afro":
             # Afro: große Wolke oben/hinten, vorne über der Stirn abgeflacht, damit das Gesicht frei bleibt

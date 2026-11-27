@@ -10,7 +10,7 @@
   "angriff": {
     "typ": "schuss",
     "name": "Stiftwurf",
-    "schaden": 950,
+    "schaden": 1300,
     "projektile": 1,
     "streuung": 0,
     "reichweite": 7.5,
@@ -33,30 +33,33 @@
     "proportionen": "comic",
     "hautfarbe": "#F1C7A8",
     "koerperbau": "schmal",
-    "groesse": 1.0,
-    "kopfform": "oval",
+    "groesse": 0.93,
+    "kopfform": "schmal",
     "kopfgroesse": 1.0,
     "wangenroete": true,
-    "wangenfarbe": "#EFA592",
+    "wangenfarbe": "#EDB09C",
     "augen": {
-      "farbe": "#6E8AA0",
-      "groesse": 0.95,
+      "farbe": "#7A93A8",
+      "groesse": 0.85,
       "abstand": 1.0,
       "form": "mandel"
     },
     "augenbrauen": {
-      "dicke": 0.9,
-      "winkel": 2,
-      "farbe": "#9C7448"
+      "dicke": 0.85,
+      "winkel": 0,
+      "farbe": "#A88552"
     },
-    "nase": "klein",
-    "mund": "laecheln",
+    "nase": "gerade",
+    "mund": "neutral",
     "ohren": 1.0,
     "haare": {
-      "stil": "kurz",
-      "farbe": "#B68A55",
-      "pony": true,
-      "scheitel": "rechts"
+      "stil": "seitenpony",
+      "farbe": "#D8B36E",
+      "richtung": "links",
+      "pony_ende": 0.43,
+      "mullet": true,
+      "spikes": 14,
+      "seed": 7
     },
     "bart": {
       "stil": "keiner"
@@ -86,7 +89,9 @@
       "stil": "stift",
       "farbe": "#2E6BE6",
       "farbe2": "#1B1424"
-    }
+    },
+    "feines_gesicht": true,
+    "mundfarbe": "#B9706B"
   },
   "seltenheit": "gewoehnlich",
   "start": true,

@@ -59,7 +59,7 @@ func _buehne_bauen() -> void:
 	svc.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(svc)
 	var sv := SubViewport.new()
-	sv.transparent_bg = true
+	sv.transparent_bg = false   # durchsichtig hellt im Compatibility-Renderer alle Farben auf
 	sv.msaa_3d = Viewport.MSAA_4X
 	sv.own_world_3d = true
 	svc.add_child(sv)
@@ -70,16 +70,24 @@ func _buehne_bauen() -> void:
 	_buehne.add_child(_kamera)
 	var licht := DirectionalLight3D.new()
 	licht.rotation_degrees = Vector3(-40, 30, 0)
-	licht.light_energy = 1.3
+	licht.light_energy = 0.45
 	licht.shadow_enabled = true
 	_buehne.add_child(licht)
 	var env := Environment.new()
-	env.background_mode = Environment.BG_CLEAR_COLOR
+	env.background_mode = Environment.BG_SKY
+	var himmel := Sky.new()
+	var hm := ProceduralSkyMaterial.new()
+	hm.sky_top_color = Color("#3E9BF0")
+	hm.sky_horizon_color = Color("#BFE6FF")
+	hm.ground_horizon_color = Color("#BFE6FF")
+	hm.ground_bottom_color = Color("#6CC24A")
+	hm.sun_angle_max = 0.0
+	himmel.sky_material = hm
+	env.sky = himmel
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	env.ambient_light_color = Color("#C9B8F0")
-	env.ambient_light_energy = 0.65
-	env.glow_enabled = true
-	env.glow_intensity = 0.5
+	env.ambient_light_energy = 0.5
+	env.glow_enabled = false   # Glow über transparentem Hintergrund überstrahlt Gesichter
 	var we := WorldEnvironment.new()
 	we.environment = env
 	_buehne.add_child(we)
@@ -173,11 +181,11 @@ func _kulisse_bauen() -> void:
 	pz.height = 0.1
 	pz.radial_segments = 48
 	platz.mesh = pz
-	platz.material_override = Toon.farbig(Color("#A8743C"), 0.0)
+	platz.material_override = Toon.farbig(Color("#D9B77A"), 0.0)
 	platz.position = Vector3(0, -0.32, 0)
 	_buehne.add_child(platz)
 	# Weg vom Platz zum Schuleingang
-	_box(Vector3(2.6, 0.1, 20.0), Vector3(1.2, -0.33, -12.5), Color("#A8743C"))
+	_box(Vector3(2.6, 0.1, 20.0), Vector3(1.2, -0.33, -12.5), Color("#D9B77A"))
 	# Schulgebäude
 	var haus := Node3D.new()
 	haus.position = Vector3(1.2, -0.3, -24.0)
