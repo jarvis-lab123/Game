@@ -295,13 +295,190 @@ def pinnwand():
     return gruppe("Pinnwand", cb.TEILE[:])
 
 
+# ---------------------------------------------------------------- Turnhalle
+def basketballkorb():
+    """Korb an der Wand: Ständer, Brett, Ring mit Netz. Vorne = -Y."""
+    metall = M("metall_blau", "#3D5A80")
+    cb.rundbox("fuss", V((0, 0.25, 0.06)), (0.9, 0.7, 0.12), metall, "", rundung=0.4)
+    cb.kapsel("mast", (0, 0.3, 0.1), (0, 0.3, 2.6), 0.07, metall, "")
+    cb.kapsel("arm", (0, 0.3, 2.5), (0, -0.05, 2.75), 0.05, metall, "")
+    cb.rundbox("brett", V((0, -0.1, 2.85)), (1.4, 0.05, 0.9), M("brett_weiss", "#F4F1EA"), "", rundung=0.25)
+    cb.rundbox("feld", V((0, -0.13, 2.72)), (0.55, 0.01, 0.4), M("brett_rot", "#E63946"), "", rundung=0.2)
+    orange = M("korb_orange", "#FF7A1A")
+    cb.torus("ring", V((0, -0.42, 2.5)), 0.24, 0.018, orange, "", normale=(0, 0, 1))
+    netz = M("netz", "#F4F1EA")
+    for i in range(10):
+        a = i / 10 * math.tau
+        cb.kapsel("netz", (math.cos(a) * 0.23, -0.42 + math.sin(a) * 0.23, 2.49),
+                  (math.cos(a) * 0.14, -0.42 + math.sin(a) * 0.14, 2.15), 0.008, netz, "")
+    return gruppe("Basketballkorb", cb.TEILE[:])
+
+
+def turnmatte():
+    blau = M("matte_blau", "#3A7BD5")
+    cb.rundbox("matte", V((0, 0, 0.1)), (2.0, 1.0, 0.2), blau, "", rundung=0.5)
+    for x in (-0.85, 0.85):
+        cb.rundbox("griff", V((x, -0.5, 0.12)), (0.18, 0.03, 0.05), M("matte_griff", "#2A2140"), "", rundung=0.5)
+    return gruppe("Turnmatte", cb.TEILE[:])
+
+
+def kasten():
+    holz = M("kasten_holz", "#E9B872")
+    kante = M("kasten_kante", "#C98B4B")
+    for i in range(4):
+        w = 1.3 - i * 0.07
+        cb.rundbox("teil", V((0, 0, 0.13 + i * 0.25)), (w, 0.6 - i * 0.03, 0.24), holz if i % 2 == 0 else kante, "", rundung=0.25)
+    cb.rundbox("leder", V((0, 0, 1.06)), (1.12, 0.52, 0.1), M("leder", "#F4F1EA"), "", rundung=0.6)
+    for x in (-0.35, 0.35):
+        cb.rundbox("griffloch", V((x, -0.29, 0.6)), (0.22, 0.02, 0.07), M("pc_dunkel", "#2A2140"), "", rundung=0.6)
+    return gruppe("Kasten", cb.TEILE[:])
+
+
+def ballwagen():
+    metall = M("metall_grau", "#8C93A8")
+    cb.rundbox("korb", V((0, 0, 0.55)), (0.9, 0.6, 0.06), metall, "", rundung=0.3)
+    for x in (-0.42, 0.42):
+        for y in (-0.27, 0.27):
+            cb.kapsel("stange", (x, y, 0.12), (x, y, 0.95), 0.02, metall, "")
+            cb.ellipsoid("rad", V((x, y, 0.07)), (0.06, 0.06, 0.06), M("pc_dunkel", "#2A2140"), "", segs=12, ringe=8)
+    random.seed(8)
+    farben = ["#FF7A1A", "#FF7A1A", "#F4F1EA", "#E63946", "#3A7BD5", "#FFD23F"]
+    for i in range(9):
+        x = -0.28 + (i % 3) * 0.28
+        y = -0.15 + (i // 3 % 2) * 0.3
+        z = 0.74 + (i // 6) * 0.2 + random.uniform(-0.02, 0.03)
+        f = farben[i % len(farben)]
+        cb.ellipsoid("ball", V((x, y, z)), (0.12, 0.12, 0.12), M("ball_" + f[1:], f), "", segs=16, ringe=10)
+    return gruppe("Ballwagen", cb.TEILE[:])
+
+
+def sprossenwand():
+    holz = M("tisch_holz", "#E9B872")
+    for x in (-0.55, 0.55):
+        cb.rundbox("holm", V((x, 0, 1.3)), (0.08, 0.1, 2.6), holz, "", rundung=0.4)
+    for i in range(12):
+        cb.kapsel("sprosse", (-0.52, 0, 0.2 + i * 0.2), (0.52, 0, 0.2 + i * 0.2), 0.022, holz, "")
+    return gruppe("Sprossenwand", cb.TEILE[:])
+
+
+# ---------------------------------------------------------------- Musikraum
+def klavier():
+    schwarz = M("klavier", "#1E1A2B", glanz=True)
+    cb.rundbox("korpus", V((0, 0.12, 0.7)), (1.5, 0.45, 1.3), schwarz, "", rundung=0.12)
+    cb.rundbox("tastenbrett", V((0, -0.2, 0.74)), (1.42, 0.3, 0.06), schwarz, "", rundung=0.2)
+    cb.rundbox("tasten", V((0, -0.22, 0.785)), (1.3, 0.22, 0.03), M("tasten", "#F4F1EA"), "", rundung=0.2)
+    for i in range(18):
+        if i % 7 in (2, 6):
+            continue
+        cb.rundbox("schwarze", V((-0.6 + i * 0.07, -0.17, 0.81)), (0.035, 0.12, 0.03), schwarz, "", rundung=0.3)
+    for x in (-0.65, 0.65):
+        cb.kapsel("bein", (x, -0.25, 0.02), (x, -0.25, 0.7), 0.04, schwarz, "")
+    cb.rundbox("noten", V((0, -0.08, 1.05)), (0.5, 0.03, 0.32), M("papier", "#FFFFFF"), "", rundung=0.2,
+               rot=Matrix.Rotation(math.radians(-12), 3, 'X').to_quaternion())
+    cb.rundbox("hocker", V((0, -0.75, 0.45)), (0.6, 0.35, 0.08), M("hocker", "#8B2F3A"), "", rundung=0.4)
+    for x in (-0.24, 0.24):
+        cb.kapsel("hockerbein", (x, -0.75, 0.02), (x, -0.75, 0.42), 0.03, schwarz, "")
+    return gruppe("Klavier", cb.TEILE[:])
+
+
+def schlagzeug():
+    rot = M("trommel_rot", "#C8263D", glanz=True)
+    weiss = M("trommel_fell", "#F4F1EA")
+    gold = M("metall_gold", "#F2C94C", glanz=True)
+    metall = M("metall_hell", "#D9DEE8", glanz=True)
+    # große Trommel (liegt)
+    cb.kapsel("bass", (0, -0.15, 0.32), (0, 0.15, 0.32), 0.3, rot, "", abflachen=1.0)
+    cb.ellipsoid("bassfell", V((0, -0.16, 0.32)), (0.27, 0.02, 0.27), weiss, "", segs=20, ringe=8)
+    for x, z, r in ((-0.45, 0.62, 0.18), (0.45, 0.6, 0.2), (-0.2, 0.75, 0.13), (0.2, 0.75, 0.13)):
+        cb.kapsel("trommel", (x, 0, z - 0.1), (x, 0, z + 0.05), r, rot, "")
+        cb.ellipsoid("fell", V((x, 0, z + 0.06)), (r * 0.95, r * 0.95, 0.015), weiss, "", segs=16, ringe=6)
+        cb.kapsel("staender", (x, 0, 0.02), (x, 0, z - 0.1), 0.015, metall, "")
+    for x in (-0.75, 0.75):
+        cb.kapsel("beckenstaender", (x, 0.2, 0.02), (x, 0.2, 1.05), 0.015, metall, "")
+        cb.ellipsoid("becken", V((x, 0.2, 1.07)), (0.24, 0.24, 0.015), gold, "", segs=20, ringe=6)
+    cb.kapsel("hocker", (0, 0.65, 0.02), (0, 0.65, 0.45), 0.03, metall, "")
+    cb.ellipsoid("sitz", V((0, 0.65, 0.48)), (0.18, 0.18, 0.05), M("pc_dunkel", "#2A2140"), "", segs=16, ringe=6)
+    return gruppe("Schlagzeug", cb.TEILE[:])
+
+
+def notenstaender():
+    metall = M("metall_grau", "#8C93A8")
+    for a in (0, 2.1, 4.2):
+        cb.kapsel("fuss", (0, 0, 0.3), (math.cos(a) * 0.25, math.sin(a) * 0.25, 0.01), 0.012, metall, "")
+    cb.kapsel("stange", (0, 0, 0.28), (0, 0, 1.1), 0.014, metall, "")
+    cb.rundbox("pult", V((0, -0.03, 1.2)), (0.5, 0.02, 0.32), metall, "", rundung=0.2,
+               rot=Matrix.Rotation(math.radians(-25), 3, 'X').to_quaternion())
+    cb.rundbox("noten", V((0, -0.05, 1.21)), (0.42, 0.01, 0.28), M("papier", "#FFFFFF"), "", rundung=0.2,
+               rot=Matrix.Rotation(math.radians(-25), 3, 'X').to_quaternion())
+    return gruppe("Notenstaender", cb.TEILE[:])
+
+
+def gitarre():
+    """Gitarre auf Ständer."""
+    holz = M("gitarre", "#E08A3C", glanz=True)
+    cb.ellipsoid("bauch_u", V((0, 0, 0.42)), (0.22, 0.08, 0.2), holz, "", segs=20, ringe=12)
+    cb.ellipsoid("bauch_o", V((0, 0, 0.66)), (0.16, 0.07, 0.14), holz, "", segs=20, ringe=12)
+    cb.ellipsoid("loch", V((0, -0.075, 0.56)), (0.06, 0.01, 0.06), M("pc_dunkel", "#2A2140"), "", segs=12, ringe=6)
+    cb.rundbox("hals", V((0, -0.02, 0.98)), (0.06, 0.04, 0.5), M("pult_holz", "#A0522D"), "", rundung=0.3)
+    cb.rundbox("kopf", V((0, -0.02, 1.27)), (0.09, 0.04, 0.14), M("pult_holz", "#A0522D"), "", rundung=0.3)
+    metall = M("metall_grau", "#8C93A8")
+    cb.kapsel("staender", (-0.15, 0.1, 0.02), (0, 0.06, 0.3), 0.012, metall, "")
+    cb.kapsel("staender", (0.15, 0.1, 0.02), (0, 0.06, 0.3), 0.012, metall, "")
+    return gruppe("Gitarre", cb.TEILE[:])
+
+
+# ---------------------------------------------------------------- Pausenhof & Eingangshalle
+def tischtennisplatte():
+    gruen = M("tt_platte", "#2E7D5B")
+    weiss = M("tt_linie", "#F4F1EA")
+    stein = M("beton", "#A7AEBF")
+    cb.rundbox("platte", V((0, 0, 0.74)), (2.74, 1.52, 0.06), gruen, "", rundung=0.2)
+    cb.rundbox("linie_l", V((0, 0, 0.775)), (2.7, 0.03, 0.005), weiss, "", rundung=0.1)
+    cb.rundbox("rand1", V((0, 0.74, 0.775)), (2.74, 0.03, 0.005), weiss, "", rundung=0.1)
+    cb.rundbox("rand2", V((0, -0.74, 0.775)), (2.74, 0.03, 0.005), weiss, "", rundung=0.1)
+    cb.rundbox("netz", V((0, 0, 0.86)), (0.03, 1.6, 0.16), M("netz_dunkel", "#2A2140"), "", rundung=0.2)
+    for x in (-0.9, 0.9):
+        cb.rundbox("fuss", V((x, 0, 0.36)), (0.25, 1.1, 0.72), stein, "", rundung=0.2)
+    return gruppe("Tischtennisplatte", cb.TEILE[:])
+
+
+def pokalvitrine():
+    holz = M("pult_holz", "#A0522D")
+    glas = M("glas", "#BFE3FF")
+    gold = M("metall_gold", "#F2C94C", glanz=True)
+    cb.rundbox("sockel", V((0, 0, 0.3)), (1.6, 0.5, 0.6), holz, "", rundung=0.2)
+    cb.rundbox("dach", V((0, 0, 2.0)), (1.6, 0.5, 0.1), holz, "", rundung=0.3)
+    for x in (-0.78, 0.78):
+        cb.rundbox("seite", V((x, 0, 1.3)), (0.05, 0.5, 1.4), holz, "", rundung=0.3)
+    cb.rundbox("glasboden", V((0, 0, 1.3)), (1.5, 0.45, 0.03), glas, "", rundung=0.3)
+    for i, (x, z, s) in enumerate(((-0.45, 0.6, 1.0), (0.05, 0.6, 1.3), (0.5, 0.6, 0.9), (-0.3, 1.32, 0.8), (0.35, 1.32, 1.1))):
+        cb.kapsel("pokalfuss", (x, 0, z), (x, 0, z + 0.08 * s), 0.07 * s, M("pokal_sockel", "#2A2140"), "")
+        cb.kapsel("pokalstiel", (x, 0, z + 0.08 * s), (x, 0, z + 0.2 * s), 0.025 * s, gold, "")
+        cb.kapsel("pokalschale", (x, 0, z + 0.2 * s), (x, 0, z + 0.38 * s), 0.05 * s, gold, "", r2=0.1 * s)
+    cb.rundbox("scheibe", V((0, -0.24, 1.3)), (1.52, 0.02, 1.4), glas, "", rundung=0.1)
+    return gruppe("Pokalvitrine", cb.TEILE[:])
+
+
+def gruppentisch():
+    """Zwei zusammengeschobene Bänke für Gruppenarbeit (quadratisch)."""
+    holz = M("tisch_holz", "#E9B872")
+    metall = M("metall_blau", "#3D5A80")
+    cb.rundbox("platte", V((0, 0, 0.74)), (1.3, 1.3, 0.05), holz, "", rundung=0.4)
+    tischbeine(1.3, 1.3, 0.72, metall)
+    cb.rundbox("plakat", V((0.1, 0.05, 0.775)), (0.6, 0.45, 0.01), M("plakat", "#FFFFFF"), "", rundung=0.2, rot=rot_z(-10))
+    for i, f in enumerate(("#E63946", "#3A7BD5", "#5BE37A")):
+        cb.kapsel("filzer", (-0.4 + i * 0.07, -0.35, 0.78), (-0.3 + i * 0.07, -0.42, 0.78), 0.012, M("filzer_" + f[1:], f), "")
+    return gruppe("Gruppentisch", cb.TEILE[:])
+
+
 def main():
     bpy.ops.wm.read_factory_settings(use_empty=True)
     cb.MATERIALIEN.clear()
     cb.TEILE.clear()
     bauer = (schulbank, stuhl, lehrerpult, tafel, buecherregal, lesetisch, mensatisch, bank, theke,
              getraenkeautomat, sofa, kuechenzeile, kopierer, spinde, pflanze, muelleimer, sitzsack,
-             konferenztisch, pinnwand)
+             konferenztisch, pinnwand, basketballkorb, turnmatte, kasten, ballwagen, sprossenwand,
+             klavier, schlagzeug, notenstaender, gitarre, tischtennisplatte, pokalvitrine, gruppentisch)
     for i, fn in enumerate(bauer):
         ob = fn()
         ob.location = ((i % 5) * 4.5, (i // 5) * 3.5, 0)

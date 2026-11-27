@@ -1,0 +1,119 @@
+{
+  "_info": "Karten für den Schulmodus. r = [x0, z0, x1, z1] in Metern (x nach rechts, z nach unten). Türen: {\"z\": Wand bei z, \"mitte\": x} oder {\"x\": Wand bei x, \"mitte\": z}. eingang = Tür in der Außenwand oben (Spielerstart). Optionen pro Raum: sitzordnung reihen|gruppen.",
+  "karten": [
+    {
+      "id": "schulkomplex",
+      "name": "Schulkomplex",
+      "info": "Die große Schule – jetzt mit Musikraum, größerer Eingangshalle und Abkürzungen zwischen den Räumen.",
+      "breite": 80, "tiefe": 56,
+      "raeume": [
+        {"id": "klasse_5a", "name": "Klasse 5a", "typ": "klasse", "r": [0, 0, 18, 24], "boden": ["#9CC5E8", "#8DB8DE", 1.0]},
+        {"id": "klasse_7b", "name": "Klasse 7b", "typ": "klasse", "r": [18, 0, 34, 24], "boden": ["#A8D8B9", "#97CBA9", 1.0], "sitzordnung": "gruppen"},
+        {"id": "halle", "name": "Eingangshalle", "typ": "halle", "r": [34, 0, 46, 24], "boden": ["#C9A77C", "#B8966B", 2.0]},
+        {"id": "bibliothek", "name": "Bibliothek", "typ": "bibliothek", "r": [46, 0, 66, 24], "boden": ["#C99C6B", "#BE8F5D", 0.8]},
+        {"id": "musik", "name": "Musikraum", "typ": "musik", "r": [66, 0, 80, 24], "boden": ["#D7C2F0", "#CAB2E8", 1.0]},
+        {"id": "gang", "name": "Hauptgang", "typ": "gang", "r": [0, 24, 80, 30], "boden": ["#9FA8BC", "#8E97AC", 1.5]},
+        {"id": "mensa", "name": "Mensa", "typ": "mensa", "r": [0, 30, 30, 56], "boden": ["#F2C6A0", "#EAB98E", 1.2]},
+        {"id": "lehrerzimmer", "name": "Lehrerzimmer", "typ": "lehrerzimmer", "r": [30, 30, 46, 46], "boden": ["#B9A3D6", "#AD95CC", 1.0]},
+        {"id": "sekretariat", "name": "Sekretariat", "typ": "sekretariat", "r": [30, 46, 46, 56], "boden": ["#F5B7C5", "#EFA6B7", 1.0]},
+        {"id": "chemie", "name": "Chemieraum", "typ": "klasse", "r": [46, 30, 64, 56], "boden": ["#F0E3A0", "#E6D78E", 1.0]},
+        {"id": "klasse_9c", "name": "Klasse 9c", "typ": "klasse", "r": [64, 30, 80, 56], "boden": ["#F2B5A0", "#E9A48E", 1.0], "sitzordnung": "gruppen"}
+      ],
+      "tueren": [
+        {"z": 0, "mitte": 40, "breite": 4.0, "eingang": true},
+        {"z": 24, "mitte": 9, "breite": 2.6}, {"z": 24, "mitte": 26, "breite": 2.6},
+        {"z": 24, "mitte": 40, "breite": 10.0},
+        {"z": 24, "mitte": 56, "breite": 3.0}, {"z": 24, "mitte": 73, "breite": 2.6},
+        {"z": 30, "mitte": 8, "breite": 3.6}, {"z": 30, "mitte": 22, "breite": 3.6},
+        {"z": 30, "mitte": 38, "breite": 2.6}, {"z": 46, "mitte": 38, "breite": 2.4},
+        {"z": 30, "mitte": 55, "breite": 2.6}, {"z": 30, "mitte": 72, "breite": 2.6},
+        {"x": 18, "mitte": 12, "breite": 2.4},
+        {"x": 46, "mitte": 12, "breite": 3.0},
+        {"x": 30, "mitte": 38, "breite": 2.4},
+        {"x": 64, "mitte": 50, "breite": 2.4}
+      ]
+    },
+    {
+      "id": "sporthalle",
+      "name": "Sporthalle",
+      "info": "Kleine Karte: riesige Turnhalle mit Körben, Matten und Kästen, dazu Umkleide und Geräteraum.",
+      "breite": 52, "tiefe": 40,
+      "raeume": [
+        {"id": "turnhalle", "name": "Turnhalle", "typ": "turnhalle", "r": [0, 0, 30, 22], "boden": ["#E8B97A", "#DDAE6E", 2.0]},
+        {"id": "geraeteraum", "name": "Geräteraum", "typ": "geraete", "r": [30, 0, 40, 9], "boden": ["#A9B3C4", "#9AA5B8", 1.0]},
+        {"id": "umkleide", "name": "Umkleide", "typ": "umkleide", "r": [30, 9, 40, 22], "boden": ["#9ED8D2", "#8ECDC6", 0.6]},
+        {"id": "halle", "name": "Eingangshalle", "typ": "halle", "r": [40, 0, 52, 22], "boden": ["#C9A77C", "#B8966B", 2.0]},
+        {"id": "gang", "name": "Gang", "typ": "gang", "r": [0, 22, 52, 27], "boden": ["#9FA8BC", "#8E97AC", 1.5]},
+        {"id": "mensa", "name": "Mensa", "typ": "mensa", "r": [0, 27, 18, 40], "boden": ["#F2C6A0", "#EAB98E", 1.2]},
+        {"id": "lehrerzimmer", "name": "Lehrerzimmer", "typ": "lehrerzimmer", "r": [18, 27, 30, 40], "boden": ["#B9A3D6", "#AD95CC", 1.0]},
+        {"id": "klasse_6a", "name": "Klasse 6a", "typ": "klasse", "r": [30, 27, 41, 40], "boden": ["#9CC5E8", "#8DB8DE", 1.0]},
+        {"id": "chemie", "name": "Chemieraum", "typ": "klasse", "r": [41, 27, 52, 40], "boden": ["#F0E3A0", "#E6D78E", 1.0]}
+      ],
+      "tueren": [
+        {"z": 0, "mitte": 46, "breite": 4.0, "eingang": true},
+        {"z": 22, "mitte": 8, "breite": 3.0}, {"z": 22, "mitte": 22, "breite": 3.0},
+        {"z": 22, "mitte": 35, "breite": 2.6}, {"z": 22, "mitte": 46, "breite": 8.0},
+        {"z": 27, "mitte": 9, "breite": 3.6}, {"z": 27, "mitte": 24, "breite": 2.6},
+        {"z": 27, "mitte": 35.5, "breite": 2.6}, {"z": 27, "mitte": 46.5, "breite": 2.6},
+        {"x": 30, "mitte": 4.5, "breite": 3.0},
+        {"x": 30, "mitte": 16, "breite": 2.4}
+      ]
+    },
+    {
+      "id": "altbau",
+      "name": "Altbau",
+      "info": "Kleine, verwinkelte Karte mit engen Gängen und einem Seitengang – hier steht man schnell vor einem Lehrer.",
+      "breite": 44, "tiefe": 36,
+      "raeume": [
+        {"id": "klasse_5b", "name": "Klasse 5b", "typ": "klasse", "r": [0, 0, 13, 14], "boden": ["#9CC5E8", "#8DB8DE", 1.0]},
+        {"id": "musik", "name": "Musikraum", "typ": "musik", "r": [13, 0, 24, 14], "boden": ["#D7C2F0", "#CAB2E8", 1.0]},
+        {"id": "halle", "name": "Eingang", "typ": "halle", "r": [24, 0, 31, 14], "boden": ["#C9A77C", "#B8966B", 2.0]},
+        {"id": "bibliothek", "name": "Bibliothek", "typ": "bibliothek", "r": [31, 0, 44, 14], "boden": ["#C99C6B", "#BE8F5D", 0.8]},
+        {"id": "gang", "name": "Gang", "typ": "gang", "r": [0, 14, 44, 18], "boden": ["#9FA8BC", "#8E97AC", 1.5]},
+        {"id": "seitengang", "name": "Seitengang", "typ": "gang", "r": [18, 18, 22, 36], "boden": ["#A9A0B8", "#9A91AA", 1.5]},
+        {"id": "mensa", "name": "Mensa", "typ": "mensa", "r": [0, 18, 18, 29], "boden": ["#F2C6A0", "#EAB98E", 1.2]},
+        {"id": "lehrerzimmer", "name": "Lehrerzimmer", "typ": "lehrerzimmer", "r": [0, 29, 18, 36], "boden": ["#B9A3D6", "#AD95CC", 1.0]},
+        {"id": "chemie", "name": "Chemieraum", "typ": "klasse", "r": [22, 18, 44, 27], "boden": ["#F0E3A0", "#E6D78E", 1.0]},
+        {"id": "klasse_8a", "name": "Klasse 8a", "typ": "klasse", "r": [22, 27, 44, 36], "boden": ["#F2B5A0", "#E9A48E", 1.0], "sitzordnung": "gruppen"}
+      ],
+      "tueren": [
+        {"z": 0, "mitte": 27.5, "breite": 3.0, "eingang": true},
+        {"z": 14, "mitte": 6.5, "breite": 2.4}, {"z": 14, "mitte": 18.5, "breite": 2.4},
+        {"z": 14, "mitte": 27.5, "breite": 5.0}, {"z": 14, "mitte": 37.5, "breite": 2.6},
+        {"z": 18, "mitte": 9, "breite": 3.4}, {"z": 18, "mitte": 20, "breite": 4.0},
+        {"z": 29, "mitte": 4, "breite": 2.2},
+        {"x": 18, "mitte": 32.5, "breite": 2.4},
+        {"x": 22, "mitte": 22.5, "breite": 2.4}, {"x": 22, "mitte": 31.5, "breite": 2.4},
+        {"x": 13, "mitte": 7, "breite": 2.0}
+      ]
+    },
+    {
+      "id": "pausenhof",
+      "name": "Pausenhof",
+      "info": "Kleine Karte rund um einen grünen Innenhof mit Bäumen und Tischtennisplatte. Alle Räume hängen am Hof.",
+      "breite": 50, "tiefe": 44,
+      "raeume": [
+        {"id": "klasse_5c", "name": "Klasse 5c", "typ": "klasse", "r": [0, 0, 14, 12], "boden": ["#9CC5E8", "#8DB8DE", 1.0], "sitzordnung": "gruppen"},
+        {"id": "halle", "name": "Eingangshalle", "typ": "halle", "r": [14, 0, 36, 12], "boden": ["#C9A77C", "#B8966B", 2.0]},
+        {"id": "bibliothek", "name": "Bibliothek", "typ": "bibliothek", "r": [36, 0, 50, 12], "boden": ["#C99C6B", "#BE8F5D", 0.8]},
+        {"id": "mensa", "name": "Mensa", "typ": "mensa", "r": [0, 12, 14, 32], "boden": ["#F2C6A0", "#EAB98E", 1.2]},
+        {"id": "hof", "name": "Pausenhof", "typ": "hof", "r": [14, 12, 36, 32], "boden": ["#7FC46A", "#74B860", 2.0]},
+        {"id": "chemie", "name": "Chemieraum", "typ": "klasse", "r": [36, 12, 50, 32], "boden": ["#F0E3A0", "#E6D78E", 1.0]},
+        {"id": "lehrerzimmer", "name": "Lehrerzimmer", "typ": "lehrerzimmer", "r": [0, 32, 14, 44], "boden": ["#B9A3D6", "#AD95CC", 1.0]},
+        {"id": "musik", "name": "Musikraum", "typ": "musik", "r": [14, 32, 25, 44], "boden": ["#D7C2F0", "#CAB2E8", 1.0]},
+        {"id": "klasse_10a", "name": "Klasse 10a", "typ": "klasse", "r": [25, 32, 36, 44], "boden": ["#F2B5A0", "#E9A48E", 1.0]},
+        {"id": "turnhalle", "name": "Turnhalle", "typ": "turnhalle", "r": [36, 32, 50, 44], "boden": ["#E8B97A", "#DDAE6E", 2.0]}
+      ],
+      "tueren": [
+        {"z": 0, "mitte": 25, "breite": 4.0, "eingang": true},
+        {"z": 12, "mitte": 25, "breite": 8.0},
+        {"z": 12, "mitte": 7, "breite": 2.6}, {"z": 12, "mitte": 43, "breite": 2.6},
+        {"x": 14, "mitte": 22, "breite": 3.6}, {"x": 36, "mitte": 22, "breite": 3.0},
+        {"z": 32, "mitte": 19.5, "breite": 2.6}, {"z": 32, "mitte": 30.5, "breite": 2.6},
+        {"z": 32, "mitte": 7, "breite": 2.6}, {"z": 32, "mitte": 43, "breite": 2.6},
+        {"x": 14, "mitte": 6, "breite": 2.4}, {"x": 36, "mitte": 6, "breite": 2.4},
+        {"x": 14, "mitte": 38, "breite": 2.2}, {"x": 36, "mitte": 38, "breite": 2.2}
+      ]
+    }
+  ]
+}

@@ -325,15 +325,21 @@ func raum_anzeigen(name: String) -> void:
 ## Minikarte: Räume, du (grün), entdeckende Lehrer (gelb ?) und angreifende Lehrer (rot)
 func _karte_zeichnen() -> void:
 	var sch: Schule = arena
-	var sk := _karte.size.x / Schule.BREITE
+	var sk := minf(290.0 / sch.karte_b, 203.0 / sch.karte_t)
+	var gr := Vector2(sch.karte_b, sch.karte_t) * sk
+	if _karte.offset_right != -24.0 or absf(_karte.offset_left + 24.0 + gr.x) > 0.5:
+		_karte.offset_left = -24.0 - gr.x
+		_karte.offset_right = -24.0
+		_karte.offset_top = 90.0
+		_karte.offset_bottom = 90.0 + gr.y
 	_karte.draw_rect(Rect2(Vector2(-6, -6), _karte.size + Vector2(12, 12)), DUNKEL)
-	for r in Schule.RAEUME:
+	for r in sch.RAEUME:
 		var a: Array = r["r"]
 		var rect := Rect2(Vector2(a[0], a[1]) * sk, Vector2(a[2] - a[0], a[3] - a[1]) * sk)
 		_karte.draw_rect(rect, Color.html(r["boden"][0]).darkened(0.1))
 		_karte.draw_rect(rect, DUNKEL, false, 1.5)
 	var plan_von := func(p: Vector3) -> Vector2:
-		var q := p - Schule.URSPRUNG
+		var q := p - sch.ursprung
 		return Vector2(q.x, q.z) * sk
 	for l in sch.lehrer_liste:
 		if l.tot:

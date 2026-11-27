@@ -64,6 +64,18 @@ Bibliothek, Hauptgang, Eingangshalle, Mensa, Lehrerzimmer und Sekretariat.
   Heil-Gadgets, Heil-Passive und besondere K.o.s heilen in der Schule nicht (einstellbar in `spiel/daten/regeln.json`).
 - **Lehrer-Ultis:** Zwischen zwei Ultis eines Lehrers liegen mindestens **20 s**; im Kampf lädt sie sich in 35 s voll.
 
+### Karten
+Im Menü wählt der Knopf **KARTE ▶** die Karte (wird gespeichert). Alle Karten stehen in `spiel/daten/karten.json` (Räume, Türen, Eingang); die Möbel passen sich automatisch an die Raumgröße an.
+
+| Karte | Größe | Besonderes |
+|---|---|---|
+| Schulkomplex | 80 × 56 m | Original, umgebaut: Musikraum, breitere Eingangshalle mit Pokalvitrine, Gruppentische in 7b/9c, Abkürzungstüren (5a↔7b, Halle↔Bibliothek, Mensa↔Lehrerzimmer, Chemie↔9c) |
+| Sporthalle | 52 × 40 m | große Turnhalle (Körbe, Matten, Kästen, Sprossenwände), Geräteraum, Umkleide |
+| Altbau | 44 × 36 m | eng und verwinkelt, Seitengang zu Lehrerzimmer, Chemie und 8a |
+| Pausenhof | 50 × 44 m | grüner Innenhof mit Bäumen und Tischtennisplatten, alle Räume hängen am Hof, kleine Turnhalle |
+
+Neue Raumtypen: `turnhalle`, `geraete`, `umkleide`, `musik`, `hof`. Neue Möbel (Blender, `blender/schule_bauen.py`): Basketballkorb, Turnmatte, Kasten, Ballwagen, Sprossenwand, Klavier, Schlagzeug, Notenständer, Gitarre, Tischtennisplatte, Pokalvitrine, Gruppentisch.
+
 ### Wie sich die Lehrer verhalten
 - **Alltag:** Jeder Lehrer hat Lieblingsräume und geht dort natürlich von Platz zu Platz. Er sitzt am Pult,
   schreibt an die Tafel, redet vor der Klasse, liest am Regal, trinkt Kaffee im Lehrerzimmer, isst in der

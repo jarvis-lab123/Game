@@ -326,6 +326,25 @@ func _start() -> void:
 	rechts.add_child(_knopf("KÄMPFER", Color("#8E7DBE"), 54, func(): zeigen("kaempfer")))
 	var boxen_knopf := _knopf("LAPTOPS", Color("#FF9F1C"), 54, func(): zeigen("boxen"))
 	rechts.add_child(boxen_knopf)
+	# Kartenauswahl: Klick wechselt zur nächsten Karte
+	var karten := Schule.alle_karten()
+	if karten.size() > 0:
+		var akt := Schule.karte_laden(Konto.karte)
+		var karten_info := _label(str(akt.get("info", "")), 22, Color(1, 1, 1, 0.85), 6)
+		karten_info.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		karten_info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		karten_info.custom_minimum_size = Vector2(560, 0)
+		var karten_knopf: Button
+		karten_knopf = _knopf("KARTE: %s  ▶" % str(akt.get("name", "")).to_upper(), Color("#3A7BD5"), 40, func():
+			var ids: Array = karten.map(func(k): return k["id"])
+			var i := (ids.find(Schule.karte_laden(Konto.karte)["id"]) + 1) % ids.size()
+			Konto.karte = ids[i]
+			Schule.karte_id = ids[i]
+			Konto.speichern()
+			karten_knopf.text = "KARTE: %s  ▶" % str(karten[i]["name"]).to_upper()
+			karten_info.text = str(karten[i].get("info", "")))
+		rechts.add_child(karten_info)
+		rechts.add_child(karten_knopf)
 	var spiel := _knopf("KÄMPFEN!", Color("#2EC4B6"), 80, _starten)
 	spiel.custom_minimum_size = Vector2(0, 140)
 	rechts.add_child(spiel)

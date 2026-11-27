@@ -7,34 +7,34 @@ extends Arena
 const Z := 0.5                    # Raster für die Wegfindung (m)
 const WAND_H := 1.35              # Wände sind abgeschnitten (Puppenhaus-Ansicht von oben)
 const WAND_D := 0.3
-const BREITE := 80.0
-const TIEFE := 56.0
-const URSPRUNG := Vector3(-40, 0, -28)   # Plan-Koordinaten (0..80, 0..56) -> Welt
+const KARTEN_DATEI := "res://daten/karten.json"
 
-# ---------------------------------------------------------------- Raumplan (Meter, x nach rechts, z nach unten)
-# typ bestimmt Möbel und Tätigkeiten. boden = Farben (a, b) und Kachelgröße.
-const RAEUME := [
-	{"id": "klasse_5a", "name": "Klasse 5a", "typ": "klasse", "r": [0, 0, 18, 24], "boden": ["#9CC5E8", "#8DB8DE", 1.0]},
-	{"id": "klasse_7b", "name": "Klasse 7b", "typ": "klasse", "r": [18, 0, 36, 24], "boden": ["#A8D8B9", "#97CBA9", 1.0]},
-	{"id": "halle", "name": "Eingangshalle", "typ": "halle", "r": [36, 0, 44, 24], "boden": ["#C9A77C", "#B8966B", 2.0]},
-	{"id": "bibliothek", "name": "Bibliothek", "typ": "bibliothek", "r": [44, 0, 80, 24], "boden": ["#C99C6B", "#BE8F5D", 0.8]},
-	{"id": "gang", "name": "Hauptgang", "typ": "gang", "r": [0, 24, 80, 30], "boden": ["#9FA8BC", "#8E97AC", 1.5]},
-	{"id": "mensa", "name": "Mensa", "typ": "mensa", "r": [0, 30, 30, 56], "boden": ["#F2C6A0", "#EAB98E", 1.2]},
-	{"id": "lehrerzimmer", "name": "Lehrerzimmer", "typ": "lehrerzimmer", "r": [30, 30, 46, 46], "boden": ["#B9A3D6", "#AD95CC", 1.0]},
-	{"id": "sekretariat", "name": "Sekretariat", "typ": "sekretariat", "r": [30, 46, 46, 56], "boden": ["#F5B7C5", "#EFA6B7", 1.0]},
-	{"id": "chemie", "name": "Chemieraum", "typ": "klasse", "r": [46, 30, 64, 56], "boden": ["#F0E3A0", "#E6D78E", 1.0]},
-	{"id": "klasse_9c", "name": "Klasse 9c", "typ": "klasse", "r": [64, 30, 80, 56], "boden": ["#F2B5A0", "#E9A48E", 1.0]},
-]
-# Türöffnungen: Wand entlang x (bei z) oder entlang z (bei x), Mitte + Breite
-const TUEREN := [
-	{"z": 24, "mitte": 9, "breite": 2.6}, {"z": 24, "mitte": 27, "breite": 2.6},
-	{"z": 24, "mitte": 40, "breite": 8.0},                                  # Halle offen zum Gang
-	{"z": 24, "mitte": 52, "breite": 3.0}, {"z": 24, "mitte": 72, "breite": 3.0},
-	{"z": 30, "mitte": 8, "breite": 3.6}, {"z": 30, "mitte": 22, "breite": 3.6},
-	{"z": 30, "mitte": 38, "breite": 2.6}, {"z": 46, "mitte": 38, "breite": 2.4},
-	{"z": 30, "mitte": 55, "breite": 2.6}, {"z": 30, "mitte": 72, "breite": 2.6},
-	{"z": 0, "mitte": 40, "breite": 4.0},                                   # Haupteingang (außen, Spielerstart)
-]
+## gewählte Karte (wird im Menü gesetzt und in Konto gespeichert)
+static var karte_id := "schulkomplex"
+
+var karten_daten := {}
+var karte_b := 80.0               # Breite der Karte (m)
+var karte_t := 56.0               # Tiefe der Karte (m)
+var ursprung := Vector3(-40, 0, -28)   # Plan-Koordinaten (0..b, 0..t) -> Welt
+var RAEUME: Array = []
+var TUEREN: Array = []
+var _eingang := Vector2(40, 0)
+
+
+static func alle_karten() -> Array:
+	var d = JSON.parse_string(FileAccess.get_file_as_string(KARTEN_DATEI))
+	if typeof(d) != TYPE_DICTIONARY:
+		return []
+	return d.get("karten", [])
+
+
+static func karte_laden(id: String) -> Dictionary:
+	var alle := alle_karten()
+	for k in alle:
+		if k["id"] == id:
+			return k
+	return alle[0] if alle.size() > 0 else {}
+
 
 var regeln := {}
 var lehrer_liste: Array = []
@@ -62,8 +62,17 @@ func _ready() -> void:
 	var r = JSON.parse_string(FileAccess.get_file_as_string("res://daten/regeln.json"))
 	regeln = r.get("schule", {}) if typeof(r) == TYPE_DICTIONARY else {}
 	_leben_uebrig = int(regeln.get("leben", 1))
-	breite = int(BREITE / Z)
-	hoehe = int(TIEFE / Z)
+	karten_daten = karte_laden(karte_id)
+	karte_b = float(karten_daten.get("breite", 80))
+	karte_t = float(karten_daten.get("tiefe", 56))
+	ursprung = Vector3(-karte_b / 2.0, 0, -karte_t / 2.0)
+	RAEUME = karten_daten.get("raeume", [])
+	TUEREN = karten_daten.get("tueren", [])
+	for t in TUEREN:
+		if t.get("eingang", false):
+			_eingang = Vector2(float(t["mitte"]), float(t.get("z", 0)))
+	breite = int(karte_b / Z)
+	hoehe = int(karte_t / Z)
 	_astar.region = Rect2i(0, 0, breite, hoehe)
 	_astar.cell_size = Vector2.ONE
 	_astar.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_ONLY_IF_NO_OBSTACLES
@@ -84,20 +93,20 @@ func _ready() -> void:
 
 # ---------------------------------------------------------------- Koordinaten
 func plan(x: float, z: float) -> Vector3:
-	return URSPRUNG + Vector3(x, 0, z)
+	return ursprung + Vector3(x, 0, z)
 
 
 func kachel_von(p: Vector3) -> Vector2i:
-	var q := p - URSPRUNG
+	var q := p - ursprung
 	return Vector2i(floori(q.x / Z), floori(q.z / Z))
 
 
 func kachel_mitte(c: int, r: int) -> Vector3:
-	return URSPRUNG + Vector3((c + 0.5) * Z, 0, (r + 0.5) * Z)
+	return ursprung + Vector3((c + 0.5) * Z, 0, (r + 0.5) * Z)
 
 
 func halb_groesse() -> Vector2:
-	return Vector2(BREITE / 2.0, TIEFE / 2.0)
+	return Vector2(karte_b / 2.0, karte_t / 2.0)
 
 
 func ist_busch(_p: Vector3) -> bool:
@@ -105,7 +114,7 @@ func ist_busch(_p: Vector3) -> bool:
 
 
 func raum_bei(p: Vector3) -> Dictionary:
-	var q := p - URSPRUNG
+	var q := p - ursprung
 	for r in RAEUME:
 		var a: Array = r["r"]
 		if q.x >= a[0] and q.x < a[2] and q.z >= a[1] and q.z < a[3]:
@@ -176,9 +185,9 @@ func _umgebung_schule() -> void:
 	rng.seed = 7
 	for i in 60:
 		var p := Vector3(rng.randf_range(-70, 70), 0, rng.randf_range(-55, 55))
-		if absf(p.x) < BREITE / 2 + 3 and absf(p.z) < TIEFE / 2 + 3:
+		if absf(p.x) < karte_b / 2 + 3 and absf(p.z) < karte_t / 2 + 3:
 			continue
-		if absf(p.x) < 4 and p.z < 0:
+		if absf(p.x - plan(_eingang.x, 0).x) < 4 and p.z < 0:
 			continue  # Weg zum Eingang frei
 		var baum := _setze("Baum" if rng.randf() < 0.7 else "Fels", p, rng.randf() * TAU, rng.randf_range(0.9, 1.5))
 		if baum:
@@ -214,7 +223,12 @@ func _raeume_bauen() -> void:
 		add_child(schild)
 		schild.position = plan((a[0] + a[2]) / 2.0, (a[1] + a[3]) / 2.0) + Vector3(0, 0.02, 0)
 		if r["typ"] == "gang":
-			schild.position = plan(20, 27) + Vector3(0, 0.02, 0)
+			if (a[2] - a[0]) >= (a[3] - a[1]):
+				schild.position = plan(a[0] + minf(20.0, (a[2] - a[0]) / 2.0), (a[1] + a[3]) / 2.0) + Vector3(0, 0.02, 0)
+				schild.font_size = 110
+			else:
+				schild.rotation_degrees = Vector3(-90, 90, 0)
+				schild.font_size = 110
 	_waende_bauen()
 	for r in RAEUME:
 		_moeblieren(r)
@@ -240,9 +254,9 @@ func _waende_bauen() -> void:
 		var lage := float(teile[1])
 		var stuecke := _zusammenfassen(linien[schl])
 		for t in TUEREN:
-			if (achse == "x" and t.has("z") and float(t["z"]) == lage):
+			if (achse == "x" and t.has("z") and float(t["z"]) == lage) or (achse == "z" and t.has("x") and float(t["x"]) == lage):
 				stuecke = _ausschneiden(stuecke, float(t["mitte"]) - float(t["breite"]) / 2.0, float(t["mitte"]) + float(t["breite"]) / 2.0)
-		var aussenwand := (achse == "x" and (lage == 0.0 or lage == TIEFE)) or (achse == "z" and (lage == 0.0 or lage == BREITE))
+		var aussenwand := (achse == "x" and (lage == 0.0 or lage == karte_t)) or (achse == "z" and (lage == 0.0 or lage == karte_b))
 		for s in stuecke:
 			var laenge: float = s[1] - s[0]
 			if laenge < 0.05:
@@ -343,9 +357,14 @@ func _moebel_setzen(name: String, x: float, z: float, drehung := 0.0, kollision 
 	return m
 
 
-func _tuer_an_kante(z_kante: float, x0: float, x1: float) -> bool:
+func _tuer_pos(t: Dictionary) -> Vector3:
+	return plan(float(t["mitte"]), float(t["z"])) if t.has("z") else plan(float(t["x"]), float(t["mitte"]))
+
+
+## Liegt an einer Kante (Wand) eine Tür? achse "z" = waagrechte Wand bei z, "x" = senkrechte Wand bei x
+func _tuer_an(achse: String, lage: float, von: float, bis: float) -> bool:
 	for t in TUEREN:
-		if t.has("z") and float(t["z"]) == z_kante and float(t["mitte"]) > x0 and float(t["mitte"]) < x1:
+		if t.has(achse) and float(t[achse]) == lage and float(t["mitte"]) > von and float(t["mitte"]) < bis:
 			return true
 	return false
 
@@ -353,7 +372,7 @@ func _tuer_an_kante(z_kante: float, x0: float, x1: float) -> bool:
 func _vor_tuer(pos: Vector3, box: AABB) -> bool:
 	var halb := maxf(box.size.x, box.size.z) / 2.0
 	for t in TUEREN:
-		var tp := plan(float(t["mitte"]), float(t["z"]))
+		var tp := _tuer_pos(t)
 		var frei := float(t["breite"]) / 2.0 + 1.6
 		if Vector2(pos.x - tp.x, pos.z - tp.z).length() < halb + frei * 0.8:
 			return true
@@ -364,6 +383,39 @@ func _platz(x: float, z: float, blick: Vector3, anim: String, raum: String, mini
 	_plaetze.append({"pos": plan(x, z), "blick": blick, "anim": anim, "raum": raum, "min": minimum, "max": maximum, "belegt": null})
 
 
+func _verteilen(von: float, bis: float, n: int) -> Array:
+	## n Mittelpunkte gleichmäßig zwischen von und bis
+	var out: Array = []
+	for i in n:
+		out.append(von + (i + 0.5) * (bis - von) / float(n))
+	return out
+
+
+func _blick_rot(von: Vector3, nach: Vector3) -> float:
+	## Drehung, damit "vorne" (+Z) von 'von' nach 'nach' zeigt
+	var f := nach - von
+	return atan2(f.x, f.z)
+
+
+func _linie(mitte: Vector3, groesse: Vector2, farbe := Color(1, 1, 1, 0.75)) -> void:
+	## flache Bodenlinie (Spielfeld-Markierung)
+	var m := MeshInstance3D.new()
+	var b := BoxMesh.new()
+	b.size = Vector3(groesse.x, 0.01, groesse.y)
+	m.mesh = b
+	m.material_override = Toon.unschattiert(farbe, true)
+	add_child(m)
+	m.position = mitte + Vector3(0, 0.012, 0)
+
+
+func _baum(x: float, z: float, skala := 1.0) -> void:
+	var b := _setze("Baum", plan(x, z), randf() * TAU, skala)
+	if b:
+		_baeume.append(b)
+		_kollision(plan(x, z) + Vector3(0, 1, 0), Vector3(0.6, 2, 0.6) * skala, 1)
+		_sperren(plan(x, z), Vector3(0.6, 1, 0.6) * skala)
+
+
 func _moeblieren(r: Dictionary) -> void:
 	var a: Array = r["r"]
 	var x0: float = a[0]
@@ -371,136 +423,300 @@ func _moeblieren(r: Dictionary) -> void:
 	var x1: float = a[2]
 	var z1: float = a[3]
 	var w := x1 - x0
+	var d := z1 - z0
+	var mx := (x0 + x1) / 2.0
+	var mz := (z0 + z1) / 2.0
 	var id: String = r["id"]
 	var N := Vector3(0, 0, -1)
 	var S := Vector3(0, 0, 1)
 	var O := Vector3(1, 0, 0)
 	var W := Vector3(-1, 0, 0)
+	# Vorderwand (Tafel) immer gegenüber einer Tür oben
+	var oben := _tuer_an("z", z0, x0, x1)
+	var zf := func(dd: float) -> float: return z1 - dd if oben else z0 + dd
+	var dreh := PI if oben else 0.0
+	var vorn := N if not oben else S
+	var hinten := S if not oben else N
+	# Tafel-Position: Mitte der Vorderwand, außer dort ist eine Tür
+	var front_z := z1 - 0.25 if oben else z0 + 0.25
+	var tafel_box: AABB = _moebel.get_node("Tafel").get_aabb() if _moebel.has_node("Tafel") else AABB()
+	for kand in [mx, mx - 4.0, mx + 4.0, mx - 5.0, mx + 5.0, x0 + w * 0.25, x0 + w * 0.75]:
+		if kand - 1.75 >= x0 and kand + 1.75 <= x1 and not _vor_tuer(plan(kand, front_z), tafel_box):
+			mx = kand
+			break
+	var tafel_x := mx
+	mx = (x0 + x1) / 2.0
 	match r["typ"]:
 		"klasse":
-			# Tafel immer an die Wand gegenüber der Tür (sonst wäre der Eingang zugestellt)
-			var oben := _tuer_an_kante(z0, x0, x1)
-			var zf := func(d: float) -> float: return z1 - d if oben else z0 + d
-			var dreh := PI if oben else 0.0
-			var vorn := N if not oben else S       # Richtung zur Tafel
-			var hinten := S if not oben else N
-			var mx := (x0 + x1) / 2.0
+			mx = tafel_x
 			_moebel_setzen("Tafel", mx, zf.call(0.25), dreh)
 			_moebel_setzen("Lehrerpult", mx, zf.call(2.6), PI + dreh)
 			_moebel_setzen("Stuhl", mx - 0.3, zf.call(1.7), dreh, false)
 			_platz(mx - 0.3, zf.call(1.7), hinten, "Sit", id, 8, 18)          # am Pult sitzen
 			_platz(mx - 0.8, zf.call(1.0), vorn, "Talk", id, 6, 12)           # an die Tafel schreiben
 			_platz(mx + 1.0, zf.call(3.6), hinten, "Talk", id, 6, 14)         # vor der Klasse reden
-			var spalten := int((w - 3.0) / 3.0)
-			for c in spalten:
-				var bx := x0 + 2.2 + c * ((w - 4.4) / maxf(spalten - 1, 1))
-				for rr in 4:
-					var bz: float = zf.call(6.5 + rr * 3.6)
-					_moebel_setzen("Schulbank", bx, bz, PI + dreh)
-					_moebel_setzen("Stuhl", bx, bz + (0.75 if not oben else -0.75), PI + dreh, false)
-				_platz(bx + 0.9, zf.call(9.0), W, "", id, 4, 8)               # durch die Reihen gehen
-			_moebel_setzen("Buecherregal", x1 - 0.4, (z0 + z1) / 2.0, -PI / 2)
-			_platz(x1 - 1.3, (z0 + z1) / 2.0, O, "Read", id, 6, 12)
+			if r.get("sitzordnung", "reihen") == "gruppen":
+				var spalten := clampi(int((w - 3.0) / 3.8), 1, 4)
+				var reihen := clampi(int((d - 7.6) / 3.8) + 1, 1, 3)
+				for gx in _verteilen(x0 + 1.2, x1 - 1.6, spalten):
+					for rr in reihen:
+						var gz: float = zf.call(6.4 + rr * 3.8)
+						_moebel_setzen("Gruppentisch", gx, gz, randf_range(-0.15, 0.15))
+						for s in [[0.0, 0.95, PI], [0.0, -0.95, 0.0], [0.95, 0.0, -PI / 2], [-0.95, 0.0, PI / 2]]:
+							_moebel_setzen("Stuhl", gx + s[0], gz + s[1], s[2], false)
+					_platz(gx + 1.6, zf.call(7.5), W, "", id, 4, 8)
+			else:
+				var spalten := clampi(int((w - 3.0) / 3.0), 1, 5)
+				var reihen := clampi(int((d - 7.5) / 3.4) + 1, 1, 4)
+				for c in spalten:
+					var bx := x0 + 2.2 + c * ((w - 4.4) / maxf(spalten - 1, 1)) if spalten > 1 else mx
+					for rr in reihen:
+						var bz: float = zf.call(6.0 + rr * 3.4)
+						_moebel_setzen("Schulbank", bx, bz, PI + dreh)
+						_moebel_setzen("Stuhl", bx, bz + (0.75 if not oben else -0.75), PI + dreh, false)
+					_platz(bx + 0.9, zf.call(7.5), W, "", id, 4, 8)               # durch die Reihen gehen
+			_moebel_setzen("Buecherregal", x1 - 0.4, mz, -PI / 2)
+			_platz(x1 - 1.3, mz, O, "Read", id, 6, 12)
 			_moebel_setzen("Pflanze", x0 + 0.8, zf.call(0.8))
-			_moebel_setzen("Pflanze", x1 - 0.8, zf.call((z1 - z0) - 0.8))
-			_moebel_setzen("Muelleimer", x0 + 0.7, zf.call((z1 - z0) - 0.7))
+			_moebel_setzen("Pflanze", x1 - 0.8, zf.call(d - 0.8))
+			_moebel_setzen("Muelleimer", x0 + 0.7, zf.call(d - 0.7))
 			if id == "chemie":
 				_moebel_setzen("Kopierer", x0 + 1.0, zf.call(3.5), PI / 2)
 		"bibliothek":
-			for reihe in 3:
-				for spalte in 5:
-					var bx := x0 + 4 + spalte * 3.2
-					var bz := z0 + 3.5 + reihe * 4.6
+			var rechts := x0 + w * 0.62
+			var spalten := clampi(int((rechts - x0 - 3.0) / 3.2) + 1, 1, 5)
+			var reihen := clampi(int((d - 5.0) / 4.6) + 1, 1, 3)
+			for reihe in reihen:
+				for spalte in spalten:
+					var bx := x0 + 3.0 + spalte * 3.2
+					var bz := z0 + 3.0 + reihe * 4.6
 					_moebel_setzen("Buecherregal", bx, bz)
 					_moebel_setzen("Buecherregal", bx, bz + 0.5, PI)
 					if (reihe + spalte) % 2 == 0:
 						_platz(bx, bz + 1.6, N, "Read", id, 6, 14)
-			for i in 3:
-				var tx := x0 + 23 + (i % 2) * 6
-				var tz := z0 + 4 + i * 6
+			var tische := clampi(int((d - 4.0) / 5.0) + 1, 1, 3)
+			for i in tische:
+				var tx := rechts + 1.6 + (i % 2) * minf(3.0, (x1 - rechts) - 4.5)
+				var tz := z0 + 3.0 + i * 5.0
 				_moebel_setzen("Lesetisch", tx, tz)
 				_moebel_setzen("Stuhl", tx, tz + 1.1, PI, false)
 				_moebel_setzen("Stuhl", tx - 1.1, tz, PI / 2, false)
 				_platz(tx, tz + 1.1, N, "Sit", id, 8, 18)
-			_moebel_setzen("Lehrerpult", x1 - 4, z1 - 2.5, PI)      # Ausleihe
-			_platz(x1 - 4, z1 - 3.4, S, "Talk", id, 6, 14)
-			_moebel_setzen("Sitzsack", x1 - 2, z0 + 2, 0.0, false)
-			_moebel_setzen("Sitzsack", x1 - 3.5, z0 + 1.6, 0.5, false)
+			_moebel_setzen("Lehrerpult", x1 - 1.3, z1 - 2.6, -PI / 2)      # Ausleihe
+			_platz(x1 - 2.4, z1 - 2.6, O, "Talk", id, 6, 14)
+			if w >= 18:
+				_moebel_setzen("Sitzsack", x1 - 2, z0 + 2, 0.0, false)
+				_moebel_setzen("Sitzsack", x1 - 3.5, z0 + 1.6, 0.5, false)
 			_moebel_setzen("Pflanze", x0 + 1, z1 - 1)
-			_moebel_setzen("Pflanze", x1 - 1, z0 + 5)
+			_moebel_setzen("Pflanze", x1 - 1, z0 + 1)
 		"mensa":
-			_moebel_setzen("Theke", x0 + 1.0, (z0 + z1) / 2.0, PI / 2)
+			_moebel_setzen("Theke", x0 + 1.0, mz, PI / 2)
 			# Heil-Cookies vor der Essensausgabe
 			for dz in [-2.6, 2.8]:
-				_cookie_setzen(plan(x0 + 2.8, (z0 + z1) / 2.0 + dz))
-			_platz(x0 + 0.6, (z0 + z1) / 2.0 - 1.0, O, "Talk", id, 8, 16)   # Essensausgabe
-			_platz(x0 + 0.6, (z0 + z1) / 2.0 + 1.2, O, "", id, 6, 12)
-			for rr in 4:
-				for c in 3:
-					var tx := x0 + 7 + c * 7.5
-					var tz := z0 + 4 + rr * 5.5
+				_cookie_setzen(plan(x0 + 2.8, mz + dz))
+			_platz(x0 + 0.6, mz - 1.0, O, "Talk", id, 8, 16)   # Essensausgabe
+			_platz(x0 + 0.6, mz + 1.2, O, "", id, 6, 12)
+			var links := x0 + 5.5
+			var rand := x1 - 1.8
+			var spalten := clampi(int((rand - links) / 4.5), 1, 3)
+			var reihen := clampi(int((d - 2.0) / 4.4), 1, 4)
+			var c := 0
+			for tx in _verteilen(links, rand, spalten):
+				var rr := 0
+				for tz in _verteilen(z0 + 1.0, z1 - 1.0, reihen):
 					_moebel_setzen("Mensatisch", tx, tz)
 					_moebel_setzen("Bank", tx, tz - 0.9, 0.0, false)
 					_moebel_setzen("Bank", tx, tz + 0.9, 0.0, false)
 					if (rr + c) % 2 == 0:
 						_platz(tx - 0.8, tz - 0.9, S, "Sit", id, 10, 20)
+					rr += 1
+				c += 1
 			_moebel_setzen("Getraenkeautomat", x1 - 1.0, z0 + 1.5, -PI / 2)
 			_platz(x1 - 2.2, z0 + 1.5, O, "", id, 4, 8)
 			_moebel_setzen("Muelleimer", x1 - 1.0, z1 - 1.0)
 			_moebel_setzen("Pflanze", x0 + 1.0, z1 - 1.0)
 		"lehrerzimmer":
-			var mx2 := (x0 + x1) / 2.0
-			var mz2 := (z0 + z1) / 2.0 + 0.5
-			_moebel_setzen("Konferenztisch", mx2, mz2)
+			var mz2 := mz + 0.5
+			_moebel_setzen("Konferenztisch", mx, mz2)
 			for i in 3:
-				_moebel_setzen("Stuhl", mx2 - 1.1 + i * 1.1, mz2 - 1.05, 0.0, false)
-				_moebel_setzen("Stuhl", mx2 - 1.1 + i * 1.1, mz2 + 1.05, PI, false)
-			_platz(mx2 - 1.1, mz2 - 1.05, S, "Sit", id, 10, 20)
-			_platz(mx2 + 1.1, mz2 + 1.05, N, "Sit", id, 10, 20)
-			_moebel_setzen("Kuechenzeile", x1 - 0.5, z0 + 4, -PI / 2)
-			_platz(x1 - 1.4, z0 + 3.5, O, "Talk", id, 6, 12)                 # Kaffee
-			_moebel_setzen("Sofa", x0 + 0.8, z1 - 3.5, PI / 2)
-			_platz(x0 + 1.0, z1 - 3.5, O, "Sit", id, 10, 20)
+				_moebel_setzen("Stuhl", mx - 1.1 + i * 1.1, mz2 - 1.05, 0.0, false)
+				_moebel_setzen("Stuhl", mx - 1.1 + i * 1.1, mz2 + 1.05, PI, false)
+			_platz(mx - 1.1, mz2 - 1.05, S, "Sit", id, 10, 20)
+			_platz(mx + 1.1, mz2 + 1.05, N, "Sit", id, 10, 20)
+			var kz := z0 + minf(4.0, d * 0.3 + 0.5)
+			_moebel_setzen("Kuechenzeile", x1 - 0.5, kz, -PI / 2)
+			_platz(x1 - 1.4, kz - 0.5, O, "Talk", id, 6, 12)                 # Kaffee
+			var sz := z1 - minf(3.5, d * 0.3)
+			_moebel_setzen("Sofa", x0 + 0.8, sz, PI / 2)
+			_platz(x0 + 1.0, sz, O, "Sit", id, 10, 20)
 			_moebel_setzen("Kopierer", x0 + 1.0, z0 + 1.5, PI / 2)
 			_platz(x0 + 2.0, z0 + 1.5, W, "", id, 5, 10)
 			_moebel_setzen("Pflanze", x1 - 0.8, z1 - 0.8)
-			_moebel_setzen("Pinnwand", (x0 + x1) / 2.0 + 3, z0 + 0.25)
+			_moebel_setzen("Pinnwand", mx + minf(3.0, w / 2.0 - 1.5), z0 + 0.25)
 		"sekretariat":
-			var mx3 := (x0 + x1) / 2.0
-			_moebel_setzen("Lehrerpult", mx3, z0 + 5.5)
-			_moebel_setzen("Stuhl", mx3 + 0.3, z0 + 6.4, PI, false)
-			_platz(mx3 + 0.3, z0 + 6.4, N, "Sit", id, 10, 20)
+			_moebel_setzen("Lehrerpult", mx, z0 + 5.5)
+			_moebel_setzen("Stuhl", mx + 0.3, z0 + 6.4, PI, false)
+			_platz(mx + 0.3, z0 + 6.4, N, "Sit", id, 10, 20)
 			_moebel_setzen("Kopierer", x1 - 1.0, z1 - 1.5, -PI / 2)
 			_platz(x1 - 2.0, z1 - 1.5, O, "", id, 5, 10)
 			_moebel_setzen("Buecherregal", x0 + 0.4, z0 + 5, PI / 2)
 			_moebel_setzen("Pflanze", x0 + 0.8, z1 - 0.8)
 		"gang":
-			var x := x0 + 1.5
-			while x < x1 - 2:
-				var frei := true
-				for t in TUEREN:
-					if absf(float(t["mitte"]) - x) < float(t["breite"]) / 2.0 + 1.2:
-						frei = false
-				if frei:
-					if int(x) % 7 < 4:
-						_moebel_setzen("Spinde", x + 0.8, z0 + 0.45)
-					else:
-						_moebel_setzen("Bank", x + 0.8, z1 - 0.45)
-				x += 3.4
-			for px in [6.0, 18.0, 33.0, 46.0, 62.0, 76.0]:
-				_platz(px, (z0 + z1) / 2.0, N, "", id, 2, 5)     # Gang-Aufsicht: auf und ab gehen
-			_moebel_setzen("Pinnwand", 33.0, z1 - 0.2, PI)
-			_platz(33.0, z1 - 1.3, S, "Read", id, 5, 10)
-			_moebel_setzen("Pflanze", x0 + 0.8, (z0 + z1) / 2.0)
-			_moebel_setzen("Pflanze", x1 - 0.8, (z0 + z1) / 2.0)
+			if w >= d:
+				var x := x0 + 1.5
+				while x < x1 - 2:
+					if not _tuer_nahe(x + 0.8, z0, z1, true):
+						if int(x) % 7 < 4:
+							_moebel_setzen("Spinde", x + 0.8, z0 + 0.45)
+						else:
+							_moebel_setzen("Bank", x + 0.8, z1 - 0.45)
+					x += 3.4
+				for px in _verteilen(x0 + 2.0, x1 - 2.0, maxi(1, int(w / 13.0))):
+					_platz(px, mz, N, "", id, 2, 5)     # Gang-Aufsicht: auf und ab gehen
+				var pin := x0 + w * 0.41
+				_moebel_setzen("Pinnwand", pin, z1 - 0.2, PI)
+				_platz(pin, z1 - 1.3, S, "Read", id, 5, 10)
+				_moebel_setzen("Pflanze", x0 + 0.8, mz)
+				_moebel_setzen("Pflanze", x1 - 0.8, mz)
+			else:
+				var z := z0 + 1.5
+				while z < z1 - 2:
+					if not _tuer_nahe(z + 0.8, x0, x1, false):
+						if int(z) % 7 < 4:
+							_moebel_setzen("Spinde", x0 + 0.45, z + 0.8, PI / 2)
+						else:
+							_moebel_setzen("Bank", x1 - 0.45, z + 0.8, PI / 2)
+					z += 3.4
+				for pz in _verteilen(z0 + 2.0, z1 - 2.0, maxi(1, int(d / 8.0))):
+					_platz(mx, pz, S, "", id, 2, 5)
+				_moebel_setzen("Pflanze", mx, z1 - 0.8)
 		"halle":
-			_moebel_setzen("Pinnwand", x0 + 0.2, z0 + 8, PI / 2)
-			_moebel_setzen("Pinnwand", x1 - 0.2, z0 + 14, -PI / 2)
-			_moebel_setzen("Getraenkeautomat", x1 - 0.8, z0 + 4, -PI / 2)
+			_moebel_setzen("Pokalvitrine", x0 + 0.45, z0 + d * 0.3, PI / 2)
+			_platz(x0 + 1.5, z0 + d * 0.3, W, "Read", id, 5, 10)
+			_moebel_setzen("Pinnwand", x0 + 0.2, z0 + d * 0.62, PI / 2)
+			_moebel_setzen("Pinnwand", x1 - 0.2, z0 + d * 0.6, -PI / 2)
+			_moebel_setzen("Getraenkeautomat", x1 - 0.8, z0 + minf(4.0, d * 0.3), -PI / 2)
 			_moebel_setzen("Pflanze", x0 + 0.8, z0 + 1.0)
 			_moebel_setzen("Pflanze", x1 - 0.8, z0 + 1.0)
-			_moebel_setzen("Bank", x0 + 0.5, z0 + 18, PI / 2, false)
-			_platz(x0 + 1.3, z0 + 8, W, "Read", id, 5, 10)
+			if w >= 11:
+				_moebel_setzen("Sofa", x1 - 0.8, z0 + d * 0.8, -PI / 2)
+			_moebel_setzen("Bank", x0 + 0.5, z0 + d * 0.8, PI / 2, false)
+		"turnhalle":
+			# Spielfeld-Linien
+			var ri := 1.2
+			_linie(plan(mx, z0 + ri), Vector2(w - 2 * ri, 0.08))
+			_linie(plan(mx, z1 - ri), Vector2(w - 2 * ri, 0.08))
+			_linie(plan(x0 + ri, mz), Vector2(0.08, d - 2 * ri))
+			_linie(plan(x1 - ri, mz), Vector2(0.08, d - 2 * ri))
+			_linie(plan(mx, mz), Vector2(0.08, d - 2 * ri))
+			var kreis := MeshInstance3D.new()
+			var tm := TorusMesh.new()
+			tm.inner_radius = minf(2.4, d * 0.18)
+			tm.outer_radius = tm.inner_radius + 0.08
+			kreis.mesh = tm
+			kreis.material_override = Toon.unschattiert(Color(1, 1, 1, 0.75), true)
+			kreis.scale = Vector3(1, 0.05, 1)
+			add_child(kreis)
+			kreis.position = plan(mx, mz) + Vector3(0, 0.012, 0)
+			# Körbe an beiden Enden
+			_moebel_setzen("Basketballkorb", x0 + 0.6, mz, PI / 2)
+			_moebel_setzen("Basketballkorb", x1 - 0.6, mz, -PI / 2)
+			_platz(x0 + 3.0, mz + 1.5, W, "", id, 4, 8)
+			_platz(x1 - 3.0, mz - 1.5, O, "", id, 4, 8)
+			_platz(mx, mz + 2.5, N, "Talk", id, 6, 12)      # Pfeife im Mittelkreis
+			# Sprossenwände oben, Bänke unten
+			var anzahl := clampi(int((w - 8.0) / 3.0), 1, 6)
+			for sx in _verteilen(x0 + 4.0, x1 - 4.0, anzahl):
+				_moebel_setzen("Sprossenwand", sx, z0 + 0.15)
+			for bx in _verteilen(x0 + 3.0, x1 - 3.0, maxi(1, int(w / 7.0))):
+				_moebel_setzen("Bank", bx, z1 - 0.5)
+				_platz(bx, z1 - 1.0, N, "Sit", id, 8, 16)
+			# Matten und Kasten
+			for i in clampi(int(w / 10.0), 1, 3):
+				_moebel_setzen("Turnmatte", x0 + 4.5 + i * 3.0, z0 + 2.2, 0.0, false)
+			_moebel_setzen("Kasten", x1 - 4.5, z0 + 2.5)
+			if w >= 20:
+				_moebel_setzen("Kasten", x0 + 5.0, z1 - 3.0, 0.3)
+				_moebel_setzen("Ballwagen", x1 - 2.5, z1 - 2.5)
+		"geraete":
+			for i in 3:
+				var m := _moebel_setzen("Turnmatte", x1 - 1.4, z0 + 1.6, PI / 2, i == 0)
+				if m:
+					m.position.y = i * 0.21
+				var m2 := _moebel_setzen("Turnmatte", x1 - 1.4, z0 + 4.0, PI / 2, i == 0)
+				if m2:
+					m2.position.y = i * 0.21
+			_moebel_setzen("Kasten", x0 + 2.5, z0 + 1.5)
+			_moebel_setzen("Kasten", x0 + 2.5, z1 - 1.6, 0.2)
+			_moebel_setzen("Ballwagen", mx + 0.5, z1 - 1.4)
+			_platz(mx, mz, S, "", id, 4, 10)
+			_platz(x0 + 2.5, mz, O, "Read", id, 5, 10)
+		"umkleide":
+			var z := z0 + 1.2
+			while z < z1 - 1.0:
+				if not _tuer_nahe(z, x0, x1, false):
+					_moebel_setzen("Spinde", x1 - 0.3, z, -PI / 2)
+				z += 1.8
+			for bz in _verteilen(z0 + 2.0, z1 - 2.0, maxi(1, int(d / 5.0))):
+				_moebel_setzen("Bank", mx - 0.8, bz, PI / 2)
+				_platz(mx - 0.3, bz, W, "Sit", id, 8, 16)
+			_moebel_setzen("Muelleimer", x0 + 0.7, z1 - 0.7)
+			_platz(x1 - 1.4, mz, O, "", id, 4, 8)
+		"musik":
+			mx = tafel_x
+			_moebel_setzen("Tafel", mx, zf.call(0.25), dreh)
+			_moebel_setzen("Klavier", x0 + 1.4, zf.call(1.0), dreh)
+			_platz(x0 + 1.4, zf.call(1.75), vorn, "Sit", id, 10, 20)     # Klavier spielen
+			_moebel_setzen("Schlagzeug", x1 - 1.5, zf.call(1.4), dreh + PI)
+			_platz(mx, zf.call(1.6), hinten, "Talk", id, 6, 14)
+			var zentrum := plan(mx, zf.call(2.2))
+			var reihen := clampi(int((d - 5.0) / 1.8), 1, 3)
+			for rr in reihen:
+				var radius := 3.4 + rr * 1.7
+				var schritte := 4 + rr * 2
+				for i in schritte:
+					var winkel := lerpf(-0.95, 0.95, i / float(schritte - 1))
+					var off := Vector3(sin(winkel), 0, cos(winkel) * (1.0 if not oben else -1.0)) * radius
+					var p := zentrum + off
+					var q := p - ursprung
+					if q.x < x0 + 0.8 or q.x > x1 - 0.8 or q.z < z0 + 0.8 or q.z > z1 - 0.8:
+						continue
+					_moebel_setzen("Stuhl", q.x, q.z, _blick_rot(p, zentrum), false)
+					var st := p + (zentrum - p).normalized() * 0.7
+					var qs := st - ursprung
+					_moebel_setzen("Notenstaender", qs.x, qs.z, _blick_rot(zentrum, p), false)
+			_platz(mx + 2.0, zf.call(5.0), vorn, "Read", id, 6, 12)
+			_moebel_setzen("Gitarre", x1 - 0.5, zf.call(d * 0.6), -PI / 2, false)
+			_moebel_setzen("Gitarre", x1 - 0.5, zf.call(d * 0.6) + 0.8, -PI / 2, false)
+			_moebel_setzen("Pflanze", x0 + 0.8, zf.call(d - 0.8))
+		"hof":
+			for e in [[x0 + 3.0, z0 + 3.0], [x1 - 3.0, z0 + 3.5], [x0 + 3.5, z1 - 3.0], [x1 - 3.0, z1 - 3.0]]:
+				_baum(e[0], e[1], 1.1)
+			_moebel_setzen("Tischtennisplatte", mx - 2.5, mz + 0.5, PI / 2)
+			_platz(mx - 2.5, mz - 1.6, S, "", id, 5, 10)
+			_moebel_setzen("Tischtennisplatte", mx + 3.0, mz + 1.0, PI / 2)
+			for bx in [mx - 4.5, mx + 4.5]:
+				_moebel_setzen("Bank", bx, z0 + 1.0)
+				_platz(bx, z0 + 1.4, S, "Sit", id, 8, 16)
+			_moebel_setzen("Bank", x0 + 0.8, mz + 4.0, PI / 2)
+			_moebel_setzen("Muelleimer", x1 - 1.0, mz + 3.5)
+			for i in 4:
+				var bu := _setze("Busch", plan(x0 + 0.8 + (i % 2) * (w - 1.6), z0 + 7 + (i / 2) * 6.0), randf() * TAU, 0.9)
+				if bu:
+					_kollision(bu.position + Vector3(0, 0.5, 0), Vector3(1, 1, 1), 1)
+					_sperren(bu.position, Vector3(1, 1, 1))
+			for pp in [[mx, mz - 4.0], [x0 + 5.0, mz], [x1 - 5.0, mz], [mx, z1 - 3.0]]:
+				_platz(pp[0], pp[1], N, "", id, 3, 6)       # Pausenaufsicht
+
+
+## Ist an Position 'pos' (entlang des Gangs) eine Tür in einer der beiden Gangwände?
+func _tuer_nahe(pos: float, wand_a: float, wand_b: float, waagrecht: bool) -> bool:
+	var achse := "z" if waagrecht else "x"
+	for t in TUEREN:
+		if t.has(achse) and (float(t[achse]) == wand_a or float(t[achse]) == wand_b):
+			if absf(float(t["mitte"]) - pos) < float(t["breite"]) / 2.0 + 1.4:
+				return true
+	return false
 
 
 # ---------------------------------------------------------------- Aktivitäten
@@ -574,7 +790,7 @@ func _spieler_erzeugen() -> void:
 	k.regeneration = false   # Heilen nur mit dem Cookie in der Mensa
 	k.max_leben *= float(regeln.get("spieler_leben", 1.5))
 	k.leben = k.max_leben
-	k.spawn_punkt = plan(40, 2.5)
+	k.spawn_punkt = plan(_eingang.x, _eingang.y + 2.5)
 	k.global_position = k.spawn_punkt
 	k.blick = Vector3(0, 0, 1)
 	k.ausgeschaltet.connect(_bei_ko)
@@ -939,9 +1155,9 @@ func wueste_machen(ausloeser: Kaempfer = null) -> void:
 	rng.seed = 42
 	for i in 70:
 		var p := Vector3(rng.randf_range(-75, 75), 0, rng.randf_range(-58, 58))
-		if absf(p.x) < BREITE / 2 + 2 and absf(p.z) < TIEFE / 2 + 2:
+		if absf(p.x) < karte_b / 2 + 2 and absf(p.z) < karte_t / 2 + 2:
 			continue
-		if absf(p.x) < 4 and p.z < 0:
+		if absf(p.x - plan(_eingang.x, 0).x) < 4 and p.z < 0:
 			continue
 		if rng.randf() < 0.6:
 			_kaktus(p, rng.randf_range(0.8, 1.6), rng)
@@ -1041,9 +1257,9 @@ func _steppenlaeufer(rng: RandomNumberGenerator) -> void:
 	t.mesh = sm
 	t.material_override = Toon.farbig(Color("#A9814F"), 0.04)
 	add_child(t)
-	var z := rng.randf_range(-TIEFE / 2 - 8, TIEFE / 2 + 8)
-	if absf(z) < TIEFE / 2 + 2:
-		z = (TIEFE / 2 + 5) * (1 if z > 0 else -1)
+	var z := rng.randf_range(-karte_t / 2 - 8, karte_t / 2 + 8)
+	if absf(z) < karte_t / 2 + 2:
+		z = (karte_t / 2 + 5) * (1 if z > 0 else -1)
 	t.position = Vector3(-80, 0.45, z)
 	var tw := create_tween().set_loops()
 	tw.tween_property(t, "position:x", 80.0, rng.randf_range(14, 22)).from(-80.0)

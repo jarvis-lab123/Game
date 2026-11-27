@@ -8,6 +8,7 @@ var muenzen := 0
 var besitz := {}          # id -> {"stufe": int, "kopien": int}
 var auswahl := {}         # id -> {"gadget": int, "passiv": int}
 var pech_zaehler := 0     # Boxen ohne Charakter in Folge (für die Garantie)
+var karte := "schulkomplex"   # gewählte Karte im Schulmodus
 var gewaehlt := ""        # id des Charakters, mit dem man ins Match geht
 var statistik := {"siege": 0, "niederlagen": 0, "unentschieden": 0, "kos": 0, "boxen": 0}
 
@@ -55,6 +56,8 @@ func laden() -> void:
 			pech_zaehler = int(d.get("pech_zaehler", 0))
 			gewaehlt = str(d.get("gewaehlt", ""))
 			statistik.merge(d.get("statistik", {}), true)
+			karte = str(d.get("karte", "schulkomplex"))
+	Schule.karte_id = karte
 	_startcharaktere()
 
 
@@ -62,7 +65,7 @@ func speichern() -> void:
 	var f := FileAccess.open(DATEI, FileAccess.WRITE)
 	if f:
 		f.store_string(JSON.stringify({"muenzen": muenzen, "besitz": besitz, "auswahl": auswahl,
-			"pech_zaehler": pech_zaehler, "gewaehlt": gewaehlt, "statistik": statistik}, "  "))
+			"pech_zaehler": pech_zaehler, "gewaehlt": gewaehlt, "statistik": statistik, "karte": karte}, "  "))
 
 
 func zuruecksetzen() -> void:
