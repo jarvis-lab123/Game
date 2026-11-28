@@ -214,6 +214,20 @@ button:focus-visible{outline:2px solid var(--ink);outline-offset:3px;border-radi
 .addf .go .ok{background:var(--ink);color:#fff}
 .addf .go .no{color:var(--ink2)}
 .gin{width:68px;padding:5px 8px;font-family:var(--mono);font-size:14px;text-align:center}
+
+/* Plus-/Minuspunkte */
+.pts{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:22px}
+@media (max-width:700px){.pts{grid-template-columns:1fr}}
+.pts .num{font-family:var(--mono);font-weight:300;font-size:clamp(64px,18vw,96px);letter-spacing:-.06em;line-height:.85} .pts .num.low{color:var(--warn)} .pts .split{display:flex;gap:16px;margin-top:10px;font-family:var(--mono);font-size:14px}
+.pts .split b{font-weight:600}
+.prow{display:grid;grid-template-columns:minmax(0,1fr) 46px 58px;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line);font-size:14px}
+.prow .z{font-family:var(--mono);text-align:right;color:var(--ink2)}
+.prow .p{font-family:var(--mono);text-align:right;font-weight:600}
+.prow .p.m{color:var(--warn)} .prow .p.o{color:var(--ink3)}
+.prow small{display:block;color:var(--ink2);font-size:12px;margin-top:2px}
+.hebel{margin-top:14px;display:flex;flex-direction:column;gap:8px}
+.hebel div{background:var(--bg);border-radius:12px;padding:9px 12px;font-size:13.5px;line-height:1.4}
+.hebel b{font-family:var(--mono)}
 </style>
 </head>
 <body>
@@ -246,6 +260,7 @@ button:focus-visible{outline:2px solid var(--ink);outline-offset:3px;border-radi
     <h2>Noten <span>pro Fach, Ziel und was du brauchst</span></h2>
     <div class="cards">
       <div class="card full" id="avgCard"></div>
+      <div class="card full" id="ptsCard"></div>
       <div class="card full"><div class="hd"><b>Überblick</b><span class="lbl">Schnitt vs. Ziel</span></div><div id="overview"></div>
         <div class="legend"><span><i style="background:var(--ink)"></i>Schnitt</span><span><i style="background:#e9e9e5;border-radius:2px"></i>Wunschbereich</span><span><i style="border:1.5px dashed var(--warn);background:none"></i>Grenze 4</span></div></div>
     </div>
@@ -446,7 +461,7 @@ const g1 = v => Math.max(1, v).toFixed(2);
 
 function renderNoten(){
   const F = fachStats(), names = Object.keys(F).sort((a,b) => (F[a].avg ?? 9) - (F[b].avg ?? 9));
-  renderAvg(F);
+  renderAvg(F); renderPunkte(F);
   /* Überblick: Punkt-Diagramm */
   { const W = cw("#overview"), L = W < 480 ? 92 : 140, R = 30, rh = 30, top = 18, H = top + names.length*rh;
     const X = v => L + (v-1)/5 * (W-L-R);
@@ -477,6 +492,39 @@ function renderNoten(){
       </div>` : `<p class="note">Keine Prüfung mehr geplant.</p>`}
     </div>`; }).join("");
   document.querySelectorAll("#faecher .card").forEach(c => drawFach(c, F[c.dataset.fach], tgt(c.dataset.fach)));
+}
+
+/* Plus-/Minuspunkte: Zeugnisnote auf halbe gerundet; ab 4: +(n-4), unter 4: doppelt minus */
+const zr = v => Math.round(v*2)/2;
+const ptsOf = z => z >= 4 ? z - 4 : 2*(z - 4);
+const pfmt = p => (p > 0 ? "+" : p < 0 ? "−" : "±") + Math.abs(p).toString().replace(".5", "½").replace(/^0½/, "½");
+function renderPunkte(F){
+  const box = $("#ptsCard"); if (!box) return;
+  const rows = Object.entries(F).filter(([,f]) => f.avg !== null).map(([n,f]) => { const z = zr(f.avg); return { n, f, z, p: ptsOf(z) }; })
+    .sort((a,b) => a.p - b.p);
+  if (!rows.length){ box.innerHTML = `<div class="hd"><b>Plus- &amp; Minuspunkte</b></div><div class="empty">Noch keine Noten.</div>`; return; }
+  const plus = rows.reduce((a,r) => a + Math.max(0,r.p), 0), minus = rows.reduce((a,r) => a + Math.min(0,r.p), 0), bil = plus + minus;
+  /* Hebel: was brauchst du in den offenen Tests, damit das Fach eine Stufe besser wird (unter 4: direkt auf 4) */
+  const hb = rows.filter(r => r.f.up.length).map(r => { const goal = r.z < 4 ? 4 : r.z + .5, lo = goal - .25;
+      const need = (lo*(r.f.W + r.f.U) - r.f.S)/r.f.U; return { r, goal, need, gain: ptsOf(goal) - r.p }; })
+    .filter(h => h.need <= 6).sort((a,b) => (b.gain - a.gain) || (a.need - b.need)).slice(0,4);
+  const blind = rows.filter(r => r.p < 0 && !r.f.up.length).map(r => r.n);
+  const ohne = Object.entries(F).filter(([,f]) => f.avg === null).map(([n]) => n);
+  box.innerHTML = `<div class="pts">
+    <div>
+      <span class="lbl">Plus- &amp; Minuspunkte · Stand jetzt</span>
+      <div class="num ${bil < 0 ? "low" : "pos"}" style="margin-top:12px">${pfmt(bil)}</div>
+      <div class="sub">${bil >= 0 ? `<span class="chip ok">reicht</span>` : `<span class="chip bad">${pfmt(-bil).slice(1)} Punkte fehlen</span>`}<span class="chip">${rows.filter(r => r.z < 4).length} ungenügend</span></div>
+      <div class="split"><span>Plus <b>${pfmt(plus)}</b></span><span>Minus <b style="color:var(--warn)">${pfmt(minus)}</b></span></div>
+      <p class="note">4.5 = +½ · 5 = +1 · 5.5 = +1½ · 6 = +2<br>3.5 = −1 · 3 = −2 · 2.5 = −3 (unter 4 zählt doppelt)<br>Gerechnet mit Schnitt auf halbe gerundet. Ziel: Bilanz mindestens ±0.${ohne.length ? `<br>Noch ohne Note: ${esc(ohne.join(", "))}` : ""}</p>
+      ${hb.length ? `<span class="lbl" style="margin-top:16px;display:block">Grösste Hebel</span><div class="hebel">${hb.map(h =>
+        `<div><b>${esc(h.r.n)}</b>: ${h.r.f.up.length > 1 ? "Schnitt" : "Note"} <b>${g1(h.need)}</b> in ${h.r.f.up.length > 1 ? "den " + h.r.f.up.length + " offenen Tests" : esc(h.r.f.up[0].was)} → ${h.r.z.toFixed(1)} wird ${h.goal.toFixed(1)} = <b>${pfmt(h.gain)}</b></div>`).join("")}</div>` : ""}
+      ${blind.length ? `<p class="note" style="margin-top:10px">Noch kein Test eingetragen: ${esc(blind.join(", "))}. Termine an Claude schicken, dann rechnet der Plan mit.</p>` : ""}
+    </div>
+    <div>${rows.map(r => `<div class="prow" data-tip="${esc(r.n + "\nSchnitt " + r.f.avg.toFixed(2) + " → Zeugnis " + r.z.toFixed(1))}">
+        <span>${esc(r.n)}<small>Schnitt ${r.f.avg.toFixed(2)}${r.f.up.length ? " · " + r.f.up.length + " Test" + (r.f.up.length > 1 ? "s" : "") + " offen" : ""}</small></span>
+        <span class="z">${r.z.toFixed(1)}</span><span class="p ${r.p < 0 ? "m" : r.p === 0 ? "o" : ""}">${pfmt(r.p)}</span></div>`).join("")}</div>
+  </div>`;
 }
 
 function meanOf(F){ const v = Object.values(F).map(f => f.avg).filter(a => a !== null); return v.length ? v.reduce((a,b) => a+b, 0)/v.length : null; }

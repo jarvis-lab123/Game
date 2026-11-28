@@ -1,6 +1,6 @@
 {
   "_hinweis": "Wird von Claude gepflegt. Pruefungen, Noten, Lernplaene. done = erledigte Einheiten (id@datum).",
-  "stand": "2026-11-16",
+  "stand": "2026-11-28",
   "targets": {
     "Deutsch": 5,
     "Geschichte": 5
@@ -134,10 +134,11 @@
           "t": "Fehler korrigieren + Formelblatt aus dem Kopf"
         }
       ],
-      "status": "geschrieben",
+      "status": "note",
       "w": 1,
       "was": "Test 2 · Funktionen",
-      "zeit": "8:00–8:45"
+      "zeit": "8:00–8:45",
+      "note": 2.3
     },
     {
       "id": "deutsch-vortrag",
